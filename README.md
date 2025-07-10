@@ -40,8 +40,9 @@ npm install
    - Only one instance of the server can be running at a time.<sup id="a3">[[3]](#f3)</sup>
  - Client development: Manually build the client(s) changed, stop the server it is is running, then start the server (`run`).  The `run` script will re-assemble the environment to include your build.
  - To generate a release package for the OS you are using, edit the version number for the release in `app_config.env` then run<sup id="a1">[[1]](#f1)</sup> the `bundle_...` script.
- - To build a release or a test release:
-   1. [Run each workflow manually](https://docs.github.com/en/actions/how-tos/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow#running-a-workflow) (Actions > [select workflow] > Run workflow). The current main branch of client repo and resource at the time of running the workflow will be used.
+ - To generate artifacts:
+   1. [Run each workflow manually](https://docs.github.com/en/actions/how-tos/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow#running-a-workflow) (Actions > [select workflow] > Run workflow).
+      - The current main branch of client repo and resource at the time of running the workflow will be used.
    2. Download resulting artifacts (Actions > click the name of a run to see the workflow run summary > scroll down to the bottom to the Artifacts section > to download, click either the name of each artifact or the down arrow on each row
    3. Any double-compressed artifacts should have one layer uncompressed before release:
       - *.tgz.zip -> *.tgz
