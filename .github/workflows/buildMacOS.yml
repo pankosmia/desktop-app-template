@@ -87,14 +87,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PKG_NAME_ARM }}
-          path: |
-            ./macos/build/${{ env.PKG_NAME_ARM }}
-            ./macos/build/README.txt
+          path: ./macos/release/arm64/${{ env.PKG_NAME_ARM }}
 
       - name: Upload intel64 artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PKG_NAME_INTEL }}
-          path: |
-            ./macos/build/${{ env.PKG_NAME_INTEL }}
-            ./macos/build/README.txt
+          path: ./macos/release/intel64/${{ env.PKG_NAME_INTEL }}
+
+      - name: Upload README for arm64 and intel64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MacOS-PKG-README-arm64-and-intel64.txt
+          path: ./macos/build/README.txt

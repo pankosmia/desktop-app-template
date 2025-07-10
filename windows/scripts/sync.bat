@@ -70,7 +70,7 @@ for /l %%b in (1,1,%countb%) do (
 )
 REM This assumes the origin record will always be returned on an earlier line that the upstream record.
 REM Proceed if the origin is set.
-if "%origintest%"="good_if_not_changed" (
+if "%origintest%"=="good_if_not_changed" (
   REM Set the upstream and proceed if it is not yet set.
   if not defined vara2 (
     git remote add upstream https://github.com/pankosmia/desktop-app-template.git
