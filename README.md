@@ -1,7 +1,5 @@
-# desktop-app-template
-This template is designed to be forked for Desktop App repos built on Pankosmia.
-
-Choose a repo-name of 30 characters or less to prevent **Windows developers** from needing to clone to a shorter local repo name. The windows cargo build c compiler requires repos names of 30 characters or less.
+# desktop-app-pithekos
+This app is built on Pankosmia.
 
 ## Environment requirements for this repo
 
@@ -17,28 +15,22 @@ Tested on:
 <ul><pre>
 |-- repos
     |-- pankosmia
-        |-- [your-desktop-app-repo-name] <b><em>(30 characters or less on windows!)</em></b>
+        |-- desktop-app-pithekos <b><em>(30 characters or less on windows!)</em></b>
 </pre></ul>
 
-2. Replace all instances of "desktop-app-template" in packages.json with "[your-desktop-app-repo-name]" and update the name and description.
-3. At the root of your fork of this repo, run
+2. At the root of your clone of this repo, run
 
 <ul><pre>
 npm install
 </pre></ul>
 
-4. Edit app_config.env, entering the App Name, version number, theme, assets (might not change), and clients.
-5. `cd [os]/scripts`
-6. Run<sup id="a1">[[1]](#f1)</sup> the `clone` script to clone all repos listed in `app_config.env` (assets and clients)
-7. Run<sup id="a1">[[1]](#f1)</sup> the `app_setup` script to generate the config files to match `app_config.env`. Re-run<sup id="a1">[[1]](#f1)</sup> the `app_setup` script anytime `app_config.env` is modified.
-8. Run<sup id="a1">[[1]](#f1)</sup> the `build_clients` script to build all clients. Be patient. This will take a while.
+3. `cd [os]/scripts`
+4. Run<sup id="a1">[[1]](#f1)</sup> the `clone` script to clone all repos listed in `app_config.env` (assets and clients)
+5. Run<sup id="a1">[[1]](#f1)</sup> the `app_setup` script to generate the config files to match `app_config.env`. Re-run<sup id="a1">[[1]](#f1)</sup> the `app_setup` script anytime `app_config.env` is modified.
+6. Run<sup id="a1">[[1]](#f1)</sup> the `build_clients` script to build all clients. Be patient. This will take a while.
    - This script is intended for setting all clients up for <b>first use</b>, or for rebuilding <b>all</b> clients to their <b>latest main</b> branch. It changes to the main<sup id="a2">[[2]](#f2)</sup> branch, pulls the latest, and builds (or rebuilds) every client every time it is run.<br />
    - Build client manually when you want to use a branch or when you only need to rebuild one client or when you do not want all clients built from their latest main branch!
-9. Run<sup id="a1">[[1]](#f1)</sup> the `build_server` script to build the Pankosmia server and assemble the build environment. (be patient. This will also take a while.)
-10.  Plan at some point to customize this readme for your project.  At minimum:
-    - rewrite the top most "# desktop-app-template" section
-    - replace all instances of "[your-desktop-app-repo-name]" with your desktop app repo name"
-    - delete 2., 4., and 10., and re-number.
+7. Run<sup id="a1">[[1]](#f1)</sup> the `build_server` script to build the Pankosmia server and assemble the build environment. (be patient. This will also take a while.)
 
 ## Use
 
@@ -64,14 +56,14 @@ npm install
 
 ## Setup, Use, and Maintenance Footnotes
 [<b id="f1">1</b>] ...  Windows developers, run <b>.bat</b> scripts from a <b>Powershell or Command terminal</b>:<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_...repos\pankosmia\[your-desktop-app-repo-name]\windows\scripts>_ `.\[scriptname].bat`<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_...repos\pankosmia\desktop-app-pithekos\windows\scripts>_ `.\[scriptname].bat`<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Use a **powershell** terminal for the **.ps1** build scripts.
 <br />
 MacOS developers, run .bsh scripts from a **linux terminal**:<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_...repos/pankosmia/[your-desktop-app-repo-name]/linux/scripts>_ `./[scriptname].bsh`
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_...repos/pankosmia/desktop-app-pithekos/linux/scripts>_ `./[scriptname].bsh`
 <br />
 Linux developers, run .zsh scripts from a **MacOS terminal**:<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_...repos/pankosmia/[your-desktop-app-repo-name]/macos/scripts>_ `./[scriptname].zsh`
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_...repos/pankosmia/desktop-app-pithekos/macos/scripts>_ `./[scriptname].zsh`
 
 [<b id="f2">2</b>] ... The build script will fail on any clients set to a different branch with uncommitted changes or with conflicts vs, the latest main pull. Scroll back up in the terminal to find any build errors and address them.
 
@@ -92,7 +84,7 @@ This is an example. Clients in use may vary. Configuration is handled via `app_c
         |-- core-client-remote-repos repository
         |-- core-client-settings repository
         |-- core-client-workspace repository
-        |-- [your-desktop-app-repo-name] <b><em>(30 characters or less on windows!)</em></b>
+        |-- desktop-app-pithekos <b><em>(30 characters or less on windows!)</em></b>
         |-- resource-core
         |-- webfonts-core
 </pre>

@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "Pankosmia Desktop App Template",
-    "version": "0.2.10"
+    "name": "Pithekos",
+    "version": "0.3.0-rc1"
   },
   "bin": {
     "src": "../../local_server/target/release/local_server"
@@ -30,8 +30,7 @@
     "../../../core-client-i18n-editor",
     "../../../core-client-remote-repos",
     "../../../core-client-settings",
-    "../../../core-client-workspace",
-    "../../../xenizo-parallel-gospels"
+    "../../../core-client-workspace"
   ],
   "favIcon": "../../globalBuildResources/favicon.ico",
   "theme": "../../globalBuildResources/theme.json"
