@@ -39,6 +39,7 @@ fse.writeFileSync(
 // Copy and customize sh post-install script for pkg
 const postInstallSh = fse.readFileSync(path.join(MACOS_BUILD_RESOURCES, "post_install_script.sh"))
     .toString()
+    .replace(/%%APP_NAME%%/g, APP_NAME)
     .replace(/%%FILE_APP_NAME%%/g, FILE_APP_NAME);
 fse.writeFileSync(
     path.join(BUILD_DIR, "post_install_script.sh"),

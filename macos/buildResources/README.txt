@@ -80,7 +80,7 @@ First time use (not an upgrade) -- Follow either "PKG Installed Version" or "Zip
       10. Reconnect to http://localhost:19119 from Firefox (or an alternate web browser) as needed.
       11. To completely stop the app from running, short of rebooting you can:
           11.1. G to Launchpad > Other > Activity Monitor (or Go > Utilities > Activity Monitor)
-          11.2. Search for app-name
+          11.2. Search for server.bin
           11.3. Click on the app process row to highlight
           11.4. Click the x next to the i in the top row.
           11.5. Choose Force Quite

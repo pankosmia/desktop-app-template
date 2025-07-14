@@ -13,7 +13,7 @@ echo "Script directory: $script_dir"
 # need to find server.bin - this is needed because working directory is not set
 
 # first look for server.bin relative to directory script is in
-if [ -e $script_dir/../bin/server.bin ]; then
+if [ -e "$script_dir"/../bin/server.bin ]; then
     BASE="$script_dir/.."
 
 # Otherwise Check for server.bin in ./bin
@@ -54,7 +54,7 @@ echo "bin folder found at $BASE"
 echo "Launch a web browser and enter http://localhost:19119"
 echo "(Best viewed with a Graphite-enabled browser such as Firefox.)"
 echo " "
-cd $BASE
+cd "$BASE"
 export ROCKET_PORT=19119
 export APP_RESOURCES_DIR=./lib/
 ./bin/server.bin
