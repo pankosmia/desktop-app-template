@@ -55,7 +55,7 @@ cp ../build/appLauncher.sh ../project/payload/${FILE_APP_NAME}.app/Contents/MacO
 mkdir -p ../project/payload/${FILE_APP_NAME}.app/Contents/Resources
 cp ../build/README.txt ../project/payload/${FILE_APP_NAME}.app/Contents/Resources/README.txt
 
-# add APP_VERSION and FILE_APP_NAME to Info.plist. It is correctly in ../buildResources as it is not processed by `node build.js`.
+# add APP_VERSION, APP_NAME and FILE_APP_NAME to Info.plist. It is correctly in ../buildResources as it is not processed by `node build.js`.
 cp ../buildResources/Info.plist ../project/payload/${FILE_APP_NAME}.app/Contents/
 PLIST_FILE="../project/payload/${FILE_APP_NAME}.app/Contents/Info.plist"
 
@@ -67,10 +67,12 @@ fi
 
 # Replace all occurrences of ${APP_VERSION} and ${FILE_APP_NAME} with the value of their variables
 sed -i.bak "s/\${APP_VERSION}/$APP_VERSION/g" "$PLIST_FILE"
+sed -i.bak "s/\${APP_NAME}/$APP_NAME/g" "$PLIST_FILE"
 sed -i.bak "s/\${FILE_APP_NAME}/$FILE_APP_NAME/g" "$PLIST_FILE"
 
 # Print success message
 echo "Replaced \${APP_VERSION} with \"$APP_VERSION\" in $PLIST_FILE."
+echo "Replaced \${APP_NAME} with \"$APP_NAME\" in $PLIST_FILE."
 echo "Replaced \${FILE_APP_NAME} with \"$FILE_APP_NAME\" in $PLIST_FILE."
 #echo "Backup of original file saved as $PLIST_FILE.bak"
 #remove backup

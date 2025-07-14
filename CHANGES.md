@@ -31,6 +31,9 @@
 - Juxtalinear viewer
 - Basic audio "viewer"
 
+### Settings
+- Upgrade fonts: Gentium, Gentium Book, Charis, and Andika
+
 ###	Desktop App Template
 - Setup and Maintenance Scripts (linux, macos, and windows):
   - App setup - as per app config file

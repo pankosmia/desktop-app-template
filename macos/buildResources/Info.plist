@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>${FILE_APP_NAME}</string>
+	<string>${APP_NAME}</string>
 	<key>CFBundleVersion</key>
 	<string>${APP_VERSION}</string>
 	<key>CFBundleExecutable</key>
