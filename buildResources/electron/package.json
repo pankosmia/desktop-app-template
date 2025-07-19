@@ -1,0 +1,6 @@
+{
+  "name": "Liminal",
+  "productName": "Liminal",
+  "version": "1.0.0",
+  "main": "electronStartup.js"
+}

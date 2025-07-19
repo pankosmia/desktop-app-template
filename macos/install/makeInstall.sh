@@ -29,7 +29,7 @@ export FILE_APP_NAME="$FILE_APP_NAME"
 arch="$1"
 
 # There shouldn't be a need to rm the file from the gh actions runner as it is new every time...
-rm -f ../../releases/macos/${FILE_APP_NAME}-installer-*.pkg
+rm -f ../../releases/macos/${FILE_APP_NAME}-installer-macos-${arch}-*.pkg
 
 cd ../build || exit 1
 
@@ -65,7 +65,7 @@ if [ ! -f "$PLIST_FILE" ]; then
     exit 1
 fi
 
-# Replace all occurrences of ${APP_VERSION} and ${FILE_APP_NAME} with the value of their variables
+# Replace all occurrences of ${APP_NAME}, ${APP_VERSION} and ${FILE_APP_NAME} with the value of their variables
 sed -i.bak "s/\${APP_VERSION}/$APP_VERSION/g" "$PLIST_FILE"
 sed -i.bak "s/\${APP_NAME}/$APP_NAME/g" "$PLIST_FILE"
 sed -i.bak "s/\${FILE_APP_NAME}/$FILE_APP_NAME/g" "$PLIST_FILE"
@@ -77,6 +77,9 @@ echo "Replaced \${FILE_APP_NAME} with \"$FILE_APP_NAME\" in $PLIST_FILE."
 #echo "Backup of original file saved as $PLIST_FILE.bak"
 #remove backup
 rm "$PLIST_FILE.bak"
+
+echo "New  plist file:"
+type $PLIST_FILE
 
 cp -R ./bin ../project/payload/"$APP_NAME".app/Contents/
 chmod 755 ../project/payload/"$APP_NAME".app/Contents/bin/server.bin
@@ -95,7 +98,7 @@ pkgbuild \
   --identifier "$APP_NAME" \
   --version "$APP_VERSION" \
   --install-location /Applications \
-  ./build/${FILE_APP_NAME}-installer-${arch}-${APP_VERSION}.pkg
+  ./build/${FILE_APP_NAME}-installer-macos-${arch}-${APP_VERSION}.pkg
 
 # copy to releases folder
-cp ./build/${FILE_APP_NAME}-installer-${arch}-${APP_VERSION}.pkg ../releases/macos/
+cp ./build/${FILE_APP_NAME}-installer-macos-${arch}-${APP_VERSION}.pkg ../releases/macos/

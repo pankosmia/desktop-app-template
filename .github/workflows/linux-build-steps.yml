@@ -1,17 +1,29 @@
 name: Linux x64 Build
 
 on:
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      runner:
+        description: 'The GitHub runner to use (e.g., ubuntu-20.04, ubuntu-22.04)'
+        required: true
+        type: string
+    outputs:
+      tgz-name:
+        description: "Name of the generated TGZ file"
+        value: ${{ jobs.build.outputs.tgz-name }}
 
 jobs:
-  build-for-linux-x64:
-    runs-on: ubuntu-22.04  # Specify Ubuntu version 22.04
+  build:
+    runs-on: ${{ inputs.runner }}
+    outputs:
+      tgz-name: ${{ steps.get-tgz-name.outputs.tgz-name }}
+    
     steps:
-
       # Rust
       - name: Set up Rust
         id: set-up-rust
         uses: moonrepo/setup-rust@v1
+        timeout-minutes: 15  # Adjust the value as needed
 
       # Checkout the repository
       - name: Checkout repository
@@ -45,12 +57,15 @@ jobs:
         working-directory: ./linux/install
         run: ./build_server_bundle_tgz.bsh
 
-      - name: get tgz for terminal names
+      - name: Get tgz for terminal names
+        id: get-tgz-name
         run: |
           echo "tgz for terminal name:"
           ls -als ./releases/linux/*.tgz
           cd ./releases/linux
-          echo "TGZ_NAME=$(ls *.tgz | head -n 1)" >> $GITHUB_ENV
+          TGZ_NAME=$(ls *.tgz | head -n 1)
+          echo "tgz-name=$TGZ_NAME" >> $GITHUB_OUTPUT
+          echo "TGZ_NAME=$TGZ_NAME" >> $GITHUB_ENV
           cd ../..
 
       - name: Upload tgz for terminal artifacts
