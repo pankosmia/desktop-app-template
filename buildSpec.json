@@ -25,8 +25,8 @@
     }
    ],
   "libClients": [
-    "../../../core-client-content",
     "../../../core-client-dashboard",
+    "../../../core-client-content",
     "../../../core-client-i18n-editor",
     "../../../core-client-remote-repos",
     "../../../core-client-settings",

@@ -1,10 +1,10 @@
 {
   "clients": [
     {
-      "path": "%%PANKOSMIADIR%%/core-client-content"
+      "path": "%%PANKOSMIADIR%%/core-client-dashboard"
     },
     {
-      "path": "%%PANKOSMIADIR%%/core-client-dashboard"
+      "path": "%%PANKOSMIADIR%%/core-client-content"
     },
     {
       "path": "%%PANKOSMIADIR%%/core-client-i18n-editor"
