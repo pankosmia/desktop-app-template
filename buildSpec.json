@@ -4,6 +4,7 @@
     "version": "0.3.0-rc1"
   },
   "bin": {
+    "devSrc": "../../../pankosmia-web/target/debug/pankosmia_web",
     "src": "../../local_server/target/release/local_server"
   },
   "lib": [
