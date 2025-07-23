@@ -41,6 +41,6 @@ echo "Processing '$filename'"
 
 rm -rf "$destination"
 mkdir -p "$destination"
-cp ../../releases/macos/${FILE_APP_NAME}-installer-*.pkg "$destination"
+cp ../../releases/macos/${FILE_APP_NAME}-installer-macos-${arch}-*.pkg "$destination"
 echo "Files at $destination"
 ls -als "$destination/"

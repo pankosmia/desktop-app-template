@@ -15,27 +15,12 @@ doSync() {
   echo app_config.env:
   git reset app_config.env
   git checkout app_config.env
-  echo buildSpec.json:
-  git reset buildSpec.json
-  git checkout buildSpec.json
-  echo globalBuildResources/i18nPatch.json:
-  git reset globalBuildResources/i18nPatch.json
-  git checkout globalBuildResources/i18nPatch.json
   echo globalBuildResources/favicon.ico:
   git reset globalBuildResources/favicon.ico
   git checkout globalBuildResources/favicon.ico
   echo globalBuildResources/theme.json:
   git reset globalBuildResources/theme.json
   git checkout globalBuildResources/theme.json
-  echo linux/buildResources/setup/app_setup.json:
-  git reset linux/buildResources/setup/app_setup.json
-  git checkout linux/buildResources/setup/app_setup.json
-  echo macos/buildResources/setup/app_setup.json:
-  git reset macos/buildResources/setup/app_setup.json
-  git checkout macos/buildResources/setup/app_setup.json
-  echo windows/buildResources/setup/app_setup.json:
-  git reset windows/buildResources/setup/app_setup.json
-  git checkout windows/buildResources/setup/app_setup.json
   echo
   echo  "    *******************************************************************************"
   echo  "    * Files expected to differ have been excluded from the sync.                  *"

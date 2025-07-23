@@ -1,0 +1,7 @@
+{
+  "description": "Template for electron app. Build scripts will replace ${APP_NAME} and ${APP_VERSION} with actual values",
+  "name": "${APP_NAME}",
+  "productName": "${APP_NAME}",
+  "version": "${APP_VERSION}",
+  "main": "electronStartup.js"
+}

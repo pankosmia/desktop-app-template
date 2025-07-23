@@ -1,0 +1,213 @@
+name: macOS Build
+
+# Define this as a reusable workflow that can be called from other workflows
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: 'The GitHub runner to use (e.g., macos-13, macos-14)'
+        required: true
+        type: string
+      delay_seconds:
+        description: 'Number of seconds to delay before starting the build'
+        required: false
+        type: number
+        default: 30
+      working-directory:
+        description: 'Root directory for the build process'
+        required: false
+        default: '.'
+        type: string
+    outputs:
+      zip-name:
+        description: "Name of the generated ZIP file"
+        value: ${{ jobs.build.outputs.zip-name }}
+      pkg-name-arm:
+        description: "Name of the generated ARM64 package file"
+        value: ${{ jobs.build.outputs.pkg-name-arm }}
+      pkg-name-intel:
+        description: "Name of the generated Intel64 package file"
+        value: ${{ jobs.build.outputs.pkg-name-intel }}
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runner }}
+    outputs:
+      zip-name: ${{ steps.get-zip-name.outputs.zip-name }}
+      pkg-name-arm: ${{ steps.get-installer-names.outputs.pkg-name-arm }}
+      pkg-name-intel: ${{ steps.get-installer-names.outputs.pkg-name-intel }}
+    
+    steps:
+      - name: Add delay before build
+        run: sleep ${{ inputs.delay_seconds }}
+
+      # Rust
+      - name: Set up Rust
+        id: set-up-rust
+        uses: moonrepo/setup-rust@v1
+        timeout-minutes: 15  # Adjust the value as needed
+
+      # Homebrew for OpenSSL for OPENSSL_STATIC=yes with cargo (rust)
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
+      # OpenSSL for build environment
+      - name: Set up OpenSSL
+        id: set-up-openssl
+        run: brew install openssl
+
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Grant execute permissions for the shell and bash scripts
+      - name: Make scripts executable
+        run: |
+          chmod +x ./macos/scripts/app_setup.zsh
+          chmod +x ./macos/scripts/clone.zsh
+          chmod +x ./macos/scripts/build_clients.zsh
+          chmod +x ./macos/install/build_server_bundle_zip.zsh
+          chmod +x ./macos/install/makeAllInstalls.sh
+
+      - name: Run app_setup.zsh
+        working-directory: ./macos/scripts
+        run: ./app_setup.zsh
+
+      - name: Run clone.zsh
+        working-directory: ./macos/scripts
+        run: ./clone.zsh
+
+      - name: Run build_clients.zsh
+        working-directory: ./macos/scripts
+        run: ./build_clients.zsh
+
+      - name: Run build_server_bundle_zip.zsh
+        working-directory: ./macos/install
+        run: ./build_server_bundle_zip.zsh
+
+      - name: Get zip for terminal names
+        id: get-zip-name
+        run: |
+          echo "Zip for terminal name:"
+          ls -als ./releases/macos/*.zip
+          cd ./releases/macos
+          ZIP_NAME=$(ls *.zip | head -n 1)
+          echo "zip-name=$ZIP_NAME" >> $GITHUB_OUTPUT
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          cd ../..
+
+      - name: Upload zip for terminal artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_NAME }}
+          path: ./releases/macos/${{ env.ZIP_NAME }}
+
+      - name: Run makeAllInstalls.sh
+        working-directory: ./macos/install
+        run: ./makeAllInstalls.sh
+
+      - name: Get Installer names
+        id: get-installer-names
+        run: |
+          echo "Arm64 install:"
+          # check if built
+          if [ -n "$(ls ./macos/release/arm64/*.pkg 2>/dev/null)" ]; then
+            cd ./macos/release/arm64
+            echo "Found arm64 release:"
+            ls -als *.pkg
+            PKG_NAME_ARM=$(ls *.pkg | head -n 1)
+            echo "pkg-name-arm=$PKG_NAME_ARM" >> $GITHUB_OUTPUT
+            echo "PKG_NAME_ARM=$PKG_NAME_ARM" >> $GITHUB_ENV
+            cd ../../..
+          else
+            echo "No .pkg files found in ./macos/release/arm64/"
+          fi
+          
+          echo "Intel64 install:"
+          # check if built
+          if [ -n "$(ls ./macos/release/intel64/*.pkg 2>/dev/null)" ]; then
+            cd ./macos/release/intel64
+            echo "Found intel64 release:"
+            ls -als *.pkg
+            PKG_NAME_INTEL=$(ls *.pkg | head -n 1)
+            echo "pkg-name-intel=$PKG_NAME_INTEL" >> $GITHUB_OUTPUT
+            echo "PKG_NAME_INTEL=$PKG_NAME_INTEL" >> $GITHUB_ENV
+            cd ../../..
+          else
+            echo "No .pkg files found in ./macos/release/intel64/"
+          fi
+
+      - name: Upload arm64 artifacts
+        if: env.PKG_NAME_ARM != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PKG_NAME_ARM }}
+          path: ./macos/release/arm64/${{ env.PKG_NAME_ARM }}
+
+      - name: Upload intel64 artifacts
+        if: env.PKG_NAME_INTEL != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PKG_NAME_INTEL }}
+          path: ./macos/release/intel64/${{ env.PKG_NAME_INTEL }}
+
+      - name: Setup a README named for arm64 and intel64 artifact
+        run: |
+          echo "Setup a README named for arm64 and intel64 artifact"
+          cp ./macos/build/README.txt ./macos/build/MacOS-PKG-README-arm64-and-intel64.txt
+
+      - name: Upload README for arm64 and intel64 artifact
+        if: env.PKG_NAME_ARM != '' # only upload once
+        uses: actions/upload-artifact@v4
+        with:
+          name: MacOS-PKG-README-arm64-and-intel64.txt
+          path: ./macos/build/MacOS-PKG-README-arm64-and-intel64.txt
+
+      # build electronite installs
+      - name: Run makeAllInstallsElectronite.sh
+        working-directory: ./macos/install
+        run: ./makeAllInstallsElectronite.sh
+
+      - name: Get Electronite Installer names
+        id: get-electronite-names
+        run: |
+          echo "Arm64 install:"
+          # check if built
+          if [ -n "$(ls ./releases/macos/*-standalone-arm64*.pkg 2>/dev/null)" ]; then
+            cd ./releases/macos
+            echo "Found arm64 release:"
+            ls -als *.pkg
+            PKG_NAME_ARM=$(ls *-standalone-arm64*.pkg | head -n 1)
+            echo "PKG_NAME_ARM=$PKG_NAME_ARM" >> $GITHUB_ENV
+            cd ../..
+          else
+            echo "No arm64 .pkg files found in ./releases/macos"
+          fi
+          
+          echo "Intel64 install:"
+          # check if built
+          if [ -n "$(ls ./releases/macos/*-standalone-intel64*.pkg 2>/dev/null)" ]; then
+            cd ./releases/macos
+            echo "Found intel64 release:"
+            ls -als *.pkg
+            PKG_NAME_INTEL=$(ls *-standalone-intel64*.pkg | head -n 1)
+            echo "PKG_NAME_INTEL=$PKG_NAME_INTEL" >> $GITHUB_ENV
+            cd ../..
+          else
+            echo "No intel64 .pkg files found in ./releases/macos"
+          fi
+
+      - name: Upload electronite arm64 artifacts
+        if: env.PKG_NAME_ARM != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PKG_NAME_ARM }}
+          path: ./releases/macos/${{ env.PKG_NAME_ARM }}
+
+      - name: Upload electronite intel64 artifacts
+        if: env.PKG_NAME_INTEL != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PKG_NAME_INTEL }}
+          path: ./releases/macos/${{ env.PKG_NAME_INTEL }}

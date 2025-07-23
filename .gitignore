@@ -4,7 +4,14 @@ windows/build/
 macos/build/
 local_server/target
 macos/project/
-/macos/release/
+macos/release/
+macos/temp/
+windows/temp/
+windows/buildResources/setup/app_setup.json
+macos/buildResources/setup/app_setup.json
+linux/buildResources/setup/app_setup.json
+buildSpec.json
+globalBuildResources/i18nPatch.json
 
 #macos
 .DS_Store

@@ -1,0 +1,75 @@
+name: Master Build
+# builds windows, linux and Mac
+
+on:
+  workflow_dispatch:
+    
+    
+jobs:
+  build-macos-intel:
+    name: Build on macOS Intel64 (x64)
+    uses: ./.github/workflows/macos-build-steps.yml
+    with:
+      runner: macos-13
+      delay_seconds: 1
+
+  build-macos-arm:
+    name: Build on macOS ARM64 (Apple Silicon)
+    uses: ./.github/workflows/macos-build-steps.yml
+    with:
+      runner: macos-14
+      delay_seconds: 360
+  
+  build-windows:
+    name: Build on Windows x64
+    uses: ./.github/workflows/windows-build-steps.yml
+    with:
+      runner: windows-2025
+      
+  build-linux:
+    name: Build on Linux x64
+    uses: ./.github/workflows/linux-build-steps.yml
+    with:
+      runner: ubuntu-22.04
+      
+  finalize:
+    needs: [build-macos-intel, build-macos-arm, build-windows, build-linux]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check build status
+        run: |
+          if [[ "${{ needs.build-macos-intel.result }}" != "success" || 
+                "${{ needs.build-macos-arm.result }}" != "success" || 
+                "${{ needs.build-windows.result }}" != "success" || 
+                "${{ needs.build-linux.result }}" != "success" ]]; then
+            echo "One or more builds failed"
+            exit 1
+          else
+            echo "All builds completed successfully"
+          fi
+
+# TODO
+#  create-universal-binary:
+#    needs: [build-macos-intel, build-macos-arm]
+#    runs-on: macos-latest
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v3
+#
+#      - name: Download Intel artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: ${{ needs.build-macos-intel.outputs.zip-name }}
+#          path: ./downloads/intel
+#
+#      - name: Download ARM artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: ${{ needs.build-macos-arm.outputs.zip-name }}
+#          path: ./downloads/arm
+#
+#      - name: Create universal binary
+#        run: |
+#          # Your script to combine the Intel and ARM builds
+#          echo "Creating universal binary from Intel and ARM artifacts"
