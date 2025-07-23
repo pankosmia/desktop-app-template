@@ -25,12 +25,14 @@ npm install
 </pre></ul>
 
 3. `cd [os]/scripts`
-4. Run<sup id="a1">[[1]](#f1)</sup> the `clone` script to clone all repos listed in `app_config.env` (assets and clients)
-5. Run<sup id="a1">[[1]](#f1)</sup> the `app_setup` script to generate the config files to match `app_config.env`. Re-run<sup id="a1">[[1]](#f1)</sup> the `app_setup` script anytime `app_config.env` is modified.
-6. Run<sup id="a1">[[1]](#f1)</sup> the `build_clients` script to build all clients. Be patient. This will take a while.
+4. Edit app_config.env, entering the App Name, version number, theme, assets (might not change), and clients.
+5. Change /globalBuildResources/favicon.ico and /globalBuildResources/theme.json directly to customize your app.
+6. Run<sup id="a1">[[1]](#f1)</sup> the `clone` script to clone all repos listed in `app_config.env` (assets and clients)
+7. Run<sup id="a1">[[1]](#f1)</sup> the `app_setup` script to generate the config files to match `app_config.env`. Re-run<sup id="a1">[[1]](#f1)</sup> the `app_setup` script anytime `app_config.env` is modified.
+8. Run<sup id="a1">[[1]](#f1)</sup> the `build_clients` script to build all clients. Be patient. This will take a while.
    - This script is intended for setting all clients up for <b>first use</b>, or for rebuilding <b>all</b> clients to their <b>latest main</b> branch. It changes to the main<sup id="a2">[[2]](#f2)</sup> branch, pulls the latest, and builds (or rebuilds) every client every time it is run.<br />
    - Build client manually when you want to use a branch or when you only need to rebuild one client or when you do not want all clients built from their latest main branch!
-7. Run<sup id="a1">[[1]](#f1)</sup> the `build_server` script to build the Pankosmia server and assemble the build environment. (be patient. This will also take a while.)
+9. Run<sup id="a1">[[1]](#f1)</sup> the `build_server` script to build the Pankosmia server and assemble the build environment. (be patient. This will also take a while.)
 
 ## Use
 
@@ -41,12 +43,12 @@ npm install
  - Client development: Manually build the client(s) changed, stop the server it is is running, then start the server (`run`).  The `run` script will re-assemble the environment to include your build.
  - To generate a release package for the OS you are using, edit the version number for the release in `app_config.env` then run<sup id="a1">[[1]](#f1)</sup> the `bundle_...` script.
  - To generate artifacts:
-   1. [Run each workflow manually](https://docs.github.com/en/actions/how-tos/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow#running-a-workflow) (Actions > [select workflow] > Run workflow).
+   1. [Manually run the desired workflow](https://docs.github.com/en/actions/how-tos/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow#running-a-workflow) (Actions > [select workflow] > Run workflow).
       - The current main branch of client repo and resource at the time of running the workflow will be used.
    2. Download resulting artifacts (Actions > click the name of a run to see the workflow run summary > scroll down to the bottom to the Artifacts section > to download, click either the name of each artifact or the down arrow on each row
-   3. Any double-compressed artifacts should have one layer uncompressed before release:
-      - *.tgz.zip -> *.tgz
-      - *.zip.zip -> *.zip
+   3. Any double-compressed artifacts should have one layer uncompressed before release, e.g.:
+      - Strip *.tgz.zip down to *.tgz
+      - Strip *.zip.zip down to *.zip
       - If working from windows, avoid releasing a re-zipping a macos or linux zip package if a .pkg, .sh, .bsh, .zsh was in the layer re-zipped in windows. Doing so would otherwise remove file permission settings of `chmod +x` where they are needed.
       - Release the *.pkg.zip layer as .zip as it includes a README file in the same layer as the pkg, which contains installation and upgrade instructions / info.
    4. Upload releases manually by going to the Release section of your repo and selecting "Draft a new release".
@@ -74,7 +76,7 @@ Linux developers, run .zsh scripts from a **MacOS terminal**:<br />
 ### Ecosystem setup and configuration
 This repo pulls together several libraries and projects into a single app. The projects are spread across several repos to allow modular reuse. Scripts follow for assisting in setup, though it can also all be setup manually. The following assume [the repos](https://github.com/pankosmia/repositories) are installed with the following directory structure.
 
-This is an example. Clients in use may vary. Configuration is handled via `app_config.env`and the `app_setup` script. If you prefer to set this up manually, then see the configuration section under Scripts, towards the bottom of this readme.
+Configuration is handled via `app_config.env`and the `app_setup` script.
 
 <pre>
 |-- repos
@@ -105,13 +107,13 @@ Running `run`, `build_server`, or `bundle_...` all copy the latest build to the 
 
 #### Configuration
 
-Config files must match clients and assets utilized. Scripts that write them are provided, or you can adjust them manually. The configuration files are:
+Config files must match clients and assets utilized. Scripts that write them are provided, as per `app_config.env`. Files created by the app_setup script are:
 
 | Linux | Windows | MacOS |
 |-------|---------|-------|
-| <pre>buildSpec.json<br />/globalBuildResources/i18nPatch.json<br />/globalBuildResources/theme.json<br />/linux/buildResources/setup/app_setup.json</pre> | <pre>buildSpec.json<br />/globalBuildResources/i18nPatch.json<br />/globalBuildResources/theme.json<br />/windows/buildResources/setup/app_setup.json</pre> | <pre>buildSpec.json<br />/globalBuildResources/i18nPatch.json<br />/globalBuildResources/theme.json<br />/macos/buildResources/setup/app_setup.json</pre> 
+| <pre>buildSpec.json<br />/globalBuildResources/i18nPatch.json<br />/linux/buildResources/setup/app_setup.json</pre> | <pre>buildSpec.json<br />/globalBuildResources/i18nPatch.json<br />/windows/buildResources/setup/app_setup.json</pre> | <pre>buildSpec.json<br />/globalBuildResources/i18nPatch.json<br />/macos/buildResources/setup/app_setup.json</pre> 
 
-To setup config files using one of the scripts that follow, first update `app_config.env`.
+Review `app_config.env` and adjust as needed, then run one of the setup scripts that follow.  Re-run the app_setup script anytime `app_config.env` is changed.
 
 ##### Config scripts:
 Run from the provided location:
