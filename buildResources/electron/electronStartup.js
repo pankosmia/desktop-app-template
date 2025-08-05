@@ -129,75 +129,63 @@ function createWindow () {
 app.whenReady().then(() => {
   // Set a custom menu with desired app name
   const isMac = process.platform === 'darwin';
-  if (isMac) {
-    const template = [
-      {
-        label: app.name, // <--- This name will show in the macOS app menu
-        submenu: [
-          {role: 'about'},
-          {type: 'separator'},
-          {role: 'services'},
-          {type: 'separator'},
-          {role: 'hide'},
-          {role: 'hideothers'},
-          {role: 'unhide'},
-          {type: 'separator'},
-          {role: 'quit'}
-        ]
-      },
-      {
-        label: 'Edit',
-        submenu: [
-          {role: 'undo'},
-          {role: 'redo'},
-          {type: 'separator'},
-          {role: 'cut'},
-          {role: 'copy'},
-          {role: 'paste'},
-          {role: 'pasteAndMatchStyle'},
-          {role: 'delete'},
-          {role: 'selectAll'}
-        ]
-      },
-      {
-        label: 'View',
-        submenu: [
-          {role: 'reload'},
-          {role: 'forcereload'},
-          {role: 'toggledevtools'},
-          {type: 'separator'},
-          {role: 'resetzoom'},
-          {role: 'zoomin'},
-          {role: 'zoomout'},
-          {type: 'separator'},
-          {role: 'togglefullscreen'}
-        ]
-      },
-      {
-        label: 'Window',
-        submenu: [
-          {role: 'minimize'},
-          {role: 'zoom'},
-          {type: 'separator'},
-          {role: 'front'},
-          {role: 'window'}
-        ]
-      },
-      {
-        label: 'Help',
-        submenu: [
-          {
-            label: 'Learn More',
-            click: async () => {
-              await shell.openExternal('https://electronjs.org');
-            }
-          }
-        ]
-      }
-    ];
-    const menu = Menu.buildFromTemplate(template);
-    Menu.setApplicationMenu(menu);
-  }
+  // if (isMac) {}
+  const template = [
+    {
+      label: app.name, // <--- This name will show in the macOS app menu
+      submenu: [
+        {role: 'about'},
+        {type: 'separator'},
+        {role: 'services'},
+        {type: 'separator'},
+        {role: 'hide'},
+        {role: 'hideothers'},
+        {role: 'unhide'},
+        {type: 'separator'},
+        {role: 'quit'}
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        {role: 'undo'},
+        {role: 'redo'},
+        {type: 'separator'},
+        {role: 'cut'},
+        {role: 'copy'},
+        {role: 'paste'},
+        {role: 'pasteAndMatchStyle'},
+        {role: 'delete'},
+        {role: 'selectAll'}
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        {role: 'reload'},
+        {role: 'forcereload'},
+        {role: 'toggledevtools'},
+        {type: 'separator'},
+        {role: 'resetzoom'},
+        {role: 'zoomin'},
+        {role: 'zoomout'},
+        {type: 'separator'},
+        {role: 'togglefullscreen'}
+      ]
+    },
+    {
+      label: 'Window',
+      submenu: [
+        {role: 'minimize'},
+        {role: 'zoom'},
+        {type: 'separator'},
+        {role: 'front'},
+        {role: 'window'}
+      ]
+    }
+  ];
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
   
   startServer();
   setTimeout(createWindow, 2000); // Wait 2 seconds for server to start (adjust as needed)

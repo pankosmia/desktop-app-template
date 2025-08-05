@@ -73,6 +73,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Set APP_NAME from app_config.env, and use it to define FILE_APP_NAME
+      - name: Extract APP_NAME from app_config.env
+        id: get_app_name
+        run: |
+          source ./app_config.env
+          fileAppName=${APP_NAME// /-} # Replace spaces with a dash (-) in filename
+          echo "FILE_APP_NAME=$(echo $fileAppName | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV # Use bash 3.2.57 method to get lower case app name
+
       # Grant execute permissions for the shell and bash scripts
       - name: Make scripts executable
         run: |
@@ -173,14 +181,14 @@ jobs:
       - name: Setup a README named for arm64 and intel64 artifact
         run: |
           echo "Setup a README named for arm64 and intel64 artifact"
-          cp ./macos/build/README.txt ./macos/build/${{ github.event.repository.name }}-macos-installer-readme-arm64-and-intel64.txt
+          cp ./macos/build/README.txt ./macos/build/${{ env.FILE_APP_NAME }}-macos-installer-readme-arm64-and-intel64.txt
 
       - name: Upload README for arm64 and intel64 artifact
         if: env.PKG_NAME_ARM != '' # only upload once
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.repository.name }}-macos-installer-readme-arm64-and-intel64.txt
-          path: ./macos/build/${{ github.event.repository.name }}-macos-installer-readme-arm64-and-intel64.txt
+          name: ${{ env.FILE_APP_NAME }}-macos-installer-readme-arm64-and-intel64.txt
+          path: ./macos/build/${{ env.FILE_APP_NAME }}-macos-installer-readme-arm64-and-intel64.txt
           if-no-files-found: error
           retention-days: 90
 

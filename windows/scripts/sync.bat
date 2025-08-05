@@ -113,7 +113,7 @@ git checkout globalBuildResources\theme.json
 echo.
 echo      *******************************************************************************
 echo      * Files expected to differ have been excluded from the sync.                  *
-echo      * Now review stages changes, and commit if there are no conflicts, then push. *
+echo      * Now review staged changes, and commit if there are no conflicts, then push. *
 echo      *******************************************************************************
 echo.
 exit /b
