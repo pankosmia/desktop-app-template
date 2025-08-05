@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 echo ========================
-echo Liminal starting up:
+echo Starting up:
 echo Current directory:
 cd
 
@@ -21,8 +21,6 @@ if exist "%SCRIPT_DIR%\..\bin\server.exe" (
     set "BASE=.."
 ) else if exist ".\Contents\bin\server.exe" (
     set "BASE=.\Contents"
-) else if exist "C:\Program Files\Liminal\bin\server.exe" (
-    set "BASE=C:\Program Files\Liminal"
 ) else (
     echo Error: server.exe not found in expected locations
     exit /b 1

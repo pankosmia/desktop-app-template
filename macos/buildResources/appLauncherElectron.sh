@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "========================"
-echo "Liminal starting up:"
+echo "Starting up:"
 echo "Current directory:"
 pwd
 

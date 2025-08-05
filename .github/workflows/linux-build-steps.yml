@@ -19,6 +19,17 @@ jobs:
       tgz-name: ${{ steps.get-tgz-name.outputs.tgz-name }}
     
     steps:
+      # Turn off re-runs
+      - name: No re-runs please
+        run: |
+         if [ "$GITHUB_RUN_ATTEMPT" -gt 1 ]; then
+            echo "No re-runs. They use the commit SHA and git ref of the original event that triggered the workflow run. However, that does not extend to client and resource repos which may expect a more recent panksomia-web."
+            echo "Start a new workflow run instead."
+            exit 1
+          else
+            echo "NOT a re-run"
+          fi
+
       # Rust
       - name: Set up Rust
         id: set-up-rust
@@ -73,3 +84,5 @@ jobs:
         with:
           name: ${{ env.TGZ_NAME }}
           path: ./releases/linux/${{ env.TGZ_NAME }}
+          if-no-files-found: error
+          retention-days: 90

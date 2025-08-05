@@ -24,7 +24,7 @@
 #   0 - Success
 #   1 - Error (invalid parameters or processing failure)
 #   
-# Generated files will be placed in <destination-folder>/<arch>/liminal_installer_*.pkg
+# Generated files will be placed in <destination-folder>/<arch>/<app-name>_installer_*.pkg
 
 # Check if filename and destination are provided as an argument
 if [ -z "$3" ]; then

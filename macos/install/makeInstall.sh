@@ -29,7 +29,7 @@ export FILE_APP_NAME="$FILE_APP_NAME"
 arch="$1"
 
 # There shouldn't be a need to rm the file from the gh actions runner as it is new every time...
-rm -f ../../releases/macos/${FILE_APP_NAME}-installer-macos-${arch}-*.pkg
+rm -f ../../releases/macos/${FILE_APP_NAME}-macos-installer-${arch}-*.pkg
 
 cd ../build || exit 1
 
@@ -98,7 +98,7 @@ pkgbuild \
   --identifier "$APP_NAME" \
   --version "$APP_VERSION" \
   --install-location /Applications \
-  ./build/${FILE_APP_NAME}-installer-macos-${arch}-${APP_VERSION}.pkg
+  ./build/${FILE_APP_NAME}-macos-installer-${arch}-${APP_VERSION}.pkg
 
 # copy to releases folder
-cp ./build/${FILE_APP_NAME}-installer-macos-${arch}-${APP_VERSION}.pkg ../releases/macos/
+cp ./build/${FILE_APP_NAME}-macos-installer-${arch}-${APP_VERSION}.pkg ../releases/macos/

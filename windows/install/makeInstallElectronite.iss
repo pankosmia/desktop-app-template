@@ -3,12 +3,12 @@ AppName={#GetEnv('APP_NAME')}
 AppVersion={#GetEnv('APP_VERSION')}
 DefaultDirName={commonpf}\{#GetEnv('APP_NAME')}
 DefaultGroupName={#GetEnv('APP_NAME')}
-OutputBaseFilename={#GetEnv('FILE_APP_NAME')}-standalone-setup-{#GetEnv('APP_VERSION')}
+OutputBaseFilename={#GetEnv('FILE_APP_NAME')}-windows-setup-standalone-{#GetEnv('APP_VERSION')}
 Compression=lzma
 SolidCompression=yes
 
 [Files]
-Source: "..\temp\project\payload\Liminal\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "..\temp\project\payload\app\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 
 [Icons]
 Name: "{group}\{#GetEnv('APP_NAME')}"; Filename: "{app}\electron\electron.exe"; Parameters: """{app}\electron"""

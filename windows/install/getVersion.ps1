@@ -3,7 +3,7 @@
     Extracts version number from a filename and sets it as APP_VERSION environment variable.
 
 .DESCRIPTION
-    This PowerShell script is part of the Liminal Windows installation process.
+    This PowerShell script is part of the Windows installation process.
     It extracts a version number from an input filename using regex pattern matching
     and sets it as an environment variable. The version number must be in the format
     'vX.Y.Z' where X, Y, and Z are numeric values. This script is used by the Inno

@@ -38,6 +38,18 @@ jobs:
       pkg-name-intel: ${{ steps.get-installer-names.outputs.pkg-name-intel }}
     
     steps:
+      # Turn off re-runs
+      - name: No re-runs please
+        run: |
+         if [ "$GITHUB_RUN_ATTEMPT" -gt 1 ]; then
+            echo "No re-runs. They use the commit SHA and git ref of the original event that triggered the workflow run. However, that does not extend to client and resource repos which may expect a more recent panksomia-web."
+            echo "Start a new workflow run instead."
+            exit 1
+          else
+            echo "NOT a re-run"
+          fi
+
+      # Add delay before build
       - name: Add delay before build
         run: sleep ${{ inputs.delay_seconds }}
 
@@ -102,6 +114,8 @@ jobs:
         with:
           name: ${{ env.ZIP_NAME }}
           path: ./releases/macos/${{ env.ZIP_NAME }}
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Run makeAllInstalls.sh
         working-directory: ./macos/install
@@ -144,6 +158,8 @@ jobs:
         with:
           name: ${{ env.PKG_NAME_ARM }}
           path: ./macos/release/arm64/${{ env.PKG_NAME_ARM }}
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Upload intel64 artifacts
         if: env.PKG_NAME_INTEL != ''
@@ -151,18 +167,22 @@ jobs:
         with:
           name: ${{ env.PKG_NAME_INTEL }}
           path: ./macos/release/intel64/${{ env.PKG_NAME_INTEL }}
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Setup a README named for arm64 and intel64 artifact
         run: |
           echo "Setup a README named for arm64 and intel64 artifact"
-          cp ./macos/build/README.txt ./macos/build/MacOS-PKG-README-arm64-and-intel64.txt
+          cp ./macos/build/README.txt ./macos/build/${{ github.event.repository.name }}-macos-installer-readme-arm64-and-intel64.txt
 
       - name: Upload README for arm64 and intel64 artifact
         if: env.PKG_NAME_ARM != '' # only upload once
         uses: actions/upload-artifact@v4
         with:
-          name: MacOS-PKG-README-arm64-and-intel64.txt
-          path: ./macos/build/MacOS-PKG-README-arm64-and-intel64.txt
+          name: ${{ github.event.repository.name }}-macos-installer-readme-arm64-and-intel64.txt
+          path: ./macos/build/${{ github.event.repository.name }}-macos-installer-readme-arm64-and-intel64.txt
+          if-no-files-found: error
+          retention-days: 90
 
       # build electronite installs
       - name: Run makeAllInstallsElectronite.sh
@@ -204,6 +224,8 @@ jobs:
         with:
           name: ${{ env.PKG_NAME_ARM }}
           path: ./releases/macos/${{ env.PKG_NAME_ARM }}
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Upload electronite intel64 artifacts
         if: env.PKG_NAME_INTEL != ''
@@ -211,3 +233,5 @@ jobs:
         with:
           name: ${{ env.PKG_NAME_INTEL }}
           path: ./releases/macos/${{ env.PKG_NAME_INTEL }}
+          if-no-files-found: error
+          retention-days: 90

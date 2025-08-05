@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-    Creates Windows installation packages for Liminal application.
+    Creates Windows installation packages for the application.
 
 .DESCRIPTION
-    This script automates the build process for Liminal Windows installers:
-    - Downloads Electron and Liminal releases for specified architectures
+    This script automates the build process for Windows installers:
+    - Downloads Electron and zip releases for specified architectures
     - Processes and packages the files
     - Creates installation packages for each supported architecture
     - Currently supports Intel64 architecture (ARM64 support is commented out)
@@ -12,8 +12,7 @@
 .NOTES
     Requires PowerShell and depends on:
     - getElectronRelease.ps1
-    - getLiminalRelease.ps1
-    - makeInstallFromZip.ps1F
+    - makeInstallElectroniteFromZip.ps1
 #>
 
 # get environment variables from app_config.env
@@ -45,11 +44,11 @@ foreach ($ARCH in @("intel64")) {
 
     # Set download URLs based on architecture
     $downloadElectronUrl = $ElectronIntel64
-    $expectedLiminalZip = "*-windows-*.zip"
+    $expectedZip = "*-windows-*.zip"
 
     if ($ARCH -eq "arm64") {
         $downloadElectronUrl = $ElectronArm64
-        $expectedLiminalZip = "*-windows-*.zip" # TODO need to set for arm
+        $expectedZip = "*-windows-*.zip" # TODO need to set for arm
     }
 
     # Get Electron release
@@ -60,15 +59,15 @@ foreach ($ARCH in @("intel64")) {
         exit 1
     }
 
-    # verify liminal zip
-    If (-Not (Test-Path ..\..\releases\windows\$expectedLiminalZip)) {
+    # verify zip
+    If (-Not (Test-Path ..\..\releases\windows\$expectedZip)) {
         echo "Error: Missing windows .zip release"
         exit 1
     }
 
     # Make install from zip
     Write-Host "Creating install package..."
-    $zipPath = Resolve-Path "..\..\releases\windows\$expectedLiminalZip"
+    $zipPath = Resolve-Path "..\..\releases\windows\$expectedZip"
     $installResult = & "$PSScriptRoot\makeInstallElectroniteFromZip.ps1" -zipPath $zipPath -destinationFolder "..\temp\release" -arch $ARCH
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Error: Build failed for architecture $ARCH"

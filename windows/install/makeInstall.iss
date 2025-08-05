@@ -3,7 +3,7 @@
    AppVersion={#GetEnv('APP_VERSION')}
    DefaultDirName={commonpf}\{#GetEnv('APP_NAME')}
    DefaultGroupName={#GetEnv('APP_NAME')}
-   OutputBaseFilename={#GetEnv('FILE_APP_NAME')}-setup-{#GetEnv('APP_VERSION')}
+   OutputBaseFilename={#GetEnv('FILE_APP_NAME')}-windows-setup-{#GetEnv('APP_VERSION')}
    Compression=lzma
    SolidCompression=yes
 

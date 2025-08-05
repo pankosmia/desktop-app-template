@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Creates a Windows installer package for the Liminal application.
+    Creates a Windows installer package for the application.
 
 .DESCRIPTION
-    This PowerShell script prepares and builds a Windows installer for the Liminal application using Inno Setup.
+    This PowerShell script prepares and builds a Windows installer for the application using Inno Setup.
     It creates the necessary directory structure, copies required files, and compiles the installer.
 
 .PARAMETER arch
@@ -11,14 +11,14 @@
 
 .PREREQUISITES
     - Inno Setup 6 must be installed at "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-    - APP_VERSION environment variable must be set (e.g., $env:APP_VERSION = "0.2.6")
+    - APP_VERSION environment variable must be set in app_config.env
 
 .OUTPUTS
-    Creates an installer at releases\windows\$arch\liminal_installer_*.exe
+    Creates an installer at releases\windows\$arch\<app-name>_installer_*.exe
 
 .NOTES
     - Cleans up existing installers before building
-    - Creates directory structure in .\windows\temp\project\payload\Liminal
+    - Creates directory structure in .\windows\temp\project\payload\<app-name>
     - Copies necessary files including Electron, README, bin, and lib directories
     - Compiles the installer using Inno Setup
 #>
@@ -35,14 +35,14 @@ try {
     # Check if APP_VERSION environment variable is set
     if (-not $env:APP_VERSION) {
         Write-Host "Error: APP_VERSION environment variable is not set."
-        Write-Host "Set it in PowerShell using: `$env:APP_VERSION = '0.2.6'"
+        Write-Host "Set it in app_config.env"
         exit 1
     }
     
     # Check if APP_NAME environment variable is set
     if (-not $env:APP_NAME) {
         Write-Host "Error: APP_NAME environment variable is not set."
-        Write-Host "Set it in PowerShell using: `$env:APP_NAME = 'Limimal"
+        Write-Host "Set it in app_config.env"
         exit 1
     }
     
@@ -57,7 +57,7 @@ try {
     Write-Host "Version is $env:APP_VERSION"
 
     # Clean up any existing installers
-    Get-ChildItem -Path "..\..\releases\windows\liminal_installer_*.exe" | Remove-Item -Force
+    Get-ChildItem -Path "..\..\releases\windows\"$fileAppName"_installer_*.exe" | Remove-Item -Force
 
     # Change to build directory
     Set-Location -Path "..\build" -ErrorAction Stop
@@ -68,7 +68,7 @@ try {
     # Clean up and create project directories
     Remove-Item -Path "..\temp\project" -Recurse -Force -ErrorAction SilentlyContinue
     $projectPath = "..\temp\project"
-    $payloadPath = Join-Path $projectPath "payload\Liminal"
+    $payloadPath = Join-Path $projectPath "payload\app"
 
     New-Item -ItemType Directory -Force -Path $payloadPath | Out-Null
 

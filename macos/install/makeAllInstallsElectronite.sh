@@ -4,9 +4,9 @@
 #   makeAllInstallsElectronite.sh
 #
 # Description:
-#   This script automates the build process for Liminal application on macOS,
+#   This script automates the build process for the application on macOS,
 #   creating installation packages for both Intel (x64) and ARM64 architectures.
-#   It downloads the required Electron and Liminal releases, and processes them
+#   It downloads the required Electron and zip releases, and processes them
 #   into installable packages.
 #
 # Parameters:
@@ -64,10 +64,10 @@ for ARCH in "intel64" "arm64"; do
     echo "Building for architecture: $ARCH"
   
     downloadElectronUrl="$ElectronIntel64"
-    expectedLiminalZip="*-intel64-*.zip"
+    expectedZip="*-intel64-*.zip"
     if [ "$ARCH" = "arm64" ]; then
         downloadElectronUrl="$ElectronArm64"
-        expectedLiminalZip="*-arm64-*.zip"
+        expectedZip="*-arm64-*.zip"
     fi
 
     ./getElectronRelease.sh  $downloadElectronUrl $ARCH
@@ -78,14 +78,14 @@ for ARCH in "intel64" "arm64"; do
         exit 1
     fi
     
-    # Check if Liminal zip file exists
-    zipFile=$(ls -1 ../../releases/macos/$expectedLiminalZip | head -n1)
+    # Check if zip file exists
+    zipFile=$(ls -1 ../../releases/macos/$expectedZip | head -n1)
     if [ -z "$zipFile" ]; then
-        echo "Error: Liminal zip file not found in ../../releases/macos/"
+        echo "Error: zip file not found in ../../releases/macos/"
         exit 1
     fi
     
-    # unzip the liminal install files and create mac install package
+    # unzip the install files and create mac install package
     ./makeInstallFromZipElectronite.sh  $zipFile ../temp/release $ARCH
     
     if [ $? -ne 0 ]; then

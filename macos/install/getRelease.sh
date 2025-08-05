@@ -1,10 +1,10 @@
 #!/bin/sh
 
 # Synopsis:
-#   getLiminalRelease.sh <downloadUrl> <arch>
+#   getRelease.sh <downloadUrl> <arch>
 #
 # Description:
-#   Downloads a Liminal release package from the specified URL for a given architecture.
+#   Downloads a release package from the specified URL for a given architecture.
 #   The script extracts the version from the filename, creates necessary directories,
 #   and downloads the package to a temporary location.
 #

@@ -37,6 +37,18 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
+      # Turn off re-runs
+      - name: No re-runs please
+        run: |
+         if [ "$GITHUB_RUN_ATTEMPT" -gt 1 ]; then
+            echo "No re-runs. They use the commit SHA and git ref of the original event that triggered the workflow run. However, that does not extend to client and resource repos which may expect a more recent panksomia-web."
+            echo "Start a new workflow run instead."
+            exit 1
+          else
+            echo "NOT a re-run"
+          fi
+
+      # Check build status
       - name: Check build status
         run: |
           if [[ "${{ needs.build-macos-intel.result }}" != "success" || 
