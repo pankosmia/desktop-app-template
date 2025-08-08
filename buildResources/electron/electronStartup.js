@@ -22,13 +22,14 @@
  * - Environment variable APP_NAME must be set for proper application naming
  */
 
-const { app, BrowserWindow, Menu, shell} = require('electron');
+const { app, BrowserWindow, Menu, shell, ipcMain, ipcRenderer, contextBridge, dialog } = require('electron');
 const { spawn, execSync } = require('child_process');
 const path = require('path');
 
 let serverProcess = null;
 app.name = '${APP_NAME}';
 const port = '19119';
+let canClose = true;
 
 // Function to check if server is running (on port)
 function isServerRunning() {
@@ -107,28 +108,72 @@ function stopServer() {
   }
 }
 
-function createWindow () {
-  delay(500).then( () =>
-  {
-    console.log('createWindow() - after delay');
-    const win = new BrowserWindow({
-      width: 1024,
-      height: 768,
-      autoHideMenuBar: true,
-      show: false  // Don't show until ready to maximize
-    });
+function handleSetCanClose(event, newCanClose) {
+    canClose = newCanClose;
+}
 
-    win.once('ready-to-show', () => {
-      win.maximize();
-      win.show();
-    });
+function createWindow() {
+    delay(500).then(() => {
+        console.log('createWindow() - after delay');
+        const win = new BrowserWindow({
+            width: 1024,
+            height: 768,
+            autoHideMenuBar: true,
+            show: false,  // Don't show until ready to maximize
+            webPreferences: {
+                preload: path.join(__dirname, 'preload.js')
+              }
+        });
 
-    win.loadURL(`http://127.0.0.1:${port}`);
-  })
+        win.once('ready-to-show', () => {
+            win.maximize();
+            win.show();
+        });
+
+        // Show a dialog to the user to confirm the close
+        win.on('close', (event) => {
+            if (!canClose) {
+                event.preventDefault();
+                dialog.showMessageBox(win, {
+                    type: 'question',
+                    title: 'Unsaved changes',
+                    message: 'You have unsaved changes. Are you sure you want to close the application?',
+                    buttons: ['Yes', 'No'],
+                }).then((result) => {
+                    if (result.response === 0) {
+                        canClose = true;
+                        win.close();
+                    }
+                });
+            }
+        });
+
+        // Show a dialog to the user switch pages
+        win.webContents.on('will-navigate', async (event, url) => {
+            if (!canClose) {
+                event.preventDefault();
+                dialog.showMessageBox(win, {
+                    title: 'Unsaved changes',
+                    type: 'question',
+                    message: 'You have unsaved changes. Are you sure you want to leave this page?',
+                    buttons: ['Yes', 'No'],
+                }).then((result) => {
+                    if (result.response === 0) {
+                        canClose = true;
+                        win.loadURL(url);
+                    }
+                });
+            }
+        });
+
+        win.loadURL(`http://127.0.0.1:${port}`);
+    })
+
 }
 
 app.whenReady().then(() => {
   // Set a custom menu with desired app name
+  ipcMain.on('setCanClose', handleSetCanClose);
   const isMac = process.platform === 'darwin';
   if (isMac) {
     const template = [

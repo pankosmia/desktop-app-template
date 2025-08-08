@@ -3,6 +3,7 @@ linux/build/
 windows/build/
 macos/build/
 local_server/target
+local_server/Cargo.lock
 macos/project/
 macos/release/
 macos/temp/
