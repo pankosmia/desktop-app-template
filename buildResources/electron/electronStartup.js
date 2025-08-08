@@ -134,10 +134,11 @@ function createWindow() {
         win.on('close', (event) => {
             if (!canClose) {
                 event.preventDefault();
-                dialog.showMessageBox({
+                dialog.showMessageBox(win, {
                     type: 'question',
+                    title: 'Unsaved changes',
                     message: 'You have unsaved changes. Are you sure you want to close the application?',
-                    buttons: ['Yes', 'No']
+                    buttons: ['Yes', 'No'],
                 }).then((result) => {
                     if (result.response === 0) {
                         canClose = true;
@@ -151,10 +152,11 @@ function createWindow() {
         win.webContents.on('will-navigate', async (event, url) => {
             if (!canClose) {
                 event.preventDefault();
-                dialog.showMessageBox({
+                dialog.showMessageBox(win, {
+                    title: 'Unsaved changes',
                     type: 'question',
                     message: 'You have unsaved changes. Are you sure you want to leave this page?',
-                    buttons: ['Yes', 'No']
+                    buttons: ['Yes', 'No'],
                 }).then((result) => {
                     if (result.response === 0) {
                         canClose = true;
