@@ -33,6 +33,7 @@ npm install
    - This script is intended for setting all clients up for <b>first use</b>, or for rebuilding <b>all</b> clients to their <b>latest main</b> branch. It changes to the main<sup id="a2">[[2]](#f2)</sup> branch, pulls the latest, and builds (or rebuilds) every client every time it is run.<br />
    - Build client manually when you want to use a branch or when you only need to rebuild one client or when you do not want all clients built from their latest main branch!
 9. Run<sup id="a1">[[1]](#f1)</sup> the `build_server` script to build the Pankosmia server and assemble the build environment. (be patient. This will also take a while.)
+10. If using Windows, run<sup id="a1">[[1]](#f1)</sup> the build_viewer.ps1 script in powershell to create an Electronite viewer for use with the local dev build environment.
 
 ## Use
 
@@ -40,7 +41,7 @@ npm install
     - Consider also if you need to delete ~/pankosmia_working first.
    - You'll want to restart the server if deleting ~/pankosmia_working after starting the server. To restart, exit the terminal window where the server is running the run the `run` script<sup id="a1">[[1]](#f1)</sup> again.
    - Only one instance of the server can be running at a time.<sup id="a3">[[3]](#f3)</sup>
-  - Client development:
+ - Client development:
    - Manually build the client(s) changed, stop the server it is is running, then start the server (`run`).  The `run` script will re-assemble the environment to include your build.
    - In windows, run the viewer.ps1 script in powershell to use the Electronite viewer with the local dev build environment.
  - To generate a release package for the OS you are using, edit the version number for the release in `app_config.env` then run<sup id="a1">[[1]](#f1)</sup> the `bundle_...` script.
@@ -113,7 +114,7 @@ Config files must match clients and assets utilized. Scripts that write them are
 
 | Linux | Windows | MacOS |
 |-------|---------|-------|
-| <pre>buildSpec.json<br />/globalBuildResources/i18nPatch.json<br />/linux/buildResources/setup/app_setup.json</pre> | <pre>buildSpec.json<br />/globalBuildResources/i18nPatch.json<br />/windows/buildResources/setup/app_setup.json</pre> | <pre>buildSpec.json<br />/globalBuildResources/i18nPatch.json<br />/macos/buildResources/setup/app_setup.json</pre> 
+| <pre>buildSpec.json<br />/globalBuildResources/i18nPatch.json<br />/linux/buildResources/setup/app_setup.json</pre> | <pre>buildSpec.json<br />/globalBuildResources/i18nPatch.json<br />\windows\buildResources\setup\app_setup.json</pre> | <pre>buildSpec.json<br />/globalBuildResources/i18nPatch.json<br />/macos/buildResources/setup/app_setup.json</pre> 
 
 Review `app_config.env` and adjust as needed, then run one of the setup scripts that follow.  Re-run the app_setup script anytime `app_config.env` is changed.
 
