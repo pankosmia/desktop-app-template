@@ -14,6 +14,10 @@
     - getElectronRelease.ps1
     - makeInstallElectroniteFromZip.ps1
 #>
+param(
+    [string]$Dev,
+    [string]$IsGHA
+)
 
 # get environment variables from app_config.env
 get-content ..\..\app_config.env | foreach {
@@ -29,8 +33,10 @@ get-content ..\..\app_config.env | foreach {
 $env:APP_NAME=$APP_NAME.Trim("'")
 $env:APP_VERSION=$APP_VERSION
 
-# show environment variables defined
-env
+if ($IsGHA -ne 'N') {
+  # show environment variables defined
+  env
+}
 
 # Define URLs for different architectures
 $ElectronArm64 = "https://github.com/unfoldingWord/electronite/releases/download/v37.1.0-graphite/electronite-v37.1.0-graphite-win32-arm64.zip"
@@ -68,7 +74,11 @@ foreach ($ARCH in @("intel64")) {
     # Make install from zip
     Write-Host "Creating install package..."
     $zipPath = Resolve-Path "..\..\releases\windows\$expectedZip"
-    $installResult = & "$PSScriptRoot\makeInstallElectroniteFromZip.ps1" -zipPath $zipPath -destinationFolder "..\temp\release" -arch $ARCH
+    if ($Dev -eq 'Y') {
+      $installResult = & "$PSScriptRoot\makeInstallElectroniteFromZip.ps1" -Dev "Y" -zipPath $zipPath -destinationFolder "..\temp\release" -arch $ARCH
+    } else {
+      $installResult = & "$PSScriptRoot\makeInstallElectroniteFromZip.ps1" -zipPath $zipPath -destinationFolder "..\temp\release" -arch $ARCH
+    }
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Error: Build failed for architecture $ARCH"
         exit 1

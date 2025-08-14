@@ -97,14 +97,14 @@ jobs:
         run: .\build_clients.bat
 
       # Build without clean
-      - name: Run build_server_wo_clean.bat
-        working-directory: .\windows\install
-        run: .\build_server_wo_clean.bat
+      - name: Run build_server.bat -c
+        working-directory: .\windows\scripts
+        run: .\build_server.bat -c
 
       # Bundle zip
-      - name: Run bundle_zip.ps1
-        working-directory: .\windows\install
-        run: .\bundle_zip.ps1
+      - name: Run bundle_zip.ps1 -ServerOff "Y" -IsGHA "Y"
+        working-directory: .\windows\scripts
+        run: .\bundle_zip.ps1 -ServerOff "Y" -IsGHA "Y"
 
       # Get names for zip artifact
       - name: Get names for zip artifact

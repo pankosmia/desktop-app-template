@@ -1,8 +1,18 @@
 @echo off
+REM Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell or command by:  .\sync.bat
+REM Optional arguments: .\sync.bat -p
+REM or: .\sync.bat -P
+REM To pre-confirm the server is off, so as to not be asked.
 
 echo.
 :choice
-set /P c=Are you certain the latest is already pulled?[Y/N]?
+IF "%~1"=="-p" (
+  goto :yes
+) ELSE IF "%~1"=="-P" (
+  goto :yes
+) ELSE (
+  set /P c=Are you certain the latest is already pulled?[Y/N y/n]?
+)
 if /I "%c%" EQU "Y" goto :yes
 if /I "%c%" EQU "N" goto :no
 goto :choice

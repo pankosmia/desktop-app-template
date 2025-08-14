@@ -1,8 +1,8 @@
-# This script (the .\makeInstall.bat part) uses the APP_VERSION environment variable as defined in app_config.env
+# This script uses the APP_VERSION environment variable as defined in app_config.env
 
-# Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\bundle_zip.ps1
-# with the optional arguments of: .\bundle_exe.ps1 -ServerOff "Y"
-# or: .\bundle_exe.ps1 -ServerOff "y"
+# Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\bundle_viewer.ps1
+# with the optional arguments of: .\bundle_viewer.ps1 -ServerOff "Y"
+# or: .\bundle_viewer.ps1 -ServerOff "y"
 
 param(
     [string]$ServerOff
@@ -28,8 +28,6 @@ if ($answer -eq 'Y') {
     }
     Set-Variable -Name $name -Value $value
   }
-  # Use lower case app name in filename and replace spaces with dashes (-) and remove single apostrophes (')
-  $env:FILE_APP_NAME = $APP_NAME.ToLower().Replace(" ","-").Replace("'","")
 
   If (-Not (Test-Path ..\..\local_server\target\release\local_server.exe)) {
     echo "`n"
@@ -52,23 +50,26 @@ if ($answer -eq 'Y') {
   cd windows\scripts
   .\app_setup.bat
 
-  cd ..\..\
-  If (Test-Path releases\windows\*.exe) {
-    echo "A previous windows .exe release exists. Removing..."
-    Remove-Item releases\windows\*.exe
-  }
+  echo "`n"
+  echo "Version is $APP_VERSION"
+  echo "`n"
 
-  cd windows\scripts
-  if (Test-Path ..\build) {
-    echo "Removing last build environment"
-    rm ..\build -r -force
-  }
-  echo "Assembling build environment"
-  node build.js
-  cd ..\install
-  echo "Making .exe installer..."
-  .\makeInstall.bat
-  cd ..\scripts
+  $TEMP_DIR = "../temp"
+    if (Test-Path $TEMP_DIR) {
+        Write-Host "Deleting previous build..."
+        Write-Host "`n"
+        Remove-Item -Path $TEMP_DIR -Recurse -Force
+    }
+
+  Write-Host "`n"
+  Write-Host "`n"
+  Write-Host "*************************************************************************" -f cyan;
+  Write-Host "`"Getting Electron release`" downloads an approximately 120 MB file." -f cyan;
+  Write-Host "Please wait patiently for the highlighted download process to complete..." -f cyan;
+  Write-Host "*************************************************************************" -f cyan;
+  Write-Host "`n"
+
+  ../install/makeAllInstallsElectronite.ps1 -IsGHA "N"
 
 } elseif ($answer -eq 'N') {
     echo "`n"
@@ -77,5 +78,5 @@ if ($answer -eq 'Y') {
 } else {
     echo "`n"
     echo "     Invalid input. Please enter Y or N."
-    .\bundle_exe.ps1
+    .\bundle_viewer.ps1
 }

@@ -32,7 +32,10 @@ param(
     [string]$destinationFolder,
     
     [Parameter(Mandatory=$true)]
-    [string]$arch
+    [string]$arch,
+
+    [Parameter(Mandatory=$false)]
+    [string]$Dev
 )
 
 Write-Host "Processing '$zipPath
@@ -68,26 +71,32 @@ catch {
     exit 1
 }
 
-# Clean and create build directory
-$buildPath = "..\build"
-if (Test-Path $buildPath) {
-    Remove-Item -Path $buildPath -Recurse -Force
-}
-New-Item -ItemType Directory -Force -Path $buildPath | Out-Null
+if ($Dev -ne 'Y') {
+  # Clean and create build directory
+  $buildPath = "..\build"
+  if (Test-Path $buildPath) {
+      Remove-Item -Path $buildPath -Recurse -Force
+  }
+  New-Item -ItemType Directory -Force -Path $buildPath | Out-Null
 
-# Copy files from temp to build
-Copy-Item -Path "$TEMP_DIR\*" -Destination $buildPath -Recurse -Force
+  # Copy files from temp to build
+  Copy-Item -Path "$TEMP_DIR\*" -Destination $buildPath -Recurse -Force
+}
 
 # Run makeInstallElectronite PowerShell script
 Write-Host "Running makeInstallElectronite.ps1..."
-$makeInstallElectronitePath = Join-Path $PSScriptRoot "makeInstallElectronite.ps1"
+ $makeInstallElectronitePath = Join-Path $PSScriptRoot "makeInstallElectronite.ps1"
 if (-not (Test-Path $makeInstallElectronitePath)) {
     Write-Host "Error: makeInstallElectronite.ps1 not found at $makeInstallElectronitePath"
     Remove-Item -Path $TEMP_DIR -Recurse -Force
     exit 1
 }
 
-$result = & "$makeInstallElectronitePath" -arch $arch
+if ($Dev -eq 'Y') {
+  $result = & "$makeInstallElectronitePath" -Dev "Y" -arch $arch
+} else {
+  $result = & "$makeInstallElectronitePath" -arch $arch
+}
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Error: makeInstallElectronite.ps1 failed with exit code $LASTEXITCODE"
     Remove-Item -Path $TEMP_DIR -Recurse -Force

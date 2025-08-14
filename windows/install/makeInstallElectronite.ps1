@@ -25,7 +25,10 @@
 
 param(
     [Parameter(Mandatory=$true)]
-    [string]$arch
+    [string]$arch,
+
+    [Parameter(Mandatory=$false)]
+    [string]$Dev
 )
 
 # Save the initial working directory
@@ -86,6 +89,7 @@ try {
         # Copy all the general electron files
         $electronSrcPath = Join-Path $PSScriptRoot "..\..\buildResources\electron"
         $electronDestPath = Join-Path $payloadPath "electron"
+        $electronDestPath = Join-Path $payloadPath "electron"
 
         Write-Host "Electron source path: $electronSrcPath" -ErrorAction SilentlyContinue
         Write-Host "Electron destination path: $electronDestPath" -ErrorAction SilentlyContinue
@@ -105,6 +109,14 @@ try {
         # Copy main electron files
         Copy-Item -Path $electronSrcPath -Destination $electronDestPath -Recurse -Force -ErrorAction Stop
         Write-Host "Successfully copied electron files"
+
+        if ($Dev -eq "Y") {
+          Remove-Item $electronDestPath\electronStartup.js
+          Copy-Item $electronDestPath\electronDevStartup.js $electronDestPath\electronStartup.js
+          Remove-Item $electronDestPath\electronDevStartup.js
+        } else {
+          Remove-Item $electronDestPath\electronDevStartup.js
+        }
         
         # Replace all occurrences of ${APP_NAME} in startup script
         (Get-Content $electronDestPath\electronStartup.js).Replace('${APP_NAME}', $env:APP_NAME) | Set-Content $electronDestPath\electronStartup.js
@@ -142,40 +154,44 @@ try {
         Copy-Item -Path ".\lib" -Destination $payloadPath -Recurse -Force
     }
 
-    # Create and copy scripts if needed
-    $scriptsPath = "$projectPath\scripts"
-    New-Item -ItemType Directory -Force -Path $scriptsPath | Out-Null
+    if ($Dev -ne 'Y') {
 
-    # Call Inno Setup to create installer
-    Write-Host "Building installer..."
+      # Create and copy scripts if needed
+      $scriptsPath = "$projectPath\scripts"
+      New-Item -ItemType Directory -Force -Path $scriptsPath | Out-Null
 
-    $innoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-    if (-not (Test-Path $innoSetupPath)) {
-        Write-Host "Error: Inno Setup not found at $innoSetupPath"
-        exit 1
+      # Call Inno Setup to create installer
+      Write-Host "Building installer..."
+
+      $innoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+      if (-not (Test-Path $innoSetupPath)) {
+          Write-Host "Error: Inno Setup not found at $innoSetupPath"
+          exit 1
+      }
+
+      Set-Location -Path ".."
+      $outputPath = "..\releases\windows\$arch"
+
+      # Delete existing exe files from releases directory, only if path exists
+      if (Test-Path "$outputPath\*.exe") {
+          Get-ChildItem -Path "$outputPath\*.exe" | Remove-Item -Force
+      }
+
+      $setupScript = ".\install\makeInstallElectronite.iss"
+
+      Write-Host "Current working directory: $(Get-Location)"
+
+      $process = Start-Process -FilePath $innoSetupPath -ArgumentList "/O`"$outputPath`"", $setupScript -NoNewWindow -Wait -PassThru
+      if ($process.ExitCode -ne 0) {
+          Write-Host "Error: Inno Setup compilation failed"
+          exit 1
+      }
+
+      Write-Host "Installation package created successfully"
+      exit 0
     }
-
-    Set-Location -Path ".."
-    $outputPath = "..\releases\windows\$arch"
-
-    # Delete existing exe files from releases directory, only if path exists
-    if (Test-Path "$outputPath\*.exe") {
-        Get-ChildItem -Path "$outputPath\*.exe" | Remove-Item -Force
-    }
-
-    $setupScript = ".\install\makeInstallElectronite.iss"
-
-    Write-Host "Current working directory: $(Get-Location)"
-
-    $process = Start-Process -FilePath $innoSetupPath -ArgumentList "/O`"$outputPath`"", $setupScript -NoNewWindow -Wait -PassThru
-    if ($process.ExitCode -ne 0) {
-        Write-Host "Error: Inno Setup compilation failed"
-        exit 1
-    }
-
-    Write-Host "Installation package created successfully"
-    exit 0
 }
+
 finally {
     # Restore the original working directory
     Set-Location -Path $initialLocation
