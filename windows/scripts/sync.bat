@@ -8,8 +8,6 @@ echo.
 :choice
 IF "%~1"=="-p" (
   goto :yes
-) ELSE IF "%~1"=="-P" (
-  goto :yes
 ) ELSE (
   set /P c=Are you certain the latest is already pulled?[Y/N y/n]?
 )

@@ -48,6 +48,7 @@ fse.writeFileSync(
 // Copy and customize README
 const readMe = fse.readFileSync(path.join(MACOS_BUILD_RESOURCES, "README.txt"))
     .toString()
+    .replace(/%%APP_NAME%%/g, APP_NAME)
     .replace(/%%FILE_APP_NAME%%/g, FILE_APP_NAME)
     .replace(/%%APP_EXT%%/g, APP_EXT)
     .replace(/%%APP_VERSION%%/g, APP_VERSION);

@@ -139,7 +139,7 @@ try {
     }
 
     # Copy README
-    $readmeSrc = "..\buildResources\README.txt"
+    $readmeSrc = "..\build\README.txt"
     $readmeDest = "$payloadPath"
     if (Test-Path $readmeSrc) {
         New-Item -ItemType Directory -Force -Path $readmeDest | Out-Null

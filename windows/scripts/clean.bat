@@ -8,8 +8,6 @@ echo.
 :choice
 IF "%~1"=="-s" (
   goto :server_off
-) ELSE IF "%~1"=="-S" (
-  goto :server_off
 ) ELSE (
   set /P c=Is the server off?[Y/N y/n]?
 )
