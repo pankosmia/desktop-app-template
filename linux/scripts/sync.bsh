@@ -31,26 +31,32 @@ doSync() {
 
 echo
 
-while true; do
+# Do not ask if the latest is already pulled if the -p $1 positional argument is provided
+askIfPulled="${1:-yes}" # -p = "no"
+if ! [[ $askIfPulled =~ ^(-p) ]]; then
 
-read -p "Are you certain the latest is already pulled?[Y/N]? " yn
+  while true; do
 
-case $yn in 
-	[yY] ) echo "Continuing...";
-    break;;
-	[nN] ) echo;
-    echo "     Exiting...";
-    echo;
-    echo "     Pull the latest, then re-run this script.";
-    echo;
-		exit;;
-	* ) echo;
-    echo "     Invalid response. Ensure the latest is pulled, then re-run this script.";
-		echo;
-		exit 1;;
-esac
+  read -p "Are you certain the latest is already pulled?[Y/N]? " yn
 
-done
+  case $yn in 
+    [yY] ) echo "Continuing...";
+      break;;
+    [nN] ) echo;
+      echo "     Exiting...";
+      echo;
+      echo "     Pull the latest, then re-run this script.";
+      echo;
+      exit;;
+    * ) echo;
+      echo "     Invalid response. Ensure the latest is pulled, then re-run this script.";
+      echo;
+      exit 1;;
+  esac
+
+  done
+
+fi
 
 cd ../../
 

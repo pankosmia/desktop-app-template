@@ -50,7 +50,8 @@ jobs:
           chmod +x ./linux/scripts/app_setup.bsh
           chmod +x ./linux/scripts/clone.bsh
           chmod +x ./linux/scripts/build_clients.bsh
-          chmod +x ./linux/install/build_server_bundle_tgz.bsh
+          chmod +x ./linux/scripts/build_server.bsh
+          chmod +x ./linux/scripts/bundle_tgz.bsh
 
       - name: Run app_setup.bsh
         working-directory: ./linux/scripts
@@ -64,9 +65,13 @@ jobs:
         working-directory: ./linux/scripts
         run: ./build_clients.bsh
 
-      - name: Run build_server_bundle_tgz.bsh
-        working-directory: ./linux/install
-        run: ./build_server_bundle_tgz.bsh
+      - name: Run build_server.bsh without clean
+        working-directory: ./linux/scripts
+        run: ./build_server.bsh -c
+
+      - name: Run bundle_tgz.bsh without asking if the server is off and indicate GHA
+        working-directory: ./linux/scripts
+        run: ./bundle_tgz.bsh -s -g
 
       - name: Get tgz for terminal names
         id: get-tgz-name
