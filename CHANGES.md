@@ -1,10 +1,15 @@
 # <span id="toc">CHANGELOG</span>
+- [19 Aug 2025](#19-aug-2025)
 - [16 Aug 2025](#16-aug-2025)
 - [14 Jul 2025](#14-jul-2025)
 
+## <span id="19-aug-2025">18 Aug 2025</span>  ... [↩](#toc)</sup></sub>
+- Prevent extraneous files from listing in the UI
+- New editor for Open Bible Stories (text and audio, basic video generation)
+- Optional script arguments for developers (linux)
+
 ## <span id="16-aug-2025">16 Aug 2025</span>  ... [↩](#toc)</sup></sub>
 - Now built with Electronite (macos and windows)
-- New editor for Open Bible Stories (text and audio, basic video generation)
 - New, experimental "by unit of meaning" Scripture editor
 - Archiving and quarantining burritos
 - Adding and changing remote for local burritos
