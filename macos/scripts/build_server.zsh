@@ -3,10 +3,46 @@
 set -e
 set -u
 
-# Do not clean if the -c $1 positional argument is provided
-buildWithoutClean="${1:-yes}" # -c = "yes"
+echo
+
+# Build without cleaning if the -c positional argument is provided in either #1 or #2
+# Do not ask if the server is off if the -s positional argument is provided in either #1 or #2
+while [[ "$#" -gt 0 ]]
+  do case $1 in
+      -c) buildWithoutClean="$1"  # -c = "yes"
+      ;;
+      -s) askIfOff="$1" # -s = "no"
+  esac
+  shift
+done
+
+# Assign default value if -c is not present
+if [ -z ${buildWithoutClean+x} ]; then # buildWithoutClean is unset"
+  buildWithoutClean=-no
+fi
+
+# Assign default value if -s is not present
+if [ -z ${askIfOff+x} ]; then # serverOff is unset
+  askIfOff=-yes
+fi
+
+# Do not clean if the -c positional argument is provided
 if ! [[ $buildWithoutClean =~ ^(-c) ]]; then
-  ./clean.bsh
+  # Do not ask if the server is off if the -s positional argument is provided
+  if [[ $askIfOff =~ ^(-s) ]]; then
+    ./clean.zsh -s
+  else
+    ./clean.zsh
+  fi
+fi
+
+if [ ! -f ../../buildSpec.json ] || [ ! -f ../../globalBuildResources/i18nPatch.json ] || [ ! -f ../buildResources/setup/app_setup.json ]; then
+  ./app_setup.zsh
+  echo
+  echo "  +-----------------------------------------------------------------------------+"
+  echo "  | Config files were rebuilt by \`./app_setup.zsh\` as one or more were missing. |"
+  echo "  +-----------------------------------------------------------------------------+"
+  echo 
 fi
 
 if [ ! -f ../../local_server/target/release/local_server ]; then

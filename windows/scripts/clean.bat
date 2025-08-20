@@ -1,7 +1,6 @@
 @echo off
 REM Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell or command by:  .\clean.bat
-REM Optional arguments: .\clean.bat -s
-REM or: .\clean.bat -S
+REM Optional argument: .\clean.bat -s
 REM To pre-confirm the server is off, so as to not be asked.
 
 echo.
@@ -15,18 +14,15 @@ if /I "%c%" EQU "Y" goto :server_off
 if /I "%c%" EQU "N" goto :server_on
 goto :choice
 
-
 :server_on
-
 echo.
 echo      Exiting...
 echo.
-echo      If the server is on, turn it off by exiting the terminal window in which it is running, then re-run this script.
+echo      If the server is on, turn it off by exiting the terminal window or app where it is running, then re-run this script.
 echo.
 exit
 
 :server_off
-
 echo Cleaning...
 
 if exist ..\build (

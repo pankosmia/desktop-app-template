@@ -11,20 +11,33 @@ if ! [[ $askIfOff =~ ^(-s) ]]; then
   while true; do
     read -p "Only one instance of the server can be running at a time. Is the server off? [Y/N y/n]: " yn
     case $yn in 
-      [yY] ) echo "Cleaning...";
-        break;;
-      [nN] ) echo;
-        echo "     Exiting...";
-        echo;
-        echo "     If the server is on, turn it off (e.g., Ctrl-C in terminal window or exit app), then re-run this script.";
-        echo;
-        exit;;
+      [yY] ) echo
+        echo "Cleaning..."
+        echo
+        break
+        ;;
+      [nN] ) echo
+        echo "     Exiting..."
+        echo
+        echo "     If the server is on, turn it off (e.g., Ctrl-C in terminal window or exit app), then re-run this script."
+        echo
+        exit
+        ;;
       * ) echo;
-        echo "     \"$yn\" is not a valid response. Please enter a Y or y for yes, or an N or n for no.";
+        echo "     \"$yn\" is not a valid response. Please enter a Y or y for yes, or an N or n for no."
         echo
         ;;
     esac
   done
+fi
+
+if [ ! -f ../../buildSpec.json ] || [ ! -f ../../globalBuildResources/i18nPatch.json ] || [ ! -f ../buildResources/setup/app_setup.json ]; then
+  ./app_setup.bsh
+  echo
+  echo "  +-----------------------------------------------------------------------------+"
+  echo "  | Config files were rebuilt by \`./app_setup.bsh\` as one or more were missing. |"
+  echo "  +-----------------------------------------------------------------------------+"
+  echo
 fi
 
 # set port environment variables
@@ -32,17 +45,23 @@ export ROCKET_PORT=19119
 export RUST_BACKTRACE=1
 
 if [ -d ../build ]; then
-  echo "Removing last build environment"
+  echo "Removing last build environment..."
+  echo
   rm -rf ../build
 fi
 
 if [ ! -d ../build ]; then
-  echo "Assembling build environment"
+  echo "Assembling build environment..."
   node ./build.js
 fi
 
-echo "Running..."
 cd ../build
+
+echo
+echo "Running... When ready to stop this server, press Ctrl-C."
+echo "       If Ctrl-Z (suspend) is used by accident, then run \`killall -9 \"server.bin\"\` or Force Quit from the Activity Monitor,"
+echo "       or to resume run \`fg\` for the last suspended process, otherwise \`fg \"./run.bsh\"\`."
+echo
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 export APP_RESOURCES_DIR="$SCRIPT_DIR/lib/"

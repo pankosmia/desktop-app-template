@@ -13,9 +13,9 @@ echo
 # Github Actions specified if the -g positional argument is provided in either #1 or #2
 while [[ "$#" -gt 0 ]]
   do case $1 in
-      -s|--server-off) askIfOff="$1"  # -s = "no"
+      -s) askIfOff="$1"  # -s = "no"
       ;;
-      -g|--is-gha) isGHA="$1" # -g = "yes"
+      -g) isGHA="$1" # -g = "yes"
   esac
   shift
 done
@@ -28,7 +28,7 @@ fi
 # Assign default value if -g is not present
 if [ -z ${isGHA+x} ]; then # isGHA is unset
   isGHA=-no
-fi 
+fi
 
 if ! [[ $askIfOff =~ ^(-s) ]]; then
   while true; do
