@@ -61,15 +61,15 @@ jobs:
         working-directory: ./linux/scripts
         run: ./clone.bsh
 
-      - name: Run build_clients.bsh
+      - name: Build clients
         working-directory: ./linux/scripts
         run: ./build_clients.bsh
 
-      - name: Run build_server.bsh without clean
+      - name: Build server without clean and assemble build environment
         working-directory: ./linux/scripts
         run: ./build_server.bsh -c
 
-      - name: Run bundle_tgz.bsh without asking if the server is off and indicate GHA
+      - name: Bundle tgz without asking if the server is off and indicate GHA
         working-directory: ./linux/scripts
         run: ./bundle_tgz.bsh -s -g
 

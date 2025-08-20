@@ -4,6 +4,9 @@
 
 # run from pankosmia\[this-repo's-name]/linux/scripts directory by: ./bundle_tgz.bsh
 
+set -e
+set -u
+
 echo;
 
 # Do not ask if the server is off if the -s positional argument is provided in either #1 or #2
@@ -18,41 +21,35 @@ while [[ "$#" -gt 0 ]]
 done
 
 # Assign default value if -s is not present
-if [ $askIfOff ="" ]; then
+if [ -z ${askIfOff+x} ]; then # askIfOff is unset"
   askIfOff=-yes
 fi
 
 # Assign default value if -g is not present
-if [ $isGHA ="" ]; then
+if [ -z ${isGHA+x} ]; then # isGHA is unset
   isGHA=-no
 fi 
 
 if ! [[ $askIfOff =~ ^(-s) ]]; then
-
   while true; do
-
-  read -p "Is the server off?[Y/N]? " yn
-
-  case $yn in 
-    [yY] ) echo "Continuing...";
-      break
-      ;;
-    [nN] ) echo;
-      echo "     Exiting...";
-      echo;
-      echo "     If the server is on, turn it off with Ctrl-C in the terminal window in which it is running, then re-run this script.";
-      echo;
-      exit
-      ;;
-    * ) echo;
-      echo "     Invalid response. If the server is on, turn it off with Ctrl-C in the terminal window in which it is running, then re-run this script.";
-      echo;
-      exit 1
-      ;;
-  esac
-
+    read -p "Is the server off? [Y/N y/n]: " yn
+    case $yn in 
+      [yY] ) echo "Continuing...";
+        break
+        ;;
+      [nN] ) echo;
+        echo "     Exiting...";
+        echo;
+        echo "     If the server is on, turn it off with Ctrl-C in the terminal window in which it is running, then re-run this script.";
+        echo;
+        exit
+        ;;
+      * ) echo;
+        echo "     \"$yn\" is not a valid response. Please enter a Y or y for yes, or an N or n for no.";
+        echo
+        ;;
+    esac
   done
-
 fi
 
 source ../../app_config.env
@@ -83,7 +80,6 @@ if ! [[ $isGHA =~ ^(-g) ]]; then
     echo "A previous linux .tgz release exists. Removing..."
     rm releases/linux/*.tgz
   fi
-
   echo "checkout main"
   git checkout main &> /dev/null
   echo "pull"
@@ -99,11 +95,10 @@ if ! [[ $isGHA =~ ^(-g) ]]; then
     echo "Removing last build environment"
     rm -rf ../build
   fi
+  echo "Assembling build environment"
+  node build.js
 fi
 
-echo "Assembling build environment"
-node build.js
-cd ../build
 echo
 echo "   **********************************"
 echo "   *                                *"
@@ -113,7 +108,7 @@ echo "   *           ====                 *"
 echo "   *                                *"
 echo "   **********************************"
 echo
-
+cd ../build
 # Use lower case app name in filename
 APP_NAME=${APP_NAME,,}
 # Replace spaces with a dash (-) in filename

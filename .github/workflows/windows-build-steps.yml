@@ -96,12 +96,12 @@ jobs:
         working-directory: .\windows\scripts
         run: .\build_clients.bat
 
-      # Build without clean
+      # Build server without clean and assemble build environment
       - name: Run build_server.bat -c
         working-directory: .\windows\scripts
         run: .\build_server.bat -c
 
-      # Bundle zip
+      # Bundle zip without asking if the server is off and indicate GHA
       - name: Run bundle_zip.ps1 -ServerOff "Y" -IsGHA "Y"
         working-directory: .\windows\scripts
         run: .\bundle_zip.ps1 -ServerOff "Y" -IsGHA "Y"

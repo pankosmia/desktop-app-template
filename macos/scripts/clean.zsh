@@ -1,34 +1,50 @@
 #!/usr/bin/env zsh
 
+set -e
+set -u
+
 echo
-if read -q "choice?Is the server off?[Y/N]? "; then
 
-  if [ -d ../build ]; then
-    echo
-    echo
-    echo "Removing last build environment"
-    rm -rf ../build
-  fi
-
-  if [ -f ../../local_server/target/release/local_server ]; then
-      echo
-      echo
-      echo "Cleaning local server"
-      cd ../../local_server
-      cargo clean
-      cd ../macos/scripts
-  fi
-
-  echo
-  echo
-  echo "The local server and build environment have been cleaned."
-  echo
-
-else
-  echo
-  echo
-  echo "Exiting..."
-  echo
-  echo "If the server is on, turn it off with Ctrl-C in the terminal window in which it is running, then re-run this script.";
-  echo
+# Do not ask if the server is off if the -s $1 positional argument is provided
+askIfOff="${1:-yes}" # -s = "no"
+if ! [[ $askIfOff =~ ^(-s) ]]; then
+  while true; do
+    read "choice?Only one instance of the server can be running at a time. Is the server off? [Y/N y/n]: "
+    case $choice in 
+      [yY] ) echo "Continuing...";
+        break;;
+      [nN] ) echo;
+        echo "     Exiting...";
+        echo
+        echo "     If the server is on, turn it off with Ctrl-C in the terminal window in which it is running, then re-run this script.";
+        echo
+        exit
+        ;;
+      * ) echo;
+        echo "     \"$choice\" is not a valid response. Please enter a Y or y for yes, or an N or n for no.";
+        echo
+        ;;
+    esac
+  done
 fi
+
+if [ -d ../build ]; then
+  echo
+  echo
+  echo "Removing last build environment"
+  rm -rf ../build
+fi
+
+if [ -f ../../local_server/target/release/local_server ]; then
+    echo
+    echo
+    echo "Cleaning local server"
+    cd ../../local_server
+    cargo clean
+    cd ../macos/scripts
+fi
+
+echo
+echo
+echo "The local server and build environment have been cleaned."
+echo

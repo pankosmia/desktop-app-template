@@ -4,11 +4,57 @@
 
 # run from pankosmia/[this-repo's-name]/macos/scripts directory by:  ./bundle_tgz.zsh
 
+set -e
+set -u
+
 echo
-if read -q "choice?Is the server off?[Y/N]? "; then
 
-  source ../../app_config.env
+# Do not ask if the server is off if the -s positional argument is provided in either #1 or #2
+# Github Actions specified if the -g positional argument is provided in either #1 or #2
+while [[ "$#" -gt 0 ]]
+  do case $1 in
+      -s|--server-off) askIfOff="$1"  # -s = "no"
+      ;;
+      -g|--is-gha) isGHA="$1" # -g = "yes"
+  esac
+  shift
+done
 
+# Assign default value if -s is not present
+if [ -z ${askIfOff+x} ]; then # askIfOff is unset"
+  askIfOff=-yes
+fi
+
+# Assign default value if -g is not present
+if [ -z ${isGHA+x} ]; then # isGHA is unset
+  isGHA=-no
+fi 
+
+if ! [[ $askIfOff =~ ^(-s) ]]; then
+  while true; do
+    read "choice?Only one instance of the server can be running at a time. Is the server off? [Y/N y/n]: "
+    case $choice in 
+      [yY] ) echo "Continuing...";
+        break
+        ;;
+      [nN] ) echo;
+        echo "     Exiting...";
+        echo;
+        echo "     If the server is on, turn it off with Ctrl-C in the terminal window in which it is running, then re-run this script.";
+        echo;
+        exit
+        ;;
+      * ) echo;
+        echo "     \"$choice\" is not a valid response. Please enter a Y or y for yes, or an N or n for no.";
+        echo
+        ;;
+    esac
+  done
+fi
+
+source ../../app_config.env
+
+if ! [[ $isGHA =~ ^(-g) ]]; then
   if [ ! -f ../../local_server/target/release/local_server ]; then
     echo
     echo "   ***************************************************************"
@@ -21,58 +67,64 @@ if read -q "choice?Is the server off?[Y/N]? "; then
   echo
   echo "Running app_setup to ensure version number consistency between buildSpec.json and this build bundle:"
   ./app_setup.zsh
+fi
 
-  echo
-  echo "Version is $APP_VERSION"
-  echo
+echo
+echo "Version is $APP_VERSION"
+echo
 
-  cd ../../
+cd ../../
 
+if ! [[ $isGHA =~ ^(-g) ]]; then
   if [ $(ls releases/macos/*.zip 2>/dev/null | wc -l) -gt 0 ]; then
     echo "A previous macos .zip release exists. Removing..."
     rm releases/macos/*.zip
   fi
-
   echo "checkout main"
   git checkout main &> /dev/null
   echo "pull"
   git pull
   echo "npm install"
   npm install
-  cd macos/scripts
+fi
 
+cd macos/scripts
+
+if ! [[ $isGHA =~ ^(-g) ]]; then
   if [ -f ../build ]; then
     echo "Removing last build environment"
     rm -rf ../build
   fi
-
   echo "Assembling build environment"
   node build.js
-  echo
-  echo "   **********************************"
-  echo "   *                                *"
-  echo "   *           ====                 *"
-  echo "   * Bundling. Wait for the prompt. *"
-  echo "   *           ====                 *"
-  echo "   *                                *"
-  echo "   **********************************"
-  echo
-
-  cd ../build
-  # Use lower case app name in filename
-  APP_NAME=${APP_NAME:l}
-  # Replace spaces with a dash (-) in filename
-  APP_NAME=${APP_NAME// /-}
-  # Make executable and zip
-  chmod +x $APP_NAME.zsh
-  zip -r ../../releases/macos/$APP_NAME-macos-$APP_VERSION.zip * -x post_install_script.sh appLauncher.sh
-  cd ../scripts
-
-else
-  echo
-  echo
-  echo "Exiting..."
-  echo
-  echo "If the server is on, turn it off with Ctrl-C in the terminal window in which it is running, then re-run this script.";
-  echo
 fi
+
+# Detect current CPU architecture
+CPU_ARCH=$(uname -m)
+if [ "$CPU_ARCH" = "x86_64" ]; then
+    CPU_ARCH="intel64"
+elif [ "$CPU_ARCH" = "arm64" ]; then
+    CPU_ARCH="arm64"
+else
+    echo "Error: Unsupported CPU architecture: $CPU_ARCH, default to intel64"
+    CPU_ARCH="intel64"
+fi
+
+echo
+echo "   **********************************"
+echo "   *                                *"
+echo "   *           ====                 *"
+echo "   * Bundling. Wait for the prompt. *"
+echo "   *           ====                 *"
+echo "   *                                *"
+echo "   **********************************"
+echo
+cd ../build
+# Use lower case app name in filename
+APP_NAME=${APP_NAME:l}
+# Replace spaces with a dash (-) in filename
+APP_NAME=${APP_NAME// /-}
+# Make executable and zip
+chmod +x $APP_NAME.zsh
+zip -r ../../releases/macos/$APP_NAME-macos-$CPU_ARCH-$APP_VERSION.zip * -x post_install_script.sh appLauncher.sh @ &> /dev/null
+cd ../scripts

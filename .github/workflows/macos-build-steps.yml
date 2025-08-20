@@ -57,7 +57,7 @@ jobs:
       - name: Set up Rust
         id: set-up-rust
         uses: moonrepo/setup-rust@v1
-        timeout-minutes: 15  # Adjust the value as needed
+        timeout-minutes: 30  # Adjust the value as needed
 
       # Homebrew for OpenSSL for OPENSSL_STATIC=yes with cargo (rust)
       - name: Set up Homebrew
@@ -73,6 +73,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Install the repository
+      - name: Install this repo
+        run: npm install
+
       # Set APP_NAME from app_config.env, and use it to define FILE_APP_NAME
       - name: Extract APP_NAME from app_config.env
         id: get_app_name
@@ -87,7 +91,8 @@ jobs:
           chmod +x ./macos/scripts/app_setup.zsh
           chmod +x ./macos/scripts/clone.zsh
           chmod +x ./macos/scripts/build_clients.zsh
-          chmod +x ./macos/install/build_server_bundle_zip.zsh
+          chmod +x ./macos/scripts/build_server.zsh
+          chmod +x ./macos/scripts/bundle_zip.zsh
           chmod +x ./macos/install/makeAllInstalls.sh
 
       - name: Run app_setup.zsh
@@ -98,13 +103,17 @@ jobs:
         working-directory: ./macos/scripts
         run: ./clone.zsh
 
-      - name: Run build_clients.zsh
+      - name: Build clients
         working-directory: ./macos/scripts
         run: ./build_clients.zsh
 
-      - name: Run build_server_bundle_zip.zsh
-        working-directory: ./macos/install
-        run: ./build_server_bundle_zip.zsh
+      - name: Build server without clean and assemble build environment
+        working-directory: ./macos/scripts
+        run: ./build_server.zsh -c
+
+      - name: Bundle zip without asking if the server is off and indicate GHA
+        working-directory: ./macos/scripts
+        run: ./bundle_zip.zsh -s -g
 
       - name: Get zip for terminal names
         id: get-zip-name
@@ -170,7 +179,7 @@ jobs:
           retention-days: 90
 
       - name: Upload intel64 artifacts
-        if: env.PKG_NAME_INTEL != ''
+        if: env.PKG_NAME_INTEL != '' # only upload once
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PKG_NAME_INTEL }}
@@ -179,6 +188,7 @@ jobs:
           retention-days: 90
 
       - name: Setup a README named for arm64 and intel64 artifact
+        if: env.PKG_NAME_ARM != '' # only setup once
         run: |
           echo "Setup a README named for arm64 and intel64 artifact"
           cp ./macos/build/README.txt ./macos/build/${{ env.FILE_APP_NAME }}-macos-installer-readme-arm64-and-intel64.txt

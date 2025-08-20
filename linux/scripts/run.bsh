@@ -8,28 +8,23 @@ echo
 # Do not ask if the server is off if the -s $1 positional argument is provided
 askIfOff="${1:-yes}" # -s = "no"
 if ! [[ $askIfOff =~ ^(-s) ]]; then
-  
   while true; do
-
-  read -p "Only one instance of the server can be running at a time. Is the server off?[Y/N]? " yn
-
-  case $yn in 
-    [yY] ) echo "Cleaning...";
-      break;;
-    [nN] ) echo;
-      echo "     Exiting...";
-      echo;
-      echo "     If the server is on, turn it off with Ctrl-C in the terminal window in which it is running, then re-run this script.";
-      echo;
-      exit;;
-    * ) echo;
-      echo "     Invalid response. If the server is on, turn it off with Ctrl-C in the terminal window in which it is running, then re-run this script.";
-      echo;
-      exit 1;;
-  esac
-
+    read -p "Only one instance of the server can be running at a time. Is the server off? [Y/N y/n]: " yn
+    case $yn in 
+      [yY] ) echo "Cleaning...";
+        break;;
+      [nN] ) echo;
+        echo "     Exiting...";
+        echo;
+        echo "     If the server is on, turn it off (e.g., Ctrl-C in terminal window or exit app), then re-run this script.";
+        echo;
+        exit;;
+      * ) echo;
+        echo "     \"$yn\" is not a valid response. Please enter a Y or y for yes, or an N or n for no.";
+        echo
+        ;;
+    esac
   done
-  
 fi
 
 # set port environment variables

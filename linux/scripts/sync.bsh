@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+set -e
+set -u
+
 doSync() {
   git fetch upstream
   git merge --no-log --no-ff --no-commit upstream/main
@@ -34,28 +37,24 @@ echo
 # Do not ask if the latest is already pulled if the -p $1 positional argument is provided
 askIfPulled="${1:-yes}" # -p = "no"
 if ! [[ $askIfPulled =~ ^(-p) ]]; then
-
   while true; do
-
-  read -p "Are you certain the latest is already pulled?[Y/N]? " yn
-
-  case $yn in 
-    [yY] ) echo "Continuing...";
-      break;;
-    [nN] ) echo;
-      echo "     Exiting...";
-      echo;
-      echo "     Pull the latest, then re-run this script.";
-      echo;
-      exit;;
-    * ) echo;
-      echo "     Invalid response. Ensure the latest is pulled, then re-run this script.";
-      echo;
-      exit 1;;
-  esac
-
+    read -p "Are you certain the latest is already pulled? [Y/N y/n]: " yn
+    case $yn in 
+      [yY] ) echo "Continuing...";
+        break;;
+      [nN] ) echo;
+        echo "     Exiting...";
+        echo;
+        echo "     Pull the latest, then re-run this script.";
+        echo;
+        exit
+        ;;
+      * ) echo;
+        echo "     \"$yn\" is not a valid response. Please enter a Y or y for yes, or an N or n for no.";
+        echo
+        ;;
+    esac
   done
-
 fi
 
 cd ../../

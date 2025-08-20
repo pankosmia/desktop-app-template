@@ -1,4 +1,7 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
+
+set -e
+set -u
 
 doSync() {
   git fetch upstream
@@ -31,26 +34,28 @@ doSync() {
 
 echo
 
-while true; do
-
-read -p "Are you certain the latest is already pulled?[Y/N]? " yn
-
-case $yn in 
-	[yY] ) echo "Continuing...";
-    break;;
-	[nN] ) echo;
-    echo "     Exiting...";
-    echo;
-    echo "     Pull the latest, then re-run this script.";
-    echo;
-		exit;;
-	* ) echo;
-    echo "     Invalid response. Ensure the latest is pulled, then re-run this script.";
-		echo;
-		exit 1;;
-esac
-
-done
+# Do not ask if the latest is already pulled if the -p $1 positional argument is provided
+askIfPulled="${1:-yes}" # -p = "no"
+if ! [[ $askIfPulled =~ ^(-p) ]]; then
+  while true; do
+    read "choice?Are you certain the latest is already pulled? [Y/N y/n]: "
+    case $choice in 
+      [yY] ) echo "Continuing...";
+        break;;
+      [nN] ) echo;
+        echo "     Exiting...";
+        echo
+        echo "     Pull the latest, then re-run this script.";
+        echo
+        exit
+        ;;
+      * ) echo;
+        echo "     \"$choice\" is not a valid response. Please enter a Y or y for yes, or an N or n for no.";
+        echo
+        ;;
+    esac
+  done
+fi
 
 cd ../../
 
@@ -122,4 +127,3 @@ if [ "$upstreamtest" == "different_if_not_changed" ]; then
   echo
   goto :end
 fi
-
