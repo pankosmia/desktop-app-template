@@ -9,9 +9,9 @@ echo
 # Do not ask if the server is off if the -s positional argument is provided in either #1 or #2
 while [[ "$#" -gt 0 ]]
   do case $1 in
-      -c) buildWithoutClean="$1"  # -c = "yes"
+      -c) buildWithoutClean="$1"  # -c means "yes"
       ;;
-      -s) askIfOff="$1" # -s = "no"
+      -s) askIfOff="$1" # -s means "no"
   esac
   shift
 done

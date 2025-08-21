@@ -13,9 +13,9 @@ echo
 # Github Actions specified if the -g positional argument is provided in either #1 or #2
 while [[ "$#" -gt 0 ]]
   do case $1 in
-      -s) askIfOff="$1"  # -s = "no"
+      -s) askIfOff="$1"  # -s means "no"
       ;;
-      -g) isGHA="$1" # -g = "yes"
+      -g) isGHA="$1" # -g means "yes"
   esac
   shift
 done
@@ -52,8 +52,6 @@ if ! [[ $askIfOff =~ ^(-s) ]]; then
   done
 fi
 
-source ../../app_config.env
-
 if ! [[ $isGHA =~ ^(-g) ]]; then
   if [ ! -f ../../local_server/target/release/local_server ]; then
     echo
@@ -63,19 +61,7 @@ if ! [[ $isGHA =~ ^(-g) ]]; then
     echo
     exit
   fi
-
-  echo
-  echo "Running app_setup to ensure version number consistency between buildSpec.json and this build bundle:"
-  ./app_setup.zsh
-fi
-
-echo
-echo "Version is $APP_VERSION"
-echo
-
-cd ../../
-
-if ! [[ $isGHA =~ ^(-g) ]]; then
+  cd ../../
   if [ $(ls releases/macos/*.zip 2>/dev/null | wc -l) -gt 0 ]; then
     echo "A previous macos .zip release exists. Removing..."
     rm releases/macos/*.zip
@@ -86,9 +72,16 @@ if ! [[ $isGHA =~ ^(-g) ]]; then
   git pull
   echo "npm install"
   npm install
+  cd macos/scripts
+  echo
+  echo "Running app_setup to ensure version number consistency between buildSpec.json and this build bundle:"
+  ./app_setup.zsh
 fi
 
-cd macos/scripts
+source ../../app_config.env
+echo
+echo "Version is $APP_VERSION"
+echo
 
 if ! [[ $isGHA =~ ^(-g) ]]; then
   if [ -f ../build ]; then

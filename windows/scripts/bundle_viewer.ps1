@@ -54,7 +54,7 @@ if ($answer -eq 'Y') {
   echo "Version is $APP_VERSION"
   echo "`n"
 
-  $TEMP_DIR = "../temp"
+  $TEMP_DIR = "..\temp"
     if (Test-Path $TEMP_DIR) {
         Write-Host "Deleting previous build..."
         Write-Host "`n"
@@ -69,7 +69,7 @@ if ($answer -eq 'Y') {
   Write-Host "*************************************************************************" -f cyan;
   Write-Host "`n"
 
-  ../install/makeAllInstallsElectronite.ps1 -IsGHA "N"
+  ..\install\makeAllInstallsElectronite.ps1 -IsGHA "N"
 
 } elseif ($answer -eq 'N') {
     echo "`n"

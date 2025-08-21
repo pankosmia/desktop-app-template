@@ -49,7 +49,9 @@ if [ -z "$FILE_APP_NAME" ]; then
     exit 1
 fi
 
+# get arguments
 arch="$1"
+devRun="${2:-no}" # This is a development viewer run if $1 is -d
 
 PKG_NAME="${FILE_APP_NAME}-macos-installer-standalone-${arch}-${APP_VERSION}.pkg"
 rm -f ./build/${PKG_NAME}
@@ -78,6 +80,18 @@ rm "${APP_BASE_DIR}/Contents/MacOS/${LAUNCHER_NAME}.bak"
 
 # copy shared electron files
 cp -R ../../buildResources/electron ${APP_BASE_DIR}/Contents/
+echo "Successfully copied electron files"
+
+# Determine which startup to use -- dev viewer or production
+if [[ $devRun =~ ^(-d) ]]; then
+  rm ${APP_BASE_DIR}/Contents/electron/electronStartup.js
+  cp ${APP_BASE_DIR}/Contents/electron/electronDevStartup.js ${APP_BASE_DIR}/Contents/electron/electronStartup.js
+  rm ${APP_BASE_DIR}/Contents/electron/electronDevStartup.js
+else
+  rm ${APP_BASE_DIR}/Contents/electron/electronDevStartup.js
+fi
+
+# Replace all occurrences of ${APP_NAME} and ${APP_VERSION} in startup script
 sed -i.bak "s/\${APP_NAME}/$APP_NAME/g" "${APP_BASE_DIR}/Contents/electron/electronStartup.js"  # Replace all occurrences of ${APP_NAME}
 sed -i.bak "s/\${APP_NAME}/$APP_NAME/g" "${APP_BASE_DIR}/Contents/electron/package.json"  # Replace all occurrences of ${APP_NAME}
 sed -i.bak "s/\${APP_VERSION}/$APP_VERSION/g" "${APP_BASE_DIR}/Contents/electron/package.json"  # Replace all occurrences of ${APP_NAME}
@@ -150,15 +164,19 @@ else
   IDENTIFIER="pankosmia.${FILE_APP_NAME}"
 fi
 
-# build pkg
-cd ..
-pkgbuild \
-  --root ./temp/project/payload \
-  --scripts ./temp/project/scripts \
-  --identifier ${IDENTIFIER} \
-  --version "$APP_VERSION" \
-  --install-location /Applications \
-  ./build/${PKG_NAME}
+if ! [[ $devRun =~ ^(-d) ]]; then
 
-# copy to releases folder
-cp ./build/${PKG_NAME} ../releases/macos/
+  # build pkg
+  cd ..
+  pkgbuild \
+    --root ./temp/project/payload \
+    --scripts ./temp/project/scripts \
+    --identifier ${IDENTIFIER} \
+    --version "$APP_VERSION" \
+    --install-location /Applications \
+    ./build/${PKG_NAME}
+
+  # copy to releases folder
+  cp ./build/${PKG_NAME} ../releases/macos/
+
+fi

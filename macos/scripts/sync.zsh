@@ -35,22 +35,24 @@ doSync() {
 echo
 
 # Do not ask if the latest is already pulled if the -p $1 positional argument is provided
-askIfPulled="${1:-yes}" # -p = "no"
+askIfPulled="${1:-yes}" # -p means "no"
 if ! [[ $askIfPulled =~ ^(-p) ]]; then
   while true; do
     read "choice?Are you certain the latest is already pulled? [Y/N y/n]: "
     case $choice in 
-      [yY] ) echo "Continuing...";
-        break;;
-      [nN] ) echo;
+      [yY] ) echo
+        echo "Continuing..."
+        break
+        ;;
+      [nN] ) echo
         echo "     Exiting...";
         echo
-        echo "     Pull the latest, then re-run this script.";
+        echo "     Pull the latest, then re-run this script."
         echo
         exit
         ;;
-      * ) echo;
-        echo "     \"$choice\" is not a valid response. Please enter a Y or y for yes, or an N or n for no.";
+      * ) echo
+        echo "     \"$choice\" is not a valid response. Please enter a Y or y for yes, or an N or n for no."
         echo
         ;;
     esac

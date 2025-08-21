@@ -21,6 +21,10 @@ Destination folder where the installer will be created
 
 .PARAMETER arch
 Target architecture for the installer (e.g., x64, x86)
+
+.PARAMETER Dev
+Specify -Dev "Y" when generating a development viewer.
+- Default is "N"
 #>
 
 param(

@@ -21,6 +21,13 @@
     - Creates directory structure in .\windows\temp\project\payload\<app-name>
     - Copies necessary files including Electron, README, bin, and lib directories
     - Compiles the installer using Inno Setup
+
+.PARAMETER arch
+Target architecture for the installer (e.g., x64, x86)
+
+.PARAMETER Dev
+Specify -Dev "Y" when generating a development viewer.
+- Default is "N"
 #>
 
 param(
@@ -110,6 +117,7 @@ try {
         Copy-Item -Path $electronSrcPath -Destination $electronDestPath -Recurse -Force -ErrorAction Stop
         Write-Host "Successfully copied electron files"
 
+        # Determine which startup to use -- dev viewer or production
         if ($Dev -eq "Y") {
           Remove-Item $electronDestPath\electronStartup.js
           Copy-Item $electronDestPath\electronDevStartup.js $electronDestPath\electronStartup.js
@@ -118,7 +126,7 @@ try {
           Remove-Item $electronDestPath\electronDevStartup.js
         }
         
-        # Replace all occurrences of ${APP_NAME} in startup script
+        # Replace all occurrences of ${APP_NAME} and ${APP_VERSION} in startup script
         (Get-Content $electronDestPath\electronStartup.js).Replace('${APP_NAME}', $env:APP_NAME) | Set-Content $electronDestPath\electronStartup.js
         (Get-Content "$electronDestPath\package.json").Replace('${APP_NAME}', $env:APP_NAME).Replace('${APP_VERSION}', $env:APP_VERSION) | Set-Content "$electronDestPath\package.json"
         

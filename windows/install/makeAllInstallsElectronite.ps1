@@ -13,6 +13,14 @@
     Requires PowerShell and depends on:
     - getElectronRelease.ps1
     - makeInstallElectroniteFromZip.ps1
+
+.PARAMETER IsGHA
+    Specify -IsGHA "N" when run locally to avoid a failed attempt to list github actions environment variables.
+    - Default is "Y"
+
+.PARAMETER Dev
+    Specify -Dev "Y" when generating a development viewer.
+    - Default is "N"
 #>
 param(
     [string]$Dev,

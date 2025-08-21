@@ -19,6 +19,7 @@
 #   $1 (filename) - Path to the source zip file containing application files
 #   $2 (destination-folder) - Directory where the final installer package will be placed
 #   $3 (arch) - Target architecture, either 'arm64' or 'intel64'
+#   $4 -d indicates generation of a development viewer (optional)
 #
 # Returns:
 #   0 - Success
@@ -36,6 +37,7 @@ fi
 filename="$1"
 destination="$2/$3"
 arch="$3"
+devRun="${4:-no}" # This is a development viewer run if $4 is -d
 
 echo "Processing '$filename'"
 
@@ -61,11 +63,17 @@ fi
 
 echo "Successfully unzipped to: $TEMP_DIR"
 
-rm -rf ../build
-mkdir -p ../build
-cp -R "$TEMP_DIR"/* ../build/
+if ! [[ $devRun =~ ^(-d) ]]; then
+  # Clean and create build directory
+  rm -rf ../build
+  mkdir -p ../build
+  # Copy files from temp to build
+  cp -R "$TEMP_DIR"/* ../build/
+fi
 
-./makeInstallElectronite.sh $arch
+# Run makeInstallElectronite Shell script
+echo "Running makeInstallElectronite.sh..."
+./makeInstallElectronite.sh $arch $devRun
 
 echo "Files at ../../releases/macos/"
 ls -als ../../releases/macos/

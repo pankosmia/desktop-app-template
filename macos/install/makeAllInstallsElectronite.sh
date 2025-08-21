@@ -9,13 +9,17 @@
 #   It downloads the required Electron and zip releases, and processes them
 #   into installable packages.
 #
-# Parameters:
-#   None - All URLs and architectures are hardcoded in the script
+# Positional Arguments:
+#   $1 -d indicates generation of a development viewer (optional)
+#   Note - All URLs and architectures are hardcoded in the script
 #
 # Return Values:
 #   0 - Success, all architectures built successfully
 #   1 - Error occurred during download or build process
 #
+
+# get arguments
+devRun="${1:-no}" # This is a development viewer run if $1 is -d
 
 # This script uses the APP_NAME environment variables as defined in app_config.env
 source ../../app_config.env
@@ -70,6 +74,9 @@ for ARCH in "intel64" "arm64"; do
         expectedZip="*-arm64-*.zip"
     fi
 
+    if [[ $devRun =~ ^(-d) ]]; then
+        cd ../install
+    fi
     ./getElectronRelease.sh  $downloadElectronUrl $ARCH
     
     
@@ -86,7 +93,7 @@ for ARCH in "intel64" "arm64"; do
     fi
     
     # unzip the install files and create mac install package
-    ./makeInstallFromZipElectronite.sh  $zipFile ../temp/release $ARCH
+    ./makeInstallFromZipElectronite.sh  $zipFile ../temp/release $ARCH $devRun
     
     if [ $? -ne 0 ]; then
         echo "Error: Build failed for architecture $ARCH"

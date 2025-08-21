@@ -1,6 +1,6 @@
 # Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\build_viewer.ps1
 
-$TEMP_DIR = "../temp"
+$TEMP_DIR = "..\temp"
   if (Test-Path $TEMP_DIR) {
       Write-Host "Deleting previous viewer build..."
       Write-Host "`n"
@@ -15,4 +15,4 @@ Write-Host "Please wait patiently for the highlighted download process to comple
 Write-Host "*************************************************************************" -f cyan;
 Write-Host "`n"
 
-../install/makeAllInstallsElectronite.ps1 -Dev "Y" -IsGHA "N"
+..\install\makeAllInstallsElectronite.ps1 -Dev "Y" -IsGHA "N"
