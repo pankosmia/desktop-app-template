@@ -7,7 +7,9 @@ local_server/Cargo.lock
 macos/project/
 macos/release/
 macos/temp/
+macos/viewer/
 windows/temp/
+windows/viewer/
 windows/buildResources/setup/app_setup.json
 macos/buildResources/setup/app_setup.json
 linux/buildResources/setup/app_setup.json

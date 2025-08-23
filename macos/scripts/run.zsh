@@ -1,5 +1,9 @@
 #!/usr/bin/env zsh
 
+# Run from pankosmia/[this-repo's-name]/macos/scripts directory by:  ./run.zsh
+# with the optional arguments of: ./run.zsh -s
+# to pre-specify that the server is off.
+
 set -e
 set -u
 
@@ -10,7 +14,7 @@ askIfOff="${1:-yes}" # -s means "no"
 if ! [[ $askIfOff =~ ^(-s) ]]; then
   while true; do
     read "choice?Only one instance of the server can be running at a time. Is the server off? [Y/N y/n]: "
-    case $choice in 
+    case $choice in
       [yY] ) echo
         echo "Continuing..."
         break

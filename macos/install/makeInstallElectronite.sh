@@ -23,6 +23,7 @@
 # Parameters:
 #   $1 : Architecture type (Required)
 #        Accepted values: arm64, intel64
+#   $2 : -d indicates a development run (for building viewer only)
 #
 # Returns:
 #   0 : Success
@@ -53,9 +54,12 @@ fi
 arch="$1"
 devRun="${2:-no}" # This is a development viewer run if $1 is -d
 
-PKG_NAME="${FILE_APP_NAME}-macos-installer-standalone-${arch}-${APP_VERSION}.pkg"
-rm -f ./build/${PKG_NAME}
-rm -f ../releases/macos/${PKG_NAME}
+# Needed for local bundles. Not required in GHA but does no harm.
+if ! [[ $devRun =~ ^(-d) ]]; then
+  PKG_NAME="${FILE_APP_NAME}-macos-installer-standalone-${arch}-${APP_VERSION}.pkg"
+  rm -f ./build/${PKG_NAME}
+  rm -f ../releases/macos/${PKG_NAME}
+fi
 
 cd ../build || exit 1
 
@@ -63,11 +67,18 @@ cd ../build || exit 1
 # build folder structure for package
 
 # Turn on command echo
-set -x
+# set -x
 
-rm -rf ../temp/project
+if [[ $devRun =~ ^(-d) ]]; then
+        pkgDir=viewer
+    else
+        pkgDir=temp
+    fi
 
-APP_BASE_DIR="../temp/project/payload/APP_NAME.app" # temp app foldername without spaces, will rename to actual name later
+# Needed for local bundles. Not required in GHA but also doesn't hurt anything.
+rm -rf ../$pkgDir/project
+
+APP_BASE_DIR="../$pkgDir/project/payload/APP_NAME.app" # temp app foldername without spaces, will rename to actual name later
 
 mkdir -p ${APP_BASE_DIR}/Contents/MacOS
 
@@ -97,7 +108,7 @@ sed -i.bak "s/\${APP_NAME}/$APP_NAME/g" "${APP_BASE_DIR}/Contents/electron/packa
 sed -i.bak "s/\${APP_VERSION}/$APP_VERSION/g" "${APP_BASE_DIR}/Contents/electron/package.json"  # Replace all occurrences of ${APP_NAME}
 
 # now copy architecture specific electron files
-cp -R ../temp/electron.$arch/* ${APP_BASE_DIR}/Contents/electron
+cp -R ../$pkgDir/electron.$arch/* ${APP_BASE_DIR}/Contents/electron
 
 # Check if Electron executable owner is current user
 ELECTRON_OWNER=$(stat -f %u ${APP_BASE_DIR}/Contents/electron/Electron.app/Contents/MacOS/Electron)
@@ -112,44 +123,48 @@ mv ${APP_BASE_DIR}/Contents/electron/Electron.app ${APP_BASE_DIR}/Contents/elect
 
 chmod 755 ${APP_BASE_DIR}/Contents/electron/Electron/Contents/MacOS/Electron
 
-mkdir -p ${APP_BASE_DIR}/Contents/Resources
-cp ../buildResources/README.md ${APP_BASE_DIR}/Contents/Resources/README.md
+if ! [[ $devRun =~ ^(-d) ]]; then
+  mkdir -p ${APP_BASE_DIR}/Contents/Resources
+  cp ../buildResources/README.md ${APP_BASE_DIR}/Contents/Resources/README.md
 
-# copy Info.plist
-cp ../buildResources/Info.plist ${APP_BASE_DIR}/Contents/
-PLIST_FILE="${APP_BASE_DIR}/Contents/Info.plist"
+  # copy Info.plist
+  cp ../buildResources/Info.plist ${APP_BASE_DIR}/Contents/
+  PLIST_FILE="${APP_BASE_DIR}/Contents/Info.plist"
 
-# Check if the file exists
-if [ ! -f "$PLIST_FILE" ]; then
-    echo "Error: $PLIST_FILE does not exist."
-    exit 1
+  # Check if the file exists
+  if [ ! -f "$PLIST_FILE" ]; then
+      echo "Error: $PLIST_FILE does not exist."
+      exit 1
+  fi
+
+  # Replace all occurrences of ${APP_NAME}, ${APP_VERSION} and ${FILE_APP_NAME} with the value of their variables
+  sed -i.bak "s/\${APP_VERSION}/$APP_VERSION/g" "$PLIST_FILE"
+  sed -i.bak "s/\${APP_NAME}/$APP_NAME/g" "$PLIST_FILE"
+  sed -i.bak "s/\${FILE_APP_NAME}/$FILE_APP_NAME/g" "$PLIST_FILE"
+
+  # Print success message
+  echo "Replaced \${APP_VERSION} with \"$APP_VERSION\" in $PLIST_FILE."
+  echo "Replaced \${APP_NAME} with \"$APP_NAME\" in $PLIST_FILE."
+  echo "Replaced \${FILE_APP_NAME} with \"$FILE_APP_NAME\" in $PLIST_FILE."
+  #echo "Backup of original file saved as $PLIST_FILE.bak"
+  #remove backup
+  rm "$PLIST_FILE.bak"
+
+  echo "New  plist file:"
+  type $PLIST_FILE
+
+  cp -R ./bin ${APP_BASE_DIR}/Contents/
+  echo "copied bin to $APP_BASE_DIR/Contents/"
+  chmod 755 ${APP_BASE_DIR}/Contents/bin/server.bin
+  chmod 755 ${APP_BASE_DIR}/Contents/MacOS/${LAUNCHER_NAME}
+
+  cp -R ./lib ${APP_BASE_DIR}/Contents/
+  echo "copied lib to $APP_BASE_DIR/Contents/"
+
+  mkdir -p ../$pkgDir/project/scripts
+  cp ../install/post_install_script.sh ../$pkgDir/project/scripts/postinstall
+  chmod +x ../$pkgDir/project/scripts/postinstall
 fi
-
-# Replace all occurrences of ${APP_NAME}, ${APP_VERSION} and ${FILE_APP_NAME} with the value of their variables
-sed -i.bak "s/\${APP_VERSION}/$APP_VERSION/g" "$PLIST_FILE"
-sed -i.bak "s/\${APP_NAME}/$APP_NAME/g" "$PLIST_FILE"
-sed -i.bak "s/\${FILE_APP_NAME}/$FILE_APP_NAME/g" "$PLIST_FILE"
-
-# Print success message
-echo "Replaced \${APP_VERSION} with \"$APP_VERSION\" in $PLIST_FILE."
-echo "Replaced \${APP_NAME} with \"$APP_NAME\" in $PLIST_FILE."
-echo "Replaced \${FILE_APP_NAME} with \"$FILE_APP_NAME\" in $PLIST_FILE."
-#echo "Backup of original file saved as $PLIST_FILE.bak"
-#remove backup
-rm "$PLIST_FILE.bak"
-
-echo "New  plist file:"
-type $PLIST_FILE
-
-cp -R ./bin ${APP_BASE_DIR}/Contents/
-chmod 755 ${APP_BASE_DIR}/Contents/bin/server.bin
-chmod 755 ${APP_BASE_DIR}/Contents/MacOS/${LAUNCHER_NAME}
-
-cp -R ./lib ${APP_BASE_DIR}/Contents/
-
-mkdir -p ../temp/project/scripts
-cp ../install/post_install_script.sh ../temp/project/scripts/postinstall
-chmod +x ../temp/project/scripts/postinstall
 
 # set execute permission on all folders
 find ${APP_BASE_DIR}/ -type d -exec chmod u+x,g+x,o+x {} +
@@ -157,20 +172,19 @@ find ${APP_BASE_DIR}/ -type d -exec chmod u+x,g+x,o+x {} +
 # rename to final app name
 mv ${APP_BASE_DIR} "$(dirname "${APP_BASE_DIR}")/${APP_NAME}.app"
 
-# maintain a one-off identifier for simpler upgrades of early test releases
-if [ "$FILE_APP_NAME" == "liminal" ]; then
-  IDENTIFIER="com.yourdomain.liminal"
-else
-  IDENTIFIER="pankosmia.${FILE_APP_NAME}"
-fi
-
 if ! [[ $devRun =~ ^(-d) ]]; then
+  # maintain a one-off identifier for simpler upgrades of early test releases
+  if [ "$FILE_APP_NAME" == "liminal" ]; then
+    IDENTIFIER="com.yourdomain.liminal"
+  else
+    IDENTIFIER="pankosmia.${FILE_APP_NAME}"
+  fi
 
   # build pkg
   cd ..
   pkgbuild \
-    --root ./temp/project/payload \
-    --scripts ./temp/project/scripts \
+    --root ./$pkgDir/project/payload \
+    --scripts ./$pkgDir/project/scripts \
     --identifier ${IDENTIFIER} \
     --version "$APP_VERSION" \
     --install-location /Applications \
@@ -178,5 +192,4 @@ if ! [[ $devRun =~ ^(-d) ]]; then
 
   # copy to releases folder
   cp ./build/${PKG_NAME} ../releases/macos/
-
 fi

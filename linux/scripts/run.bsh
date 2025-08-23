@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# Run from pankosmia/[this-repo's-name]/linux/scripts directory by:  ./run.bsh
+# with the optional arguments of: ./run.bsh -s
+# to pre-specify that the server is off.
+
 set -e
 set -u
 

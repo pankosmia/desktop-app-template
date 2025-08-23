@@ -35,7 +35,7 @@ FILE_APP_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]')
 # Replace spaces with a dash (-) in filename
 FILE_APP_NAME=${FILE_APP_NAME// /-}
 
-# export environment variable
+# export environment variables -- available to any subshell; not environment variables!
 echo "FILE_APP_NAME=$FILE_APP_NAME"
 export FILE_APP_NAME="$FILE_APP_NAME"
 echo "APP_NAME=$APP_NAME" 
@@ -74,27 +74,34 @@ for ARCH in "intel64" "arm64"; do
         expectedZip="*-arm64-*.zip"
     fi
 
-    if [[ $devRun =~ ^(-d) ]]; then
-        cd ../install
-    fi
-    ./getElectronRelease.sh  $downloadElectronUrl $ARCH
-    
-    
+    cd ../install # required on local builds runs; no harm in gha
+    ./getElectronRelease.sh $downloadElectronUrl $ARCH $devRun
+
     if [ $? -ne 0 ]; then
         echo "Error: Failed to get Electron release files at downloadElectronUrl - $?"
         exit 1
     fi
-    
-    # Check if zip file exists
-    zipFile=$(ls -1 ../../releases/macos/$expectedZip | head -n1)
-    if [ -z "$zipFile" ]; then
-        echo "Error: zip file not found in ../../releases/macos/"
-        exit 1
+
+    if [[ $devRun =~ ^(-d) ]]; then
+        pkgDir=viewer
+    else
+        pkgDir=temp
     fi
-    
-    # unzip the install files and create mac install package
-    ./makeInstallFromZipElectronite.sh  $zipFile ../temp/release $ARCH $devRun
-    
+
+    # Run makeInstallElectronite Shell script
+    echo
+    echo "     ****************************************"
+    echo "     * Running makeInstallElectronite.sh... *"
+    echo "     * Wait for the prompt.                 *"
+    echo "     ****************************************"
+    echo
+    ./makeInstallElectronite.sh $ARCH $devRun
+
+    if ! [[ $devRun =~ ^(-d) ]]; then
+        echo "Files at ../../releases/macos/"
+        ls -als ../../releases/macos/
+    fi
+
     if [ $? -ne 0 ]; then
         echo "Error: Build failed for architecture $ARCH"
         exit 1

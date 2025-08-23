@@ -38,28 +38,23 @@ if ($answer -eq 'Y') {
     exit
   }
 
-  cd ..\..\
-  echo "checkout main"
-  git checkout main | Out-Null
-  echo "pull"
-  git pull
-  echo "npm install"
-  npm install
-  echo "`n"
-  echo "Running app_setup to ensure version number consistency between buildSpec.json and this build bundle:"
-  cd windows\scripts
-  .\app_setup.bat
-
-  echo "`n"
-  echo "Version is $APP_VERSION"
-  echo "`n"
-
   $TEMP_DIR = "..\temp"
     if (Test-Path $TEMP_DIR) {
         Write-Host "Deleting previous build..."
         Write-Host "`n"
         Remove-Item -Path $TEMP_DIR -Recurse -Force
     }
+
+  # The bundle_zip script will ensure the latest is checked out, the clone is installed, and the app_setup script is run
+  echo "`n"
+  echo "Bundling Zip..."
+  echo "  - updates the build environment for the Electronite package build,"
+  echo "  - and creates a zip bundle that parallels the Electronite package."
+  .\bundle_zip.ps1 -ServerOff "Y"
+
+  echo "`n"
+  echo "Version is $APP_VERSION"
+  echo "`n"
 
   Write-Host "`n"
   Write-Host "`n"

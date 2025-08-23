@@ -14,4 +14,4 @@ pwd
 
 # Starting electronite viewer loading dev build environment
 export APP_RESOURCES_DIR=../../build/lib/
-../temp/project/payload/${APP_NAME}.app/Contents/electron/Electron/Contents/MacOS/Electron ../temp/project/payload/${APP_NAME}.app/Contents/electron
+../viewer/project/payload/${APP_NAME}.app/Contents/electron/Electron/Contents/MacOS/Electron ../viewer/project/payload/${APP_NAME}.app/Contents/electron

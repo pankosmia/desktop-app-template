@@ -67,30 +67,44 @@ foreach ($ARCH in @("intel64")) {
 
     # Get Electron release
     Write-Host "Getting Electron release..."
-    $electronResult = & "$PSScriptRoot\getElectronRelease.ps1" -downloadUrl $downloadElectronUrl -arch $ARCH
+    $electronResult = & "$PSScriptRoot\getElectronRelease.ps1" -downloadUrl $downloadElectronUrl -arch $ARCH -Dev $Dev
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Error: Failed to get Electron release files at $downloadElectronUrl"
         exit 1
     }
 
-    # verify zip
-    If (-Not (Test-Path ..\..\releases\windows\$expectedZip)) {
-        echo "Error: Missing windows .zip release"
+    if ($Dev -ne 'Y') {
+      # verify zip
+      If (-Not (Test-Path ..\..\releases\windows\$expectedZip)) {
+          echo "Error: Missing windows .zip release"
+          exit 1
+      }
+    }
+
+    # Run makeInstallElectronite PowerShell script
+    Write-Host "`n"
+    Write-Host "     *****************************************"
+    Write-Host "     * Running makeInstallElectronite.ps1... *"
+    Write-Host "     * Wait for the prompt.                  *"
+    Write-Host "     *****************************************"
+    Write-Host "`n"
+    $makeInstallElectronitePath = Join-Path $PSScriptRoot "makeInstallElectronite.ps1"
+    if (-not (Test-Path $makeInstallElectronitePath)) {
+        Write-Host "Error: makeInstallElectronite.ps1 not found at $makeInstallElectronitePath"
         exit 1
     }
 
-    # Make install from zip
-    Write-Host "Creating install package..."
-    $zipPath = Resolve-Path "..\..\releases\windows\$expectedZip"
     if ($Dev -eq 'Y') {
-      $installResult = & "$PSScriptRoot\makeInstallElectroniteFromZip.ps1" -Dev "Y" -zipPath $zipPath -destinationFolder "..\temp\release" -arch $ARCH
+      $result = & "$makeInstallElectronitePath" -Dev $Dev -arch $arch
     } else {
-      $installResult = & "$PSScriptRoot\makeInstallElectroniteFromZip.ps1" -zipPath $zipPath -destinationFolder "..\temp\release" -arch $ARCH
+      $result = & "$makeInstallElectronitePath" -arch $arch
     }
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "Error: Build failed for architecture $ARCH"
+        Write-Host "Error: makeInstallElectronite.ps1 failed with exit code $LASTEXITCODE"
         exit 1
     }
 }
 
-Write-Host "All architectures built successfully"
+if ($Dev -ne 'Y') {
+  Write-Host "All architectures built successfully"
+}

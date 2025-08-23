@@ -1,6 +1,6 @@
 # Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\build_viewer.ps1
 
-$TEMP_DIR = "..\temp"
+$TEMP_DIR = "..\viewer"
   if (Test-Path $TEMP_DIR) {
       Write-Host "Deleting previous viewer build..."
       Write-Host "`n"

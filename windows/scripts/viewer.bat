@@ -11,4 +11,4 @@ REM Using dev server.
 
 REM Starting electronite viewer loading dev build environment
 set "APP_RESOURCES_DIR=..\..\build\lib\"
-..\temp\project\payload\app\electron\electron.exe ..\temp\project\payload\app\electron &
+..\viewer\project\payload\app\electron\electron.exe ..\viewer\project\payload\app\electron &

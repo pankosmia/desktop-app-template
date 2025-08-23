@@ -13,6 +13,10 @@ The URL to download the Electron release package from.
 
 .PARAMETER arch
 The target architecture (e.g., x64, arm64) for the Electron package.
+
+.PARAMETER Dev
+Specify -Dev "Y" when generating a development viewer.
+- Default is "N"
 #>
 
 # Check if filename and destination are provided as arguments
@@ -21,10 +25,19 @@ param(
     [string]$downloadUrl,
 
     [Parameter(Mandatory=$true)]
-    [string]$arch
+    [string]$arch,
+
+    [Parameter(Mandatory=$false)]
+    [string]$Dev
 )
 
-$testDir = "..\temp\electron.$arch\electron.exe"
+if ($Dev -eq 'Y') {
+  $pkgDir = "viewer"
+} else {
+    $pkgDir = "temp"
+}
+
+$testDir = "..\$pkgDir\electron.$arch\electron.exe"
 Write-Host "Checking for $testDir"
 if (Test-Path $testDir) {
     Write-Host "electron.exe already exists for $arch"
@@ -38,7 +51,7 @@ Write-Host "filename is $filename"
 Write-Host "Fetching for architecture: $arch from $downloadUrl"
 
 # Create directory for downloaded files
-$destFolder = "..\temp\electron\$arch"
+$destFolder = "..\$pkgDir\electron\$arch"
 New-Item -ItemType Directory -Force -Path $destFolder | Out-Null
 
 # Download zip file
@@ -54,7 +67,7 @@ catch {
 }
 
 # Create destination directory
-$unzipDest = "..\temp\electron.$arch"
+$unzipDest = "..\$pkgDir\electron.$arch"
 if (Test-Path $unzipDest) {
     Remove-Item -Path $unzipDest -Recurse -Force
 }

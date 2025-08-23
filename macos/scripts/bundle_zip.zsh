@@ -52,6 +52,7 @@ if ! [[ $askIfOff =~ ^(-s) ]]; then
   done
 fi
 
+# In GHA, each step has either already run or is otherwise unnecessary.
 if ! [[ $isGHA =~ ^(-g) ]]; then
   if [ ! -f ../../local_server/target/release/local_server ]; then
     echo

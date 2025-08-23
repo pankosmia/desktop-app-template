@@ -11,6 +11,7 @@
 # Parameters:
 #   $1 - downloadUrl: URL to download the Electron package from
 #   $2 - arch: Architecture type (e.g., 'arm64' or 'intel64')
+#   $3 -d indicates generation of a development viewer (optional)
 #
 # Return Values:
 #   0 - Success (package downloaded and extracted, or already exists)
@@ -27,8 +28,15 @@ fi
 # get arguments
 downloadUrl="$1"
 arch="$2"
+devRun="${3:-no}" # This is a development viewer run if $3 is -d
 
-testDir="../temp/electron.$arch/Electron.app"
+if [[ $devRun =~ ^(-d) ]]; then
+    pkgDir=viewer
+else
+    pkgDir=temp
+fi
+
+testDir="../$pkgDir/electron.$arch/Electron.app"
 if [ -d "$testDir" ]; then
   echo "Electron.app already exists for $arch"
   exit 0
@@ -41,7 +49,7 @@ echo "filename is $filename"
 echo "Fetching for architecture: $arch from $downloadUrl"
 
 # Create directory for downloaded files
-destFolder="../temp/electron/$arch"
+destFolder="../$pkgDir/electron/$arch"
 mkdir -p "$destFolder"
 
 # Download zip file
@@ -55,11 +63,11 @@ if [ $? -ne 0 ]; then
 fi
 
 # create destination directory
-unzipDest="../temp/electron.$arch"
+unzipDest="../$pkgDir/electron.$arch"
 rm -rf "$dest"
 
 # Unzip the file
-if ! unzip "$tempName" -d "$unzipDest"; then
+if ! unzip -qq "$tempName" -d "$unzipDest"; then
   echo "Error: Failed to unzip '$unzipDest'"
   exit 1
 fi

@@ -1,6 +1,6 @@
 # Run from pankosmia\[this-repo's-name]\macos\scripts directory by:  .\build_viewer.zsh
 
-$TEMP_DIR = "../temp"
+TEMP_DIR=../viewer
 if [ -d $TEMP_DIR ]; then
     echo "Deleting previous viewer build..."
     echo
