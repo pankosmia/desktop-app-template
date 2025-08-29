@@ -12,7 +12,7 @@
 .NOTES
     Requires PowerShell and depends on:
     - getElectronRelease.ps1
-    - makeInstallElectroniteFromZip.ps1
+    - makeInstallElectronite.ps1
 
 .PARAMETER IsGHA
     Specify -IsGHA "N" when run locally to avoid a failed attempt to list github actions environment variables.
@@ -103,6 +103,13 @@ foreach ($ARCH in @("intel64")) {
         Write-Host "Error: makeInstallElectronite.ps1 failed with exit code $LASTEXITCODE"
         exit 1
     }
+}
+
+# Remove temporary electronite files from local dev viewer build.
+if ($Dev -eq 'Y') {
+  Remove-Item -Path "..\viewer\electron" -Recurse -Force -ErrorAction SilentlyContinue
+  Remove-Item -Path "..\viewer\electron.*" -Recurse -Force -ErrorAction SilentlyContinue
+  Write-Host "Local Dev Electronite Viewer has been successfully built."
 }
 
 if ($Dev -ne 'Y') {

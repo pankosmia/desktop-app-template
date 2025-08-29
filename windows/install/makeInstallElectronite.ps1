@@ -126,6 +126,11 @@ try {
         Copy-Item -Path $electronSrcPath -Destination $electronDestPath -Recurse -Force -ErrorAction Stop
         Write-Host "Successfully copied electron files"
 
+        # Copy main electron browser window icon
+        $electronIconSrc = Join-Path $PSScriptRoot "..\..\globalBuildResources\icon*.png"
+        Write-Host "Copying icon*.png to $electronDestPath ..."
+        Copy-Item $electronIconSrc -Destination $electronDestPath
+
         # Determine which startup to use -- dev viewer or production
         if ($Dev -eq "Y") {
           Remove-Item $electronDestPath\electronStartup.js

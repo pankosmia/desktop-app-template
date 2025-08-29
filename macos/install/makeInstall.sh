@@ -54,6 +54,7 @@ cp ../build/appLauncher.sh ../project/payload/"$APP_NAME".app/Contents/MacOS/sta
 
 mkdir -p ../project/payload/"$APP_NAME".app/Contents/Resources
 cp ../build/README.txt ../project/payload/"$APP_NAME".app/Contents/Resources/README.txt
+cp ../../globalBuildResources/icon.icns ../project/payload/"$APP_NAME".app/Contents/Resources/icon.icns
 
 # add APP_VERSION, APP_NAME and FILE_APP_NAME to Info.plist. It is correctly in ../buildResources as it is not processed by `node build.js`.
 cp ../buildResources/Info.plist ../project/payload/"$APP_NAME".app/Contents/

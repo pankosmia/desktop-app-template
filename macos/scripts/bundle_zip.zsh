@@ -67,12 +67,12 @@ if ! [[ $isGHA =~ ^(-g) ]]; then
     echo "A previous macos .zip release exists. Removing..."
     rm releases/macos/*.zip
   fi
-  echo "checkout main"
-  git checkout main &> /dev/null
-  echo "pull"
-  git pull
-  echo "npm install"
-  npm install
+  # echo "checkout main"
+  # git checkout main &> /dev/null
+  # echo "pull"
+  # git pull
+  # echo "npm install"
+  # npm install
   cd macos/scripts
   echo
   echo "Running app_setup to ensure version number consistency between buildSpec.json and this build bundle:"

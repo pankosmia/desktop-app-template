@@ -45,12 +45,12 @@ if ($answer -eq 'Y') {
 
   if ($IsGHA -ne 'Y') {
     cd ..\..\
-    echo "checkout main"
-    git checkout main | Out-Null
-    echo "pull"
-    git pull
-    echo "npm install"
-    npm install
+    # echo "checkout main"
+    # git checkout main | Out-Null
+    # echo "pull"
+    # git pull
+    # echo "npm install"
+    # npm install
     echo "`n"
     echo "Running app_setup to ensure version number consistency between buildSpec.json and this build bundle:"
     cd windows\scripts

@@ -3,12 +3,14 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>${APP_NAME}</string>
-    <key>CFBundleDisplayName</key>
-    <string>${APP_NAME}</string>
+		<string>${APP_NAME}</string>
+	<key>CFBundleDisplayName</key>
+		<string>${APP_NAME}</string>
 	<key>CFBundleVersion</key>
-	<string>${APP_VERSION}</string>
+		<string>${APP_VERSION}</string>
+	<key>CFBundleIconFile</key>
+		<string>icon</string>
 	<key>CFBundleExecutable</key>
-	<string>start-${FILE_APP_NAME}.sh</string>
+		<string>start-${FILE_APP_NAME}.sh</string>
 </dict>
 </plist>

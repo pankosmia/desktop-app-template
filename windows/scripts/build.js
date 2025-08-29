@@ -37,6 +37,14 @@ fse.writeFileSync(
     path.join(BUILD_DIR, "README.txt"),
     readMe
 );
+// Copy favicon for .iss use in Inno Setup build
+const ICON_ICO = "../../globalBuildResources/icon.ico";
+if (ICON_ICO) {
+    fse.copySync(
+        path.resolve(ICON_ICO),
+        path.join(BUILD_DIR, "icon.ico")
+    );
+}
 // Make bin directory
 fse.mkdirSync(path.join(BUILD_DIR, "bin"));
 // Copy bin

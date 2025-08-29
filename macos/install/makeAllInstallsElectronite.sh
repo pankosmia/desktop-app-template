@@ -109,3 +109,11 @@ for ARCH in "intel64" "arm64"; do
 done
 
 echo "Build completed for $CPU_ARCH architecture"
+
+# Remove temporary electronite files from local dev viewer build.
+if [[ $devRun =~ ^(-d) ]]; then
+    rm -rf ../$pkgDir/electron
+    rm -rf ../$pkgDir/electron.*
+    echo "Local Dev Electronite Viewer has been successfully built."
+fi
+

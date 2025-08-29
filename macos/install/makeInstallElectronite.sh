@@ -91,6 +91,7 @@ rm "${APP_BASE_DIR}/Contents/MacOS/${LAUNCHER_NAME}.bak"
 
 # copy shared electron files
 cp -R ../../buildResources/electron ${APP_BASE_DIR}/Contents/
+cp ../../globalBuildResources/icon*.png ${APP_BASE_DIR}/Contents/
 echo "Successfully copied electron files"
 
 # Determine which startup to use -- dev viewer or production
@@ -125,7 +126,7 @@ chmod 755 ${APP_BASE_DIR}/Contents/electron/Electron/Contents/MacOS/Electron
 
 if ! [[ $devRun =~ ^(-d) ]]; then
   mkdir -p ${APP_BASE_DIR}/Contents/Resources
-  cp ../buildResources/README.md ${APP_BASE_DIR}/Contents/Resources/README.md
+  cp ../../globalBuildResources/icon.icns ${APP_BASE_DIR}/Contents/Resources/icon.icns
 
   # copy Info.plist
   cp ../buildResources/Info.plist ${APP_BASE_DIR}/Contents/
@@ -151,7 +152,7 @@ if ! [[ $devRun =~ ^(-d) ]]; then
   rm "$PLIST_FILE.bak"
 
   echo "New  plist file:"
-  type $PLIST_FILE
+  cat "$PLIST_FILE"
 
   cp -R ./bin ${APP_BASE_DIR}/Contents/
   echo "copied bin to $APP_BASE_DIR/Contents/"
