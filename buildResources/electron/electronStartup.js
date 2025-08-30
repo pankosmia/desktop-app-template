@@ -120,7 +120,7 @@ function createWindow() {
             height: 768,
             autoHideMenuBar: true,
             show: false,  // Don't show until ready to maximize
-            icon: path.join(__dirname, 'icon.png'),
+            icon: path.join(__dirname, 'favicon.png'),
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js')
               }

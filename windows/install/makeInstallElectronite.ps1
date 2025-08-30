@@ -127,8 +127,8 @@ try {
         Write-Host "Successfully copied electron files"
 
         # Copy main electron browser window icon
-        $electronIconSrc = Join-Path $PSScriptRoot "..\..\globalBuildResources\icon*.png"
-        Write-Host "Copying icon*.png to $electronDestPath ..."
+        $electronIconSrc = Join-Path $PSScriptRoot "..\..\globalBuildResources\favicon*.png"
+        Write-Host "Copying favicon*.png to $electronDestPath ..."
         Copy-Item $electronIconSrc -Destination $electronDestPath
 
         # Determine which startup to use -- dev viewer or production

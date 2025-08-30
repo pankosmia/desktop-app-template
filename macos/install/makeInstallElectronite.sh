@@ -91,7 +91,7 @@ rm "${APP_BASE_DIR}/Contents/MacOS/${LAUNCHER_NAME}.bak"
 
 # copy shared electron files
 cp -R ../../buildResources/electron ${APP_BASE_DIR}/Contents/
-cp ../../globalBuildResources/icon*.png ${APP_BASE_DIR}/Contents/
+cp ../../globalBuildResources/favicon*.png ${APP_BASE_DIR}/Contents/
 echo "Successfully copied electron files"
 
 # Determine which startup to use -- dev viewer or production

@@ -121,18 +121,18 @@ git checkout globalBuildResources\icon.icns
 echo globalBuildResources\icon.ico:
 git reset globalBuildResources\icon.ico
 git checkout globalBuildResources\icon.ico
-echo globalBuildResources\icon.png:
-git reset globalBuildResources\icon.png
-git checkout globalBuildResources\icon.png
-echo globalBuildResources\icon@1.25x.png:
-git reset globalBuildResources\icon@1.25x.png
-git checkout globalBuildResources\icon@1.25x.png
-echo globalBuildResources\icon@1.5x.png:
-git reset globalBuildResources\icon@1.5x.png
-git checkout globalBuildResources\icon@1.5x.png
-echo globalBuildResources\icon@2x.png:
-git reset globalBuildResources\icon@2x.png
-git checkout globalBuildResources\icon@2x.png
+echo globalBuildResources\favicon.png:
+git reset globalBuildResources\favicon.png
+git checkout globalBuildResources\favicon.png
+echo globalBuildResources\favicon@1.25x.png:
+git reset globalBuildResources\favicon@1.25x.png
+git checkout globalBuildResources\favicon@1.25x.png
+echo globalBuildResources\favicon@1.5x.png:
+git reset globalBuildResources\favicon@1.5x.png
+git checkout globalBuildResources\favicon@1.5x.png
+echo globalBuildResources\favicon@2x.png:
+git reset globalBuildResources\favicon@2x.png
+git checkout globalBuildResources\favicon@2x.png
 echo globalBuildResources\theme.json:
 git reset globalBuildResources\theme.json
 git checkout globalBuildResources\theme.json
