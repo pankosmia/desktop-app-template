@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+
+# linux Installation Package Builder Script
+#
+# Synopsis:
+#   Creates a linux installation package (.pkg) for the application
+#   based on provided architecture (arm64 or intel64) and APP_VERSION.
+#
+# Description:
+#   This script automates the process of building a linux installer package by:
+#   1. Creating the installation directory structure
+#   2. Copying application files and resources
+#   3. Setting up proper permissions
+#   4. Configuring application metadata (Info.plist)
+#   5. Building the final installer package
+#
+# Requirements:
+#   - APP_VERSION environment variable must be set (e.g., export APP_VERSION="0.2.7")
+#   - Architecture parameter must be provided when running the script (arm64 or intel64)
+#   - XCode command line tools must be installed
+#   - brew package manager with shc installed (`brew install shc`)
+#
+# Parameters:
+#   $1 : Architecture type (Required)
+#        Accepted values: arm64, intel64
+#   $2 : -d indicates a development run (for building viewer only)
+#
+# Returns:
+#   0 : Success
+#   1 : Failure (Invalid/missing parameters or execution error)
+#
+# Output:
+#   Creates installer package at: ../releases/linux/<app-name>_installer_<arch>_<version>.pkg
+
+# Check if APP_NAME environment variable is set
+if [ -z "$APP_NAME" ]; then
+    echo "Error: APP_NAME environment variable is not set."
+    exit 1
+fi
+
+# Check if APP_VERSION environment variable is set
+if [ -z "$APP_VERSION" ]; then
+    echo "Error: APP_VERSION environment variable is not set."
+    exit 1
+fi
+
+# Check if FILE_APP_NAME environment variable is set
+if [ -z "$FILE_APP_NAME" ]; then
+    echo "Error: FILE_APP_NAME environment variable is not set."
+    exit 1
+fi
+
+# get arguments
+arch="$1"
+devRun="${2:-no}" # This is a development viewer run if $1 is -d
+
+# Needed for local bundles. Not required in GHA but does no harm.
+if ! [[ $devRun =~ ^(-d) ]]; then
+  PKG_NAME="${FILE_APP_NAME}-linux-installer-standalone-${arch}-${APP_VERSION}.pkg"
+  rm -f ./build/${PKG_NAME}
+  rm -f ../releases/linux/${PKG_NAME}
+fi
+
+cd ../build || exit 1
+
+########################################
+# build folder structure for package
+
+# Turn on command echo
+# set -x
+
+if [[ $devRun =~ ^(-d) ]]; then
+        pkgDir=viewer
+    else
+        pkgDir=temp
+    fi
+
+# Needed for local bundles. Not required in GHA but also doesn't hurt anything.
+rm -rf ../$pkgDir/project
+
+APP_BASE_DIR="../$pkgDir/project/payload/app"
+
+mkdir -p ${APP_BASE_DIR}
+
+# electron startup
+LAUNCHER_NAME="start-${FILE_APP_NAME}.sh"
+cp ../buildResources/appLauncherElectron.sh ${APP_BASE_DIR}/${LAUNCHER_NAME}
+sed -i.bak "s/\${APP_NAME}/$APP_NAME/g" ${APP_BASE_DIR}/${LAUNCHER_NAME}
+#remove backup
+rm "${APP_BASE_DIR}/${LAUNCHER_NAME}.bak"
+
+# copy shared electron files
+cp -R ../../buildResources/electron ${APP_BASE_DIR}/
+cp ../../globalBuildResources/favicon*.png ${APP_BASE_DIR}/electron
+echo "Successfully copied electron files"
+
+# Determine which startup to use -- dev viewer or production
+if [[ $devRun =~ ^(-d) ]]; then
+  rm ${APP_BASE_DIR}/electron/electronStartup.js
+  cp ${APP_BASE_DIR}/electron/electronDevStartup.js ${APP_BASE_DIR}/electron/electronStartup.js
+  rm ${APP_BASE_DIR}/electron/electronDevStartup.js
+else
+  rm ${APP_BASE_DIR}/electron/electronDevStartup.js
+fi
+
+# Replace all occurrences of ${APP_NAME} and ${APP_VERSION} in startup script
+sed -i.bak "s/\${APP_NAME}/$APP_NAME/g" "${APP_BASE_DIR}/electron/electronStartup.js"  # Replace all occurrences of ${APP_NAME}
+sed -i.bak "s/\${APP_NAME}/$APP_NAME/g" "${APP_BASE_DIR}/electron/package.json"  # Replace all occurrences of ${APP_NAME}
+sed -i.bak "s/\${APP_VERSION}/$APP_VERSION/g" "${APP_BASE_DIR}/electron/package.json"  # Replace all occurrences of ${APP_VERSION}
+
+# now copy architecture specific electron files
+cp -R ../$pkgDir/electron.$arch/* ${APP_BASE_DIR}/electron
+
+# Check if Electron executable owner is current user
+ELECTRON_OWNER=$(stat --format='%u' ${APP_BASE_DIR}/electron)
+CURRENT_USER=$(id -u)
+if [ "$ELECTRON_OWNER" != "$CURRENT_USER" ]; then
+    echo "Error: Electron executable owner is not current user. Please run: sudo chown -R $(id -u):$(id -g) ../buildResources/electron.$arch/*"
+    exit 1
+fi
+
+
+chmod 755 ${APP_BASE_DIR}/linux
+
+if ! [[ $devRun =~ ^(-d) ]]; then
+  cp -R ./bin ${APP_BASE_DIR}/
+  echo "copied bin to $APP_BASE_DIR/"
+  chmod 755 ${APP_BASE_DIR}/bin/server.bin
+  chmod 755 ${APP_BASE_DIR}/${LAUNCHER_NAME}
+
+  cp -R ./lib ${APP_BASE_DIR}/
+  echo "copied lib to $APP_BASE_DIR/"
+fi
+
+# set execute permission on all folders
+find ${APP_BASE_DIR}/ -type d -exec chmod u+x,g+x,o+x {} +
+

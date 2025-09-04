@@ -32,9 +32,10 @@ fi
 
 if ! [[ $askIfOff =~ ^(-s) ]]; then
   while true; do
-    read "choice?Only one instance of the server can be running at a time. Is the server off? [Y/N y/n]: "
+    read "choice?Only one instance of the server can be running at a time. Is the server off? [Y/N y/n - default is yes]: "
     case $choice in 
-      [yY] ) echo "Continuing...";
+      "y" | "Y" | "" ) echo
+        echo "Continuing...";
         break
         ;;
       [nN] ) echo;
@@ -44,7 +45,7 @@ if ! [[ $askIfOff =~ ^(-s) ]]; then
         echo;
         exit
         ;;
-      * ) echo;
+      * ) echo
         echo "     \"$choice\" is not a valid response. Please enter a Y or y for yes, or an N or n for no.";
         echo
         ;;

@@ -10,6 +10,8 @@ macos/temp/
 macos/viewer/
 windows/temp/
 windows/viewer/
+linux/temp/
+linux/viewer/
 windows/buildResources/setup/app_setup.json
 macos/buildResources/setup/app_setup.json
 linux/buildResources/setup/app_setup.json

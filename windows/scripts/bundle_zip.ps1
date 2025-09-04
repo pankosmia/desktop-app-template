@@ -17,10 +17,10 @@ if ($ServerOff -eq 'Y') {
   $answer = $ServerOff
 } else {
   echo "`n"
-  $answer = Read-Host "     Is the server off?[Y/N y/n]"
+  $answer = Read-Host "     Is the server off? [Y/N y/n - default is yes]: "
 }
 
-if ($answer -eq 'Y') {
+if ($answer -eq 'Y' -Or $answer -eq '') {
     echo "`n"
     echo "Continuing..."
     echo "`n"
@@ -105,6 +105,6 @@ if ($IsGHA -ne 'Y') {
     echo "`n"
 } else {
     echo "`n"
-    echo "     Invalid input. Please enter Y or N."
+    echo """$answer"" is not a valid response. Please enter a Y or y for yes, or an N or n for no."
     .\bundle_zip.ps1
 }

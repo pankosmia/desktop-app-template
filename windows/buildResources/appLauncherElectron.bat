@@ -19,8 +19,6 @@ if exist "%SCRIPT_DIR%\..\bin\server.exe" (
     set "BASE=."
 ) else if exist "..\bin\server.exe" (
     set "BASE=.."
-) else if exist ".\Contents\bin\server.exe" (
-    set "BASE=.\Contents"
 ) else (
     echo Error: server.exe not found in expected locations
     exit /b 1

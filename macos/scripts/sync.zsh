@@ -56,9 +56,9 @@ echo
 askIfPulled="${1:-yes}" # -p means "no"
 if ! [[ $askIfPulled =~ ^(-p) ]]; then
   while true; do
-    read "choice?Are you certain the latest is already pulled? [Y/N y/n]: "
+    read "choice?Are you certain the latest is already pulled? [Y/N y/n- default is yes]: "
     case $choice in 
-      [yY] ) echo
+      "y" | "Y" | "" ) echo
         echo "Continuing..."
         break
         ;;

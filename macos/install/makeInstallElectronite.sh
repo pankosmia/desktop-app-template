@@ -91,7 +91,7 @@ rm "${APP_BASE_DIR}/Contents/MacOS/${LAUNCHER_NAME}.bak"
 
 # copy shared electron files
 cp -R ../../buildResources/electron ${APP_BASE_DIR}/Contents/
-cp ../../globalBuildResources/favicon*.png ${APP_BASE_DIR}/Contents/
+cp ../../globalBuildResources/favicon*.png ${APP_BASE_DIR}/Contents/electron
 echo "Successfully copied electron files"
 
 # Determine which startup to use -- dev viewer or production
@@ -106,7 +106,7 @@ fi
 # Replace all occurrences of ${APP_NAME} and ${APP_VERSION} in startup script
 sed -i.bak "s/\${APP_NAME}/$APP_NAME/g" "${APP_BASE_DIR}/Contents/electron/electronStartup.js"  # Replace all occurrences of ${APP_NAME}
 sed -i.bak "s/\${APP_NAME}/$APP_NAME/g" "${APP_BASE_DIR}/Contents/electron/package.json"  # Replace all occurrences of ${APP_NAME}
-sed -i.bak "s/\${APP_VERSION}/$APP_VERSION/g" "${APP_BASE_DIR}/Contents/electron/package.json"  # Replace all occurrences of ${APP_NAME}
+sed -i.bak "s/\${APP_VERSION}/$APP_VERSION/g" "${APP_BASE_DIR}/Contents/electron/package.json"  # Replace all occurrences of ${APP_VERSION}
 
 # now copy architecture specific electron files
 cp -R ../$pkgDir/electron.$arch/* ${APP_BASE_DIR}/Contents/electron

@@ -9,9 +9,9 @@ echo
 askIfOff="${1:-yes}" # -s means "no"
 if ! [[ $askIfOff =~ ^(-s) ]]; then
   while true; do
-    read "choice?Only one instance of the server can be running at a time. Is the server off? [Y/N y/n]: "
+    read "choice?Only one instance of the server can be running at a time. Is the server off? [Y/N y/n - default is yes]: "
     case $choice in 
-      [yY] ) echo
+      "y" | "Y" | "" ) echo
         echo "Continuing..."
         break
         ;;

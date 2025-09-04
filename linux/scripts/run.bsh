@@ -13,9 +13,9 @@ echo
 askIfOff="${1:-yes}" # -s = "no"
 if ! [[ $askIfOff =~ ^(-s) ]]; then
   while true; do
-    read -p "Only one instance of the server can be running at a time. Is the server off? [Y/N y/n]: " yn
+    read -p "Only one instance of the server can be running at a time. Is the server off? [Y/N y/n - default is yes]: " yn
     case $yn in 
-      [yY] ) echo
+      "y" | "Y" | "" ) echo
         echo "Cleaning..."
         echo
         break
@@ -27,7 +27,7 @@ if ! [[ $askIfOff =~ ^(-s) ]]; then
         echo
         exit
         ;;
-      * ) echo;
+      * ) echo
         echo "     \"$yn\" is not a valid response. Please enter a Y or y for yes, or an N or n for no."
         echo
         ;;
@@ -46,7 +46,6 @@ fi
 
 # set port environment variables
 export ROCKET_PORT=19119
-export RUST_BACKTRACE=1
 
 if [ -d ../build ]; then
   echo "Removing last build environment..."

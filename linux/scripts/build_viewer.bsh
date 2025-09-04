@@ -1,6 +1,6 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
-# Run from pankosmia\[this-repo's-name]\macos\scripts directory by:  .\build_viewer.zsh
+# Run from pankosmia\[this-repo's-name]\linux\scripts directory by:  .\build_viewer.bsh
 
 TEMP_DIR=../viewer
 if [ -d $TEMP_DIR ]; then
@@ -17,4 +17,4 @@ echo "Please wait patiently for the download process to complete..."
 echo "********************************************************************"
 echo
 
-../install/makeAllInstallsElectronite.sh -d
+../install/makeAllInstallsElectronite.bsh -d

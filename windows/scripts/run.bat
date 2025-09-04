@@ -8,10 +8,12 @@ echo.
 IF "%~1"=="-s" (
   goto :server_off
 ) ELSE (
-  set /P c=Is the server off?[Y/N y/n]?
+  set /P c=Is the server off? [Y/N y/n - default is yes]: 
 )
+if /I "%c%" EQU "" goto :server_off
 if /I "%c%" EQU "Y" goto :server_off
 if /I "%c%" EQU "N" goto :server_on
+echo "%c%" is not a valid response. Please enter a Y or y for yes, or an N or n for no.
 goto :choice
 
 :server_on
@@ -38,7 +40,7 @@ if defined %runSetup (
 
 REM set port environment variables
 set ROCKET_PORT=19119
-set RUST_BACKTRACE=1
+
 if exist ..\build (
   echo "Removing last build environment"
   rmdir ..\build /s /q
