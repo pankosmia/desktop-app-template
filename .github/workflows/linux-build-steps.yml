@@ -18,6 +18,10 @@ jobs:
     outputs:
       tgz-name: ${{ steps.get-tgz-name.outputs.tgz-name }}
     
+    # Set process.env.CI to false to prevent treating warnings as errors
+    env:
+      CI: false
+
     steps:
       # Turn off re-runs
       - name: No re-runs please

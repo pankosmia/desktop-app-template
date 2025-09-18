@@ -25,7 +25,11 @@ jobs:
       zip-name: ${{ steps.get-zip-name.outputs.zip-name }}
       exe-name: ${{ steps.get-exe-name.outputs.exe-name }}
       electronite-exe-name: ${{ steps.get-electronite-exe-name.outputs.electronite-exe-name }}
-    
+
+    # Set process.env.CI to false to prevent treating warnings as errors
+    env:
+      CI: false
+
     steps:
       # Turn off re-runs
       - name: No re-runs please
@@ -51,6 +55,12 @@ jobs:
       # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      # Specify node.js version
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.11.0'
 
       # Set APP_VERSION from app_config.env
       - name: Extract APP_VERSION from app_config.env

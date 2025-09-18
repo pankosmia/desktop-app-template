@@ -36,7 +36,11 @@ jobs:
       zip-name: ${{ steps.get-zip-name.outputs.zip-name }}
       pkg-name-arm: ${{ steps.get-installer-names.outputs.pkg-name-arm }}
       pkg-name-intel: ${{ steps.get-installer-names.outputs.pkg-name-intel }}
-    
+
+    # Set process.env.CI to false to prevent treating warnings as errors
+    env:
+      CI: false
+
     steps:
       # Turn off re-runs
       - name: No re-runs please
@@ -72,6 +76,12 @@ jobs:
       # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      # Specify node.js version
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.11.0'
 
       # Install the repository
       - name: Install this repo
