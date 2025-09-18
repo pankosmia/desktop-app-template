@@ -44,6 +44,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Specify node.js version
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.11.0'
+
       # Install the repository
       - name: Install this repo
         run: npm install
