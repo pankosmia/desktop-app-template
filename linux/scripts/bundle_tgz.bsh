@@ -32,7 +32,7 @@ fi
 
 if ! [[ $askIfOff =~ ^(-s) ]]; then
   while true; do
-    read -p "Is the server off? [Y/N y/n - default is yes]: " yn
+    read -p "Is the server off? [Y/n]: " yn
     case $yn in 
       "y" | "Y" | "" ) echo
         echo "Continuing...";
@@ -46,7 +46,7 @@ if ! [[ $askIfOff =~ ^(-s) ]]; then
         exit
         ;;
       * ) echo
-        echo "     \"$yn\" is not a valid response. Please enter a Y or y for yes, or an N or n for no.";
+        echo "     \"$yn\" is not a valid response. Please type y or 'Enter' to continue or 'n' to quit.";
         echo
         ;;
     esac

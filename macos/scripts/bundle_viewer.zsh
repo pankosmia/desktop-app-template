@@ -15,7 +15,7 @@ echo
 askIfOff="${1:-yes}" # -s means "no"
 if ! [[ $askIfOff =~ ^(-s) ]]; then
   while true; do
-    read "choice?Is the server off? [Y/N y/n - default is yes]: "
+    read "choice?Is the server off? [Y/n]: "
     case $choice in
       "y" | "Y" | "" ) echo
         echo "Continuing..."
@@ -29,7 +29,7 @@ if ! [[ $askIfOff =~ ^(-s) ]]; then
         exit
         ;;
       * ) echo
-        echo "     \"$choice\" is not a valid response. Please enter a Y or y for yes, or an N or n for no."
+        echo "     \"$choice\" is not a valid response. Please type y or 'Enter' to continue or 'n' to quit."
         echo
         ;;
     esac

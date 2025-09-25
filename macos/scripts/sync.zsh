@@ -56,7 +56,7 @@ echo
 askIfPulled="${1:-yes}" # -p means "no"
 if ! [[ $askIfPulled =~ ^(-p) ]]; then
   while true; do
-    read "choice?Are you certain the latest is already pulled? [Y/N y/n- default is yes]: "
+    read "choice?Is the latest is already pulled? [Y/n]: "
     case $choice in 
       "y" | "Y" | "" ) echo
         echo "Continuing..."
@@ -70,7 +70,7 @@ if ! [[ $askIfPulled =~ ^(-p) ]]; then
         exit
         ;;
       * ) echo
-        echo "     \"$choice\" is not a valid response. Please enter a Y or y for yes, or an N or n for no."
+        echo "     \"$choice\" is not a valid response. Please type y or 'Enter' to continue or 'n' to quit."
         echo
         ;;
     esac

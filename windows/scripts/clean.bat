@@ -8,12 +8,12 @@ echo.
 IF "%~1"=="-s" (
   goto :server_off
 ) ELSE (
-  set /P c=Is the server off? [Y/N y/n - default is yes]: 
+  set /P c=Is the server off? [Y/n]: 
 )
 if /I "%c%" EQU "" goto :server_off
 if /I "%c%" EQU "Y" goto :server_off
 if /I "%c%" EQU "N" goto :server_on
-echo "%c%" is not a valid response. Please enter a Y or y for yes, or an N or n for no.
+echo "%c%" is not a valid response. Please type y or 'Enter' to continue or 'n' to quit.
 goto :choice
 
 :server_on

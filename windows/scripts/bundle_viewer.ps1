@@ -12,7 +12,7 @@ if ($ServerOff -eq 'Y') {
   $answer = $ServerOff
 } else {
   echo "`n"
-  $answer = Read-Host "     Is the server off? [Y/N y/n - default is yes]: "
+  $answer = Read-Host "     Is the server off? [Y/n]: "
 }
 
 if ($answer -eq 'Y' -Or $answer -eq '') {
@@ -72,6 +72,6 @@ if ($answer -eq 'Y' -Or $answer -eq '') {
     echo "`n"
 } else {
     echo "`n"
-    echo """$answer"" is not a valid response. Please enter a Y or y for yes, or an N or n for no."
+    echo """$answer"" is not a valid response. Please type y or 'Enter' to continue or 'n' to quit."
     .\bundle_viewer.ps1
 }

@@ -9,12 +9,12 @@ echo.
 IF "%~1"=="-p" (
   goto :yes
 ) ELSE (
-  set /P c=Are you certain the latest is already pulled? [Y/N y/n - default is yes]: 
+  set /P c=Is this latest already pulled? [Y/n]: 
 )
 if /I "%c%" EQU "" goto :server_off
 if /I "%c%" EQU "Y" goto :yes
 if /I "%c%" EQU "N" goto :no
-echo "%c%" is not a valid response. Please enter a Y or y for yes, or an N or n for no.
+echo "%c%" is not a valid response. Please type y or 'Enter' to continue or 'n' to quit.
 goto :choice
 
 :no
