@@ -103,12 +103,12 @@ jobs:
       - name: Get PROCESSOR_IDENTIFIER
         id: get-processor-identifier
         run: |
-          echo "Processor Identifer: $PROCESSOR_IDENTIFIER"
+          echo "Runner architecture: $RUNNER_ARCH"
 
       - name: Upload tgz for terminal artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.TGZ_NAME }}
+          name: ${{ env.RUNNER_ARCH }}-${{ env.TGZ_NAME }}
           path: ./releases/linux/${{ env.TGZ_NAME }}
           if-no-files-found: error
           retention-days: 90

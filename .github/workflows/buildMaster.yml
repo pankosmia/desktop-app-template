@@ -33,7 +33,7 @@ jobs:
       runner: ubuntu-24.04-arm
 
   build-linux-arm:
-    name: Build on Linux Intel64 (x64)
+    name: Build on Linux ARM64
     uses: ./.github/workflows/linux-build-steps.yml
     with:
       runner: ubuntu-22.04
