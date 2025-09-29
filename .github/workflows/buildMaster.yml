@@ -26,14 +26,20 @@ jobs:
     with:
       runner: windows-2025
       
-  build-linux:
-    name: Build on Linux x64
+  build-linux-intel:
+    name: Build on Linux Intel64 (x64)
+    uses: ./.github/workflows/linux-build-steps.yml
+    with:
+      runner: ubuntu-24.04-arm
+
+  build-linux-arm:
+    name: Build on Linux Intel64 (x64)
     uses: ./.github/workflows/linux-build-steps.yml
     with:
       runner: ubuntu-22.04
-      
+
   finalize:
-    needs: [build-macos-intel, build-macos-arm, build-windows, build-linux]
+    needs: [build-macos-intel, build-macos-arm, build-windows, build-linux-intel, build-linux-arm]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -54,7 +60,8 @@ jobs:
           if [[ "${{ needs.build-macos-intel.result }}" != "success" || 
                 "${{ needs.build-macos-arm.result }}" != "success" || 
                 "${{ needs.build-windows.result }}" != "success" || 
-                "${{ needs.build-linux.result }}" != "success" ]]; then
+                "${{ needs.build-linux-intel.result }}" != "success" || 
+                "${{ needs.build-linux-arm.result }}" != "success" ]]; then
             echo "One or more builds failed"
             exit 1
           else

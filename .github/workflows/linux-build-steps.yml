@@ -1,22 +1,28 @@
-name: Linux x64 Build
+name: Linux Build
 
+# Define this as a reusable workflow that can be called from other workflows
 on:
   workflow_call:
     inputs:
       runner:
-        description: 'The GitHub runner to use (e.g., ubuntu-20.04, ubuntu-22.04)'
+        description: 'The GitHub runner to use (e.g., ubuntu-22.04, ubuntu-22.04-arm)'
         required: true
         type: string
     outputs:
-      tgz-name:
+      tgz-name-intel:
         description: "Name of the generated TGZ file"
-        value: ${{ jobs.build.outputs.tgz-name }}
+        value: ${{ jobs.build.outputs.tgz-name-intel }}
+      tgz-name-arm:
+        description: "Name of the generated TGZ file"
+        value: ${{ jobs.build.outputs.tgz-name-arm }}
+
 
 jobs:
   build:
     runs-on: ${{ inputs.runner }}
     outputs:
-      tgz-name: ${{ steps.get-tgz-name.outputs.tgz-name }}
+      tgz-name-intel: ${{ steps.get-tgz-name.outputs.tgz-name-intel }}
+      tgz-name-arm: ${{ steps.get-tgz-name.outputs.tgz-name-arm }}
     
     # Set process.env.CI to false to prevent treating warnings as errors
     env:
@@ -93,6 +99,11 @@ jobs:
           echo "tgz-name=$TGZ_NAME" >> $GITHUB_OUTPUT
           echo "TGZ_NAME=$TGZ_NAME" >> $GITHUB_ENV
           cd ../..
+
+      - name: Get PROCESSOR_IDENTIFIER
+        id: get-processor-identifier
+        run: |
+          echo "Processor Identifer: $PROCESSOR_IDENTIFIER"
 
       - name: Upload tgz for terminal artifacts
         uses: actions/upload-artifact@v4
