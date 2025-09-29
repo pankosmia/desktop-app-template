@@ -16,7 +16,6 @@ on:
         description: "Name of the generated TGZ file"
         value: ${{ jobs.build.outputs.tgz-name-arm }}
 
-
 jobs:
   build:
     runs-on: ${{ inputs.runner }}
@@ -100,15 +99,16 @@ jobs:
           echo "TGZ_NAME=$TGZ_NAME" >> $GITHUB_ENV
           cd ../..
 
-      - name: Get PROCESSOR_IDENTIFIER
-        id: get-processor-identifier
+      - name: Get Runner Architecture
+        id: get-runner-arch
         run: |
           echo "Runner architecture: $RUNNER_ARCH"
+          echo "PREFIX=$RUNNER_ARCH" >> $GITHUB_ENV
 
       - name: Upload tgz for terminal artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.RUNNER_ARCH }}-${{ env.TGZ_NAME }}
+          name: ${{ env.PREFIX }}-${{ env.TGZ_NAME }}
           path: ./releases/linux/${{ env.TGZ_NAME }}
           if-no-files-found: error
           retention-days: 90

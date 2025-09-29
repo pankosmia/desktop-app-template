@@ -30,13 +30,13 @@ jobs:
     name: Build on Linux Intel64 (x64)
     uses: ./.github/workflows/linux-build-steps.yml
     with:
-      runner: ubuntu-24.04-arm
+      runner: ubuntu-24.04
 
   build-linux-arm:
     name: Build on Linux ARM64
     uses: ./.github/workflows/linux-build-steps.yml
     with:
-      runner: ubuntu-22.04
+      runner: ubuntu-22.04-arm
 
   finalize:
     needs: [build-macos-intel, build-macos-arm, build-windows, build-linux-intel, build-linux-arm]
