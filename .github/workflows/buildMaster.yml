@@ -10,14 +10,14 @@ jobs:
     name: Build on macOS Intel64 (x64)
     uses: ./.github/workflows/macos-build-steps.yml
     with:
-      runner: macos-13
+      runner: macos-15-intel
       delay_seconds: 1
 
   build-macos-arm:
     name: Build on macOS ARM64 (Apple Silicon)
     uses: ./.github/workflows/macos-build-steps.yml
     with:
-      runner: macos-14
+      runner: macos-15
       delay_seconds: 600
   
   build-windows:
