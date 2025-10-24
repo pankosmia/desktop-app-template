@@ -1,8 +1,42 @@
 # <span id="toc">CHANGELOG</span>
+- [10 Oct 2025](#10-oct-2025)
+- [3 Oct 2025](#3-oct-2025)
 - [21 Aug 2025](#21-aug-2025)
 - [19 Aug 2025](#19-aug-2025)
 - [16 Aug 2025](#16-aug-2025)
 - [14 Jul 2025](#14-jul-2025)
+
+## <span id="10-oct-2025">10 Oct 2025</span>  ... [↩](#toc)</sup></sub>
+- General:
+  - More subtle snackbar colours
+  - Better use of MUI themes
+  - Resolved horizontal Padauk and Awami Nastaliq collisions 
+
+- Editors:
+  - Floating editor tool bar
+
+## <span id="3-oct-2025">3 Oct 2025</span>  ... [↩](#toc)</sup></sub>
+- General:
+  - Indonesian localization
+  - Improved main menu
+- Content management:
+  - Improved export including zip
+  - Improved dashboard
+  - Improved language picker
+- Remote content:
+  - Show remote updates
+  - Download manager as modal
+  - Version control manager supporting push, pull and merge with control over remotes and branches
+- Editors:
+  - MUI for shared Scripture editor
+  - USFM <=> USJ now uses Proskomma
+  - Distraction-free editing mode
+  - Fixes to drafting editor
+- Build / Development Environment:
+  - Electronite Development Viewer (linux)
+  - Icon generation for varying build contexts
+  - Github Actions and local build process improvements
+  - Streamline dev script prompts
 
 ## <span id="21-aug-2025">21 Aug 2025</span>  ... [↩](#toc)</sup></sub>
 - Electronite Development Viewer (macos)
