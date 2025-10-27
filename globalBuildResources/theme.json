@@ -1,10 +1,22 @@
 {
   "palette": {
     "primary": {
-      "main": "#115D33"
+      "main": "#A0691C",
+      "light":"#B38749",
+      "dark":"#704913",
+      "contrastText":"#FFF"
     },
     "secondary": {
-      "main": "#228B22"
+	    "main": "#18818B",
+      "light":"#469AA2",
+      "dark":"#105A61",
+      "contrastText":"#FFF"
+    },
+      "appbar-chip-inactive":{
+      "main":"#469AA2",
+      "light":"#6BAEB4",
+      "dark":"#316B71",
+      "contrastText":"#FFF"
     }
   }
 }
