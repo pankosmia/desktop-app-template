@@ -135,7 +135,7 @@ Run from the provided location:
 Run from the provided location:
 | Description | Linux | Windows | MacOS |
 |-------|-------|---------|-------|
-| Clones all repos in `/app_config.env` if a directly by that name does not already exit | /linux/scripts/clone.bsh | \windows\scripts\clone.bat | /macos/scripts/clone.zsh |
+| Clones all repos in `/app_config.env` if a directly by that name does not already exit | /linux/scripts/clone.bsh | \windows\scripts\clone.bat<br /> Default clones via HTTPS.<br />Optional argument:<br />`.\close.bat -s`<br /> Clones via SSH.<br /> | /macos/scripts/clone.zsh |
 | For each asset repo in `/app_config.env`: git checkout main, git pull<br />For each client repo in  `/app_config.env`: `git checkout main`, `git pull`, `npm install`, and `npm run build`.<br />***Dev's should build manually when testing branch(es).*** | /linux/scripts/build_clients.bsh | \windows\scripts\build_clients.bat | /macos/scripts/build_clients.zsh |
 | Create an Electronite viewer for use with the local dev build environment. | /linux/scripts/build_viewer.bsh | \windows\scripts\build_viewer.ps1<br />(use a powershell terminal) | /macos/scripts/build_viewer.zsh |
 
