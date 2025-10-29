@@ -31,6 +31,71 @@ app.name = '${APP_NAME}';
 const port = '19119';
 let canClose = true;
 
+var template = [
+  {
+    label: 'Edit',
+    submenu: [
+      {
+        label: 'Cut',
+        accelerator: 'CmdOrCtrl+X',
+        role: 'cut',
+      },
+      {
+        label: 'Copy',
+        accelerator: 'CmdOrCtrl+C',
+        role: 'copy',
+      },
+      {
+        label: 'Paste',
+        accelerator: 'CmdOrCtrl+V',
+        role: 'paste',
+      },
+    ],
+  },
+  {
+    label: 'Window',
+    role: 'window',
+    submenu: [
+      {
+        label: 'Minimize',
+        accelerator: 'CmdOrCtrl+M',
+        role: 'minimize',
+      },
+      {
+        label: 'Reload',
+        accelerator: 'CmdOrCtrl+R',
+        click: function (item, focusedWindow) {
+          if (focusedWindow) {
+            focusedWindow.reload();
+          }
+        },
+      },
+      {
+        label: 'Toggle Developer Tools',
+        accelerator:
+          process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+        click: function (item, focusedWindow) {
+          if (focusedWindow) {
+            focusedWindow.webContents.toggleDevTools();
+          }
+        },
+      },
+    ],
+  },
+];
+
+if (process.platform === 'darwin') {
+  template.unshift({
+    label: 'translationCore',
+    submenu: [
+      {
+        accelerator: 'CmdOrCtrl+Q',
+        role: 'quit',
+      },
+    ],
+  });
+}
+
 // Function to check if server is running (on port)
 function isServerRunning() {
   try {
@@ -52,6 +117,9 @@ function delay(ms) {
     setTimeout(resolve, ms)
   );
 }
+
+console.log(`app.name`, app.name)
+console.log(`Menu`, Menu)
 
 const MAC_SERVER_PATH = './bin/server.bin';
 const WIN_SERVER_PATH = './bin/server.exe';
@@ -112,6 +180,24 @@ function handleSetCanClose(event, newCanClose) {
     canClose = newCanClose;
 }
 
+function InitializeMenu() {
+  try {
+    const initialMenu = Menu.getApplicationMenu();
+    console.log('initialMenu', initialMenu);
+
+    // build menu
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+    console.log('Menu set successfully');
+
+    const currentMenu = Menu.getApplicationMenu();
+    console.log('Current application menu:', currentMenu ? 'Set successfully' : 'Not set');
+    console.log('currentMenu', currentMenu);
+  } catch (error) {
+    console.error('Failed to set application menu:', error);
+  }
+}
+
 function createWindow() {
     delay(500).then(() => {
         console.log('createWindow() - after delay');
@@ -123,13 +209,21 @@ function createWindow() {
             show: false,  // Don't show until ready to maximize
             icon: path.join(__dirname, 'favicon.png'),
             webPreferences: {
-                preload: path.join(__dirname, 'preload.js')
-              }
+                preload: path.join(__dirname, 'preload.js'),
+                nodeIntegration: true,
+                contextIsolation: false,
+                enableRemoteModule: true,
+                sandbox: false,
+            }
         });
 
         win.once('ready-to-show', () => {
-            win.maximize();
-            win.show();
+          setTimeout(() => {
+              InitializeMenu();
+              win.show();
+              win.maximize();
+              // InitializeMenu();
+            }, 300);
         });
 
         // Show a dialog to the user to confirm the close
@@ -176,68 +270,6 @@ function createWindow() {
 app.whenReady().then(() => {
   // Set a custom menu with desired app name
   ipcMain.on('setCanClose', handleSetCanClose);
-  const isMac = process.platform === 'darwin';
-  if (isMac) {
-    const template = [
-      {
-        label: app.name, // <--- This name will show in the macOS app menu
-        submenu: [
-          {role: 'hide'},
-          {role: 'hideothers'},
-          {role: 'unhide'},
-          {type: 'separator'},
-          {role: 'quit'}
-        ]
-      },
-      {
-        label: 'Edit',
-        submenu: [
-          {role: 'undo'},
-          {role: 'redo'},
-          {type: 'separator'},
-          {role: 'cut'},
-          {role: 'copy'},
-          {role: 'paste'},
-          {role: 'pasteAndMatchStyle'},
-          {role: 'delete'},
-          {role: 'selectAll'}
-        ]
-      },
-      {
-        label: 'View',
-        submenu: [
-          {role: 'reload'},
-          {role: 'forcereload'},
-          {role: 'toggledevtools'},
-          {type: 'separator'},
-          {role: 'resetzoom'},
-          {role: 'zoomin'},
-          {role: 'zoomout'},
-          {type: 'separator'},
-          {role: 'togglefullscreen'}
-        ]
-      },
-      {
-        label: 'Window',
-        submenu: [
-          {role: 'minimize'},
-          {role: 'zoom'},
-          {type: 'separator'},
-          {role: 'front'},
-          {role: 'window'}
-        ]
-      }
-    ];
-    // Removed from the first menu section above for now:
-      /**
-            {role: 'about'},
-            {type: 'separator'},
-            {role: 'services'},
-            {type: 'separator'},
-      */
-    const menu = Menu.buildFromTemplate(template);
-    Menu.setApplicationMenu(menu);
-  }
   
   startServer();
   setTimeout(createWindow, 2000); // Wait 2 seconds for server to start (adjust as needed)
