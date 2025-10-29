@@ -31,69 +31,77 @@ app.name = '${APP_NAME}';
 const port = '19119';
 let canClose = true;
 
-var template = [
-  {
-    label: 'Edit',
-    submenu: [
-      {
-        label: 'Cut',
-        accelerator: 'CmdOrCtrl+X',
-        role: 'cut',
-      },
-      {
-        label: 'Copy',
-        accelerator: 'CmdOrCtrl+C',
-        role: 'copy',
-      },
-      {
-        label: 'Paste',
-        accelerator: 'CmdOrCtrl+V',
-        role: 'paste',
-      },
-    ],
-  },
-  {
-    label: 'Window',
-    role: 'window',
-    submenu: [
-      {
-        label: 'Minimize',
-        accelerator: 'CmdOrCtrl+M',
-        role: 'minimize',
-      },
-      {
-        label: 'Reload',
-        accelerator: 'CmdOrCtrl+R',
-        click: function (item, focusedWindow) {
-          if (focusedWindow) {
-            focusedWindow.reload();
-          }
-        },
-      },
-      {
-        label: 'Toggle Developer Tools',
-        accelerator:
-          process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
-        click: function (item, focusedWindow) {
-          if (focusedWindow) {
-            focusedWindow.webContents.toggleDevTools();
-          }
-        },
-      },
-    ],
-  },
-];
+function InitializeMenu() {
+  const template = [
+    {
+      label: 'Edit',
+      submenu: [
+        {role: 'undo'},
+        {role: 'redo'},
+        {type: 'separator'},
+        {role: 'cut'},
+        {role: 'copy'},
+        {role: 'paste'},
+        {role: 'pasteAndMatchStyle'},
+        {role: 'delete'},
+        {role: 'selectAll'}
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        {role: 'reload'},
+        {role: 'forcereload'},
+        {role: 'toggledevtools'},
+        {type: 'separator'},
+        {role: 'resetzoom'},
+        {role: 'zoomin'},
+        {role: 'zoomout'},
+        {type: 'separator'},
+        {role: 'togglefullscreen'}
+      ]
+    },
+    {
+      label: 'Window',
+      submenu: [
+        {role: 'minimize'},
+        {role: 'zoom'},
+        {type: 'separator'},
+        {role: 'front'},
+        {role: 'window'}
+      ]
+    }
+  ];
+  
+  
+  if (process.platform === 'darwin') {
+    template.unshift(  {
+      label: app.name, // <--- This name will NOT show up in the macOS app menu, will need to update the Info.plist in the Electron folder
+      submenu: [
+        {role: 'hide'},
+        {role: 'hideothers'},
+        {role: 'unhide'},
+        {type: 'separator'},
+        {role: 'quit'}
+      ]
+    });
+  }
 
-if (process.platform === 'darwin') {
-  template.unshift({
-    label: 'translationCore',
-    submenu: [
-      {
-        accelerator: 'CmdOrCtrl+Q',
-        role: 'quit',
-      },
-    ],
-  });
+  try {
+    const initialMenu = Menu.getApplicationMenu();
+    console.log('initialMenu', initialMenu);
+
+    // build menu
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+    console.log('Menu set successfully');
+
+    const currentMenu = Menu.getApplicationMenu();
+    console.log('Current application menu:', currentMenu ? 'Set successfully' : 'Not set');
+    console.log('currentMenu', currentMenu);
+  } catch (error) {
+    console.error('Failed to set application menu:', error);
+  }
 }
 
 // Function to check if server is running (on port)
@@ -117,9 +125,6 @@ function delay(ms) {
     setTimeout(resolve, ms)
   );
 }
-
-console.log(`app.name`, app.name)
-console.log(`Menu`, Menu)
 
 const MAC_SERVER_PATH = './bin/server.bin';
 const WIN_SERVER_PATH = './bin/server.exe';
@@ -178,24 +183,6 @@ function stopServer() {
 
 function handleSetCanClose(event, newCanClose) {
     canClose = newCanClose;
-}
-
-function InitializeMenu() {
-  try {
-    const initialMenu = Menu.getApplicationMenu();
-    console.log('initialMenu', initialMenu);
-
-    // build menu
-    const menu = Menu.buildFromTemplate(template);
-    Menu.setApplicationMenu(menu);
-    console.log('Menu set successfully');
-
-    const currentMenu = Menu.getApplicationMenu();
-    console.log('Current application menu:', currentMenu ? 'Set successfully' : 'Not set');
-    console.log('currentMenu', currentMenu);
-  } catch (error) {
-    console.error('Failed to set application menu:', error);
-  }
 }
 
 function createWindow() {
