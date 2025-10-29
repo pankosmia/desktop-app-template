@@ -101,17 +101,6 @@ function InitializeMenu() {
   }
 }
 
-// Function to check if server is running (on port)
-function isServerRunning() {
-  try {
-    // macOS & Linux: use lsof; Windows would require a different approach
-    execSync(`lsof -i:${port} | grep LISTEN`, { stdio: 'ignore' });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 /**
  * wraps timer in a Promise to make an async function that continues after a specific number of milliseconds.
  * @param {number} ms
@@ -123,16 +112,13 @@ function delay(ms) {
   );
 }
 
-const MAC_SERVER_PATH = './bin/server.bin';
-const WIN_SERVER_PATH = './bin/server.exe';
-
 function handleSetCanClose(event, newCanClose) {
     canClose = newCanClose;
 }
 
 function createWindow() {
     delay(500).then(() => {
-        console.log('createWindow() - after delay');
+        console.log('createWindow() - dev viewer');
         const win = new BrowserWindow({
             width: 1024,
             height: 768,
@@ -202,7 +188,6 @@ app.whenReady().then(() => {
   // Set a custom menu with desired app name
   ipcMain.on('setCanClose', handleSetCanClose);
   
-  // startServer();
   setTimeout(createWindow, 0); // Wait a moment before creating window
 });
 
