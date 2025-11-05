@@ -86,8 +86,6 @@ Linux developers, run .zsh scripts from a **MacOS terminal**:<br />
 ### Ecosystem setup and configuration
 This repo pulls together several libraries and projects into a single app. The projects are spread across several repos to allow modular reuse. Scripts follow for assisting in setup, though it can also all be setup manually. The following assume [the repos](https://github.com/pankosmia/repositories) are installed with the following directory structure.
 
-This is an example. Clients in use may vary. Configuration is handled via `app_config.env`and the `app_setup` script.
-
 <pre>
 |-- repos
     |-- pankosmia

@@ -1,9 +1,9 @@
 {
   "palette": {
     "primary": {
-      "main": "#008A37",
-      "light":"#33A15F",
-      "dark":"#006026",
+      "main": "#FF0000",
+      "light":"FFCCCC",
+      "dark":"#770000",
       "contrastText":"#FFF"
     },
     "secondary": {
