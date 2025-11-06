@@ -68,7 +68,7 @@ sed -i "s|{PACKAGE_VERSION}|$APP_VERSION|g; s|{PACKAGE_NAME}|$PACKAGE_NAME|g; s|
 
 # Finally, build the package and write it to the Release directory
 cd /tmp
-dpkg-deb --root-owner-group --build $PACKAGE_NAME $RELEASE_DIR/$PACKAGE_NAME-$APP_VERSION.deb
+dpkg-deb --root-owner-group --build $PACKAGE_NAME $RELEASE_DIR/$PACKAGE_NAME-linux-standalone-intel64-$APP_VERSION.deb
 
 # Get back into the scripts dir
 cd $REPOPATH/linux/scripts

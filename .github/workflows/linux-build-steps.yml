@@ -66,7 +66,7 @@ jobs:
           chmod +x ./linux/scripts/build_clients.bsh
           chmod +x ./linux/scripts/build_server.bsh
           chmod +x ./linux/scripts/bundle_tgz.bsh
-          chmod +x ./linux/scripts/build_deb_installer.bsh
+          chmod +x ./linux/scripts/bundle_viewer.bsh
 
       - name: Run app_setup.bsh
         working-directory: ./linux/scripts
@@ -94,7 +94,7 @@ jobs:
 
       - name: Create .deb installer
         working-directory: ./linux/scripts
-        run: ./build_deb_installer.bsh
+        run: ./bundle_viewer.bsh
 
       - name: Get tgz for terminal names
         id: get-tgz-name
