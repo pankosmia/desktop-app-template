@@ -7,15 +7,15 @@
       "contrastText":"#FFF"
     },
     "secondary": {
-	    "main": "#9E6019",
-      "light":"#B17F47",
-      "dark":"#6E4311",
+	    "main": "#743F02",
+      "light":"#BD9260",
+      "dark":"#472702",
       "contrastText":"#FFF"
     },
       "appbar-chip-inactive":{
-      "main":"#B17F47",
-      "light":"#C0986B",
-      "dark":"#7B5831",
+      "main":"#BD9260",
+      "light":"#F6B66D",
+      "dark":"#742702",
       "contrastText":"#FFF"
     }
   }
