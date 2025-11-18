@@ -27,7 +27,7 @@ Tested on:
 npm install
 </pre></ul>
 
-4. Edit app_config.env, entering the App Name, version number, theme, assets (might not change), and clients.
+4. Edit app_config.env, entering the App Name, version number, Apps Short Name for working directory, assets, and clients.
 5. Change /globalBuildResources/theme.json directly to customize your app. And for logos, see the [Branding README](/branding/README.md) for scripts for customizing /globalBuildResources/*.ico, /globalBuildResources/*.png, and /globalBuildResources/icon.icns, along with info on how each is used.
 6. `cd [os]/scripts`
 7. Run<sup id="a1">[[1]](#f1)</sup> the `clone` script to clone all repos listed in `app_config.env` (assets and clients)
