@@ -131,18 +131,21 @@ for /f "tokens=2*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Tim
 for /f "tokens=2*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" /v DaylightBias 2^>nul') do set DaylightBias=%%B
 
 rem Use Bias + DaylightBias when daylight saving is active; try to detect by StandardName vs DaylightName times
-rem Default to Bias only (minutes west of UTC). Bias is signed minutes.
+rem Bias = minutes west of UTC (positive means UTC-)
 if not defined Bias set Bias=0
-set /a tzMinutes=%Bias%
+set /a tzMinutes=Bias
 
-rem Convert minutes to sign, hours and minutes
-set "sign=+"
-if %tzMinutes% LSS 0 set "sign=-" & set /a tzMinutes=-tzMinutes
+rem Determine sign and absolute minutes, then convert to hours:minutes
+if %tzMinutes% GEQ 0 (
+  set "sign=-"
+) else (
+  set "sign=+"
+  set /a tzMinutes=-tzMinutes
+)
 set /a tzH=tzMinutes/60
 set /a tzM=tzMinutes%%60
-if %tzH% LSS 10 (set "tzH=0%tzH%")
-if %tzM% LSS 10 (set "tzM=0%tzM%")
-
+if %tzH% LSS 10 set "tzH=0%tzH%"
+if %tzM% LSS 10 set "tzM=0%tzM%"
 set tz=%sign%%tzH%:%tzM%
 
 echo {>%product%
@@ -161,6 +164,7 @@ echo }>> %spec%
 echo.
 echo \buildSpec.json generated/rebuilt/replaced
 echo \globalBuildResources\i18nPatch.json generated/rebuilt/replaced
+echo \globalBuildResources\product.json generated/rebuilt/replaced
 echo \windows\buildResources\setup\app_setup.json generated/rebuilt/replaced
 echo.
 echo Copying \windows\buildResources\setup\app_setup.json to \linux\buildResources\setup\
