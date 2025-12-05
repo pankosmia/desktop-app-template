@@ -54,7 +54,7 @@ function InitializeMenu() {
         {role: 'cut'},
         {role: 'copy'},
         {role: 'paste'},
-        // {role: 'pasteAndMatchStyle'},
+        {role: 'pasteAndMatchStyle'},
         // {role: 'delete'},
         {role: 'selectAll'}
       ]
