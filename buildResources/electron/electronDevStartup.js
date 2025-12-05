@@ -66,9 +66,21 @@ function InitializeMenu() {
     {
       label: 'Window',
       submenu: [
-        {role: 'reload'},
-        {role: 'forcereload'},
-        {role: 'toggledevtools'}
+        {
+          label: 'Reload',
+          accelerator: isMac ? 'Cmd+R' : 'Ctrl+R',
+          click: (menuItem, bw) => { if (bw) bw.webContents.reload(); }
+        },
+        {
+          label: 'Force Reload',
+          accelerator: isMac ? 'Shift+Cmd+R' : 'Ctrl+Shift+R',
+          click: (menuItem, bw) => { if (bw) bw.webContents.reloadIgnoringCache(); }
+        },
+        {
+          label: 'Toggle Developer Tools',
+          accelerator: isMac ? 'Alt+Cmd+I' : 'Ctrl+Shift+I',
+          click: (menuItem, bw) => { if (bw) bw.webContents.toggleDevTools(); }
+        }
         // {role: 'minimize'},
         // {role: 'zoom'},
         // {type: 'separator'},
