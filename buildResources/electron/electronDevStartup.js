@@ -93,17 +93,17 @@ function InitializeMenu() {
 
     try {
       const initialMenu = Menu.getApplicationMenu();
-      console.log('initialMenu', initialMenu);
+      // console.log('initialMenu', initialMenu);
 
       // build menu
       // const menu = isMac ? Menu.buildFromTemplate(template) : [];
       const menu = Menu.buildFromTemplate(template);
       Menu.setApplicationMenu(menu);
-      console.log('Menu set successfully');
+      //console.log('Menu set successfully');
 
       const currentMenu = Menu.getApplicationMenu();
-      console.log('Current application menu:', currentMenu ? 'Set successfully' : 'Not set');
-      console.log('currentMenu', currentMenu);
+      // console.log('Current application menu:', currentMenu ? 'Set successfully' : 'Not set');
+      // console.log('currentMenu', currentMenu);
     } catch (error) {
       console.error('Failed to set application menu:', error);
     }
@@ -126,7 +126,7 @@ function handleSetCanClose(event, newCanClose) {
 
 function createWindow() {
     delay(500).then(() => {
-        console.log('createWindow() - dev viewer');
+        // console.log('createWindow() - dev viewer');
         const win = new BrowserWindow({
             width: 1024,
             height: 768,

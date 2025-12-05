@@ -107,17 +107,17 @@ function InitializeMenu() {
 
     try {
       const initialMenu = Menu.getApplicationMenu();
-      console.log('initialMenu', initialMenu);
+      // console.log('initialMenu', initialMenu);
 
       // build menu
       // const menu = isMac ? Menu.buildFromTemplate(template) : [];
       const menu = Menu.buildFromTemplate(template);
       Menu.setApplicationMenu(menu);
-      console.log('Menu set successfully');
+      // console.log('Menu set successfully');
 
       const currentMenu = Menu.getApplicationMenu();
-      console.log('Current application menu:', currentMenu ? 'Set successfully' : 'Not set');
-      console.log('currentMenu', currentMenu);
+      // console.log('Current application menu:', currentMenu ? 'Set successfully' : 'Not set');
+      // console.log('currentMenu', currentMenu);
     } catch (error) {
       console.error('Failed to set application menu:', error);
     }
@@ -142,16 +142,16 @@ function startServer() {
     const serverPath = process.platform === 'win32' ? WIN_SERVER_PATH : MAC_SERVER_PATH;
     const resourcesDir = './lib/';
     const workingDir =  path.join(__dirname, '..');
-    console.log('startServer() - workingDir is ' + workingDir);
+    // console.log('startServer() - workingDir is ' + workingDir);
 
-    console.log('startServer() - resourcesDir is ' + resourcesDir);
+    // console.log('startServer() - resourcesDir is ' + resourcesDir);
     const env = {
       ...process.env,
       APP_RESOURCES_DIR: resourcesDir,
       ROCKET_PORT: port
     };
 
-    console.log('startServer() - env is ', env);
+    // console.log('startServer() - env is ', env);
     
     serverProcess = spawn(serverPath, [], {
       stdio: 'ignore',
@@ -160,9 +160,9 @@ function startServer() {
       cwd: workingDir
     });
     serverProcess.unref();
-    console.log('startServer() - Server started at ' + path.join(workingDir, serverPath));
+    // console.log('startServer() - Server started at ' + path.join(workingDir, serverPath));
   } else {
-    console.log(startServer() - 'Server already running.');
+    // console.log(startServer() - 'Server already running.');
   }
 }
 
@@ -195,7 +195,7 @@ function handleSetCanClose(event, newCanClose) {
 
 function createWindow() {
     delay(500).then(() => {
-        console.log('createWindow() - after delay');
+        // console.log('createWindow() - after delay');
         const win = new BrowserWindow({
             width: 1024,
             height: 768,
