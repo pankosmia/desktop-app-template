@@ -48,8 +48,15 @@ function InitializeMenu() {
     {
       label: 'View',
       submenu: [
-        {type: 'separator'},
-        {role: 'resetzoom', label: 'Default Zoom'},
+        {
+          label: 'Default Zoom',
+          accelerator: isMac ? 'Cmd+0' : 'Ctrl+0',
+          click: (_menuItem, browserWindow) => {
+            const win = browserWindow || BrowserWindow.getFocusedWindow();
+            if (!win) return;
+            win.webContents.setZoomLevel(0);
+          }
+        },
         {role: 'zoomin'},
         {role: 'zoomout'},
         // {type: 'separator'}
