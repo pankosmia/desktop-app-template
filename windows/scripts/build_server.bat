@@ -15,8 +15,9 @@ if defined %runSetup (
   echo.
 )
 
-REM Build without cleaning if the -c positional argument is provided in either #1 or #2
-REM Do not ask if the server is off if the -s positional argument is provided in either #1 or #2
+REM Build without cleaning if the -c positional argument is provided in either #1 or #2 or #3
+REM Do not ask if the server is off if the -s positional argument is provided in either #1 or #2 or #3
+REM Debug server if the -d positional argument is provided in either #1 or #2 or #3
 :loop
 IF "%~1"=="" (
   goto :continue
@@ -24,6 +25,8 @@ IF "%~1"=="" (
   set buildWithoutClean=%~1
 ) ELSE IF "%~1"=="-s" (
   set askIfOff=%~1
+) ELSE IF "%~1"=="-d" (
+  set debugServer=%~1
 )
 shift
 goto :loop
@@ -40,6 +43,39 @@ if not defined %askIfOff (
   set askIfOff=-yes
 )
 
+REM Assign default value if -d is not present
+if not defined %debugServer (
+  set debugServer=-no
+  set buildCommand=cargo build --release
+  set "search=local_server/target/debug"
+  set "replace=local_server/target/release"
+) else if "%debugServer%"=="-d" (
+  set buildCommand=cargo build
+  set "search=local_server/target/release"
+  set "replace=local_server/target/debug"
+)
+
+REM Ensure buildSpec.json has the location for the indicated server build type
+@echo off
+setlocal enabledelayedexpansion
+
+set "configFile=..\..\buildSpec.json"
+set "tmpFile=..\..\buildSpec.bak"
+copy %configFile% %tmpFile%
+
+
+(for /f "tokens=*" %%a in ('type "%tmpFile%" ^| findstr /n "^"') do (
+    set "line=%%a"
+    set "line=!line:*:=!"
+
+    if defined line (
+        set "line=!line:%search%=%replace%!"
+        echo(!line!
+    ) else echo.
+)) > "%configFile%"
+
+endlocal
+
 REM Do not clean if the -c positional argument is provided
 IF NOT "%buildWithoutClean%"=="-c" (
   REM Do not ask if the server is off if the -s positional argument is provided
@@ -51,10 +87,13 @@ IF NOT "%buildWithoutClean%"=="-c" (
 )
 
 if not exist ..\..\local_server\target\release\local_server.exe (
+  if not exist ..\..\local_server\target\debug\local_server.exe (
     echo "Building local server..."
     cd ..\..\local_server
-    cargo build --release
+    echo "%buildCommand%"
+    %buildCommand%
     cd ..\windows\scripts
+  )
 )
 if not exist ..\build (
   echo "Assembling build environment..."
