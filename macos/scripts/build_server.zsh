@@ -35,7 +35,7 @@ elif [[ $debugServer =~ ^(-d) ]]; then
   serverType=debug
 fi
 
-# Do not ask if the server is off if the -s $1 positional argument is provided
+# Do not ask if the server is off if the -s $1 or $2 positional argument is provided
 if ! [[ $askIfOff =~ ^(-s) ]]; then
   while true; do
     read "choice?Is the server off? [Y/n]: "
