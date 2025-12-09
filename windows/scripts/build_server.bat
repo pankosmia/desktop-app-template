@@ -1,16 +1,11 @@
 @echo off
 REM Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell or command by:  .\build_server.bat
-REM Git hub actions use this with optional arguments of: .\build_server.bat -c
-REM because it is a brand new clean environment without need for any prior build to be removed.
 
-REM Build without cleaning if the -c positional argument is provided in either #1 or #2 or #3
-REM Do not ask if the server is off if the -s positional argument is provided in either #1 or #2 or #3
-REM Debug server if the -d positional argument is provided in either #1 or #2 or #3
+REM Do not ask if the server is off if the -s positional argument is provided in either #1 or #2
+REM Debug server if the -d positional argument is provided in either #1 or #2
 :loop
 IF "%~1"=="" (
   goto :continue
-) ELSE IF "%~1"=="-c" (
-  set buildWithoutClean=%~1
 ) ELSE IF "%~1"=="-s" (
   set askIfOff=%~1
 ) ELSE IF "%~1"=="-d" (
@@ -20,11 +15,6 @@ shift
 goto :loop
 
 :continue
-
-REM Assign default value if -c is not present
-if not defined %buildWithoutClean (
-  set buildWithoutClean=-no
-)
 
 REM Assign default value if -s is not present
 if not defined %askIfOff (
