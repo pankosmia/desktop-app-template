@@ -29,11 +29,33 @@ if not defined %debugServer (
   set "search=local_server/target/debug"
   set "replace=local_server/target/release"
   set "serverType=release"
+  if not exist ..\..\local_server\target\release\local_server.exe (
+    set "script=.\build_server.bat"
+    goto :missing_server
+  ) else (
+    goto :server_build_exists
+  )
 ) else if "%debugServer%"=="-d" (
   set "search=local_server/target/release"
   set "replace=local_server/target/debug"
   set "serverType=debug"
+  if not exist ..\..\local_server\target\debug\local_server.exe (
+    set "script=.\build_server.bat -d"
+    goto :missing_server
+  ) else (
+    goto :server_build_exists
+  )
 )
+
+:missing_server
+echo.
+echo      Exiting...
+echo.
+echo      The %serverType% server does not exist. Run `%script%`, then re-run this script.
+echo.
+exit
+
+:server_build_exists
 
 echo.
 :choice
