@@ -17,25 +17,14 @@ on:
           - debug
         default: release
     
+# set run name from input so the run appears with that name (no API call needed)
+run-name: Master Build — ${{ inputs.server_type }}
+
 jobs:
-  set-run-name:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - id: read
-        run: echo "server_type=${{ github.event.inputs.server_type }}" >> "$GITHUB_OUTPUT"
-      - name: Update run name with PAT
-        env:
-          PAT: ${{ secrets.SECRETS_PAT }}
-          SERVER_TYPE: ${{ steps.read.outputs.server_type }}
-        run: |
-          API_URL="${GITHUB_API_URL:-https://api.github.com}"
-          REPO="${{ github.repository }}"
-          RUN_ID="${{ github.run_id }}"
-          curl -sS -X PATCH \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $PAT" \
-            "$API_URL/repos/$REPO/actions/runs/$RUN_ID" \
-            -d "$(jq -nc --arg n "Master Build — $SERVER_TYPE" '{name:$n}')"
+      - run: echo "Server type is ${{ inputs.server_type }}"
 
   build-macos-intel:
     name: Build on macOS Intel64 (x64)
