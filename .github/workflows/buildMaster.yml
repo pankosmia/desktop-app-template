@@ -1,17 +1,49 @@
 name: Master Build
 # builds windows, linux and Mac
 
+permissions:
+  actions: write
+  contents: read
+
 on:
   workflow_dispatch:
-    
+    inputs:
+      server_type:
+        description: 'Server type'
+        required: true
+        type: choice
+        options:
+          - release
+          - debug
+        default: release
     
 jobs:
+  set-run-name:
+    runs-on: ubuntu-latest
+    steps:
+      - id: read
+        run: echo "server_type=${{ github.event.inputs.server_type }}" >> "$GITHUB_OUTPUT"
+      - name: Update run name
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SERVER_TYPE: ${{ steps.read.outputs.server_type }}
+        run: |
+          API_URL="${GITHUB_API_URL:-https://api.github.com}"
+          REPO="${{ github.repository }}"
+          RUN_ID="${{ github.run_id }}"
+          curl -sS -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            "$API_URL/repos/$REPO/actions/runs/$RUN_ID" \
+            -d "$(jq -nc --arg n "Master Build — $SERVER_TYPE" '{name:$n}')"
+
   build-macos-intel:
     name: Build on macOS Intel64 (x64)
     uses: ./.github/workflows/macos-build-steps.yml
     with:
       runner: macos-15-intel
       delay_seconds: 1
+      server_type: ${{ github.event.inputs.server_type }}
 
   build-macos-arm:
     name: Build on macOS ARM64 (Apple Silicon)
@@ -19,18 +51,21 @@ jobs:
     with:
       runner: macos-14
       delay_seconds: 600
+      server_type: ${{ github.event.inputs.server_type }}
   
   build-windows:
     name: Build on Windows x64
     uses: ./.github/workflows/windows-build-steps.yml
     with:
       runner: windows-2025
+      server_type: ${{ github.event.inputs.server_type }}
       
   build-linux:
     name: Build on Linux x64
     uses: ./.github/workflows/linux-build-steps.yml
     with:
       runner: ubuntu-22.04
+      server_type: ${{ github.event.inputs.server_type }}
       
   finalize:
     needs: [build-macos-intel, build-macos-arm, build-windows, build-linux]
