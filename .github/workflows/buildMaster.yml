@@ -23,9 +23,9 @@ jobs:
     steps:
       - id: read
         run: echo "server_type=${{ github.event.inputs.server_type }}" >> "$GITHUB_OUTPUT"
-      - name: Update run name
+      - name: Update run name with PAT
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PAT: ${{ secrets.SECRETS_PAT }}
           SERVER_TYPE: ${{ steps.read.outputs.server_type }}
         run: |
           API_URL="${GITHUB_API_URL:-https://api.github.com}"
@@ -33,7 +33,7 @@ jobs:
           RUN_ID="${{ github.run_id }}"
           curl -sS -X PATCH \
             -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Authorization: Bearer $PAT" \
             "$API_URL/repos/$REPO/actions/runs/$RUN_ID" \
             -d "$(jq -nc --arg n "Master Build — $SERVER_TYPE" '{name:$n}')"
 
