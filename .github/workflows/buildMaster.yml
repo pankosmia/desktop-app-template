@@ -18,7 +18,7 @@ on:
         default: release
     
 # set run name from input so the run appears with that name (no API call needed)
-run-name: Master Build — ${{ inputs.server_type }}
+run-name: Master Build - ${{ inputs.server_type }} server
 
 jobs:
   build:
