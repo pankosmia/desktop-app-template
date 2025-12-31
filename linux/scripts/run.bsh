@@ -117,7 +117,7 @@ is_listening_netstat(){
   netstat -ltn 2>/dev/null | awk '{print $4}' | awk -F: '{print $NF}' | grep -xq -- "$1"
 }
 
-# Choose port checker helper prefering ss over lsof over netstat otherwise use default
+# Choose port checker helper preferring ss over lsof over netstat otherwise use default
 checker_available=true
 if have_cmd ss; then
   checker=is_listening_ss
@@ -132,13 +132,11 @@ fi
 if [ "$checker_available" = false ]; then
   echo "Neither ss nor lsof nor netstat are available."
   echo "Will use the default port and hope it is not already in use."
-  # echo "$PORT"
 else
   # find first free port
   found=false
   while [ "$PORT" -le "$MAX_PORT" ]; do
     if ! $checker "$PORT"; then
-      # echo "$PORT"
       found=true
       break
     fi
