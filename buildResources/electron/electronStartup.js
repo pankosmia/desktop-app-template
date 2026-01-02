@@ -10,14 +10,14 @@
  *
  * @description
  * The script manages the lifecycle of both the Electron frontend and a backend server process.
- * It creates the main application window, starts/stops a backend server on port 19119,
+ * It creates the main application window, starts/stops a backend server on the first available port starting at 19119,
  * and handles various application events like window creation, activation, and shutdown.
  * For macOS, it creates a custom application menu with standard operations.
  *
  * @requirements
  * - Electron.js
  * - A compatible backend server binary (server.bin for macOS/Linux or server.exe for Windows)
- * - Port 19119 must be available for the backend server
+ * - The first available port starting at 19119 will be used by the backend server
  * - For macOS/Linux: lsof command must be available for port checking
  * - Environment variable APP_NAME must be set for proper application naming
  */
@@ -26,16 +26,19 @@ const { app, BrowserWindow, Menu, shell, ipcMain, ipcRenderer, contextBridge, di
 const { spawn, execSync } = require('child_process');
 const path = require('path');
 
+const env = {
+  ...process.env
+};
+
 let serverProcess = null;
 app.name = '${APP_NAME}';
-const port = '19119';
 let canClose = true;
 
 // Function to check if server is running (on port)
 function isServerRunning() {
   try {
     // macOS & Linux: use lsof; Windows would require a different approach
-    execSync(`lsof -i:${port} | grep LISTEN`, { stdio: 'ignore' });
+    execSync(`lsof -i:${env.ROCKET_PORT} | grep LISTEN`, { stdio: 'ignore' });
     return true;
   } catch {
     return false;
@@ -159,17 +162,13 @@ const WIN_SERVER_PATH = './bin/server.exe';
 function startServer() {
   if (!isServerRunning()) {
     const serverPath = process.platform === 'win32' ? WIN_SERVER_PATH : MAC_SERVER_PATH;
-    const resourcesDir = './lib/';
     const workingDir =  path.join(__dirname, '..');
+
+  console.log('resourceDir is ' + env.APP_RESOURCES_DIR);
+  console.log('port is ' + env.ROCKET_PORT);
+
     // console.log('startServer() - workingDir is ' + workingDir);
-
     // console.log('startServer() - resourcesDir is ' + resourcesDir);
-    const env = {
-      ...process.env,
-      APP_RESOURCES_DIR: resourcesDir,
-      ROCKET_PORT: port
-    };
-
     // console.log('startServer() - env is ', env);
     
     serverProcess = spawn(serverPath, [], {
@@ -199,11 +198,11 @@ function stopServer() {
     // Optionally: kill whatever is listening on port
     try {
       console.log('stopServer() - Trying to stop server forcefully.');
-      execSync(`lsof -t -i:${port} | xargs kill -9`);
+      execSync(`lsof -t -i:${env.ROCKET_PORT} | xargs kill -9`);
       console.log('stopServer() - Server stopped forcefully.');
     } catch {
       // ignore if nothing is running
-      console.error(`stopServer() - Server Failed to stop - process at port ${port} ID kill failed.`);
+      console.error(`stopServer() - Server Failed to stop - process at port ${env.ROCKET_PORT} ID kill failed.`);
     }
   }
 }
@@ -278,7 +277,7 @@ function createWindow() {
             }
         });
 
-        win.loadURL(`http://127.0.0.1:${port}`);
+        win.loadURL(`http://127.0.0.1:${env.ROCKET_PORT}`);
     })
 
 }
