@@ -1,7 +1,10 @@
 @echo off
-REM set port environment variable
-set ROCKET_PORT=19119
+
+REM set available port environment variable (returned as %ROCKET_PORT% )
+call .\port_checker.bat
+
 SET APP_RESOURCES_DIR=.\lib\
+
 start "" "%~dp0\bin\server.exe"
 
 timeout /t 1 /nobreak >nul
