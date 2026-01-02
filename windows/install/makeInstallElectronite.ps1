@@ -93,7 +93,7 @@ try {
 
     # Copy appLauncherElectron.bat and port_checker.bat
     $startupSrc = "..\buildResources\appLauncherElectron.bat"
-    $portCheckerSrc = = "..\buildResources\port_checker.bat"
+    $portCheckerSrc = "..\buildResources\port_checker.bat"
     $startupDest = "$payloadPath"
     if (Test-Path $startupSrc) {
         New-Item -ItemType Directory -Force -Path $startupDest | Out-Null

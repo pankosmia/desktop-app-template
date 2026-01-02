@@ -164,7 +164,7 @@ function startServer() {
     const serverPath = process.platform === 'win32' ? WIN_SERVER_PATH : MAC_SERVER_PATH;
     const workingDir =  path.join(__dirname, '..');
 
-  console.log('resourceDir is ' + env.APP_RESOURCES_DIR);
+  console.log('resourcesDir is ' + env.APP_RESOURCES_DIR);
   console.log('port is ' + env.ROCKET_PORT);
 
     // console.log('startServer() - workingDir is ' + workingDir);

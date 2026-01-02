@@ -9,13 +9,13 @@
  *
  * @description
  * The script manages the lifecycle of the Electron frontend. (This is the dev viewer version; The backend server process is handled separately.)
- * It creates the main application viewer window on port 19119,
+ * It creates the main application viewer window on the first available port starting at 19119,
  * For macOS, it creates a custom application menu with standard operations.
  *
  * @requirements
  * - Electron.js
  * - A compatible backend server binary (server.bin for macOS/Linux or server.exe for Windows)
- * - Port 19119 must be available for the backend server
+ * - The first available port starting at 19119 must be available for the backend server
  * - For macOS/Linux: lsof command must be available for port checking
  * - Environment variable APP_NAME must be set for proper application naming
  */
@@ -24,8 +24,11 @@ const { app, BrowserWindow, Menu, shell, ipcMain, ipcRenderer, contextBridge, di
 const { spawn, execSync } = require('child_process');
 const path = require('path');
 
+const env = {
+  ...process.env
+};
+
 app.name = '${APP_NAME}';
-const port = '19119';
 let canClose = true;
 
 function InitializeMenu() {
@@ -144,6 +147,10 @@ function handleSetCanClose(event, newCanClose) {
 }
 
 function createWindow() {
+
+  console.log('resourcesDir is ' + env.APP_RESOURCES_DIR);
+  console.log('Viewer is accessing port ' + env.ROCKET_PORT);
+
     delay(500).then(() => {
         // console.log('createWindow() - dev viewer');
         const win = new BrowserWindow({
@@ -209,7 +216,7 @@ function createWindow() {
             }
         });
 
-        win.loadURL(`http://127.0.0.1:${port}`);
+        win.loadURL(`http://127.0.0.1:${env.ROCKET_PORT}`);
     })
 
 }
