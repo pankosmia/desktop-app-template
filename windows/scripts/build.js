@@ -28,6 +28,12 @@ fse.copySync(
     path.join(WINDOWS_BUILD_RESOURCES, "appLauncher.bat"),
     path.join(BUILD_DIR, FILE_APP_NAME + "." + APP_EXT)
 );
+// Copy port checker
+const PORT_CHECKER = "port_checker.bat";
+fse.copySync(
+    path.join(WINDOWS_BUILD_RESOURCES, PORT_CHECKER),
+    path.join(BUILD_DIR, PORT_CHECKER)
+);
 // Copy and customize README
 const readMe = fse.readFileSync(path.join(WINDOWS_BUILD_RESOURCES, "README.txt"))
     .toString()

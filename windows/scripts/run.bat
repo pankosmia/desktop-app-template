@@ -112,53 +112,11 @@ copy %configFile% %tmpFile%
     ) else echo.
 )) > "%configFile%"
 
-rem Find first free port starting at %PORT% (default 19119)
-set "PORT=%~1"
-if "%PORT%"=="" set "PORT=19119"
-set "MAX_PORT=65535"
+endlocal
 
-where netstat >nul 2>&1
-if errorlevel 1 (
-  echo "Netstat is not available."
-  echo "Will use the default port and hope it is not already in use."
-  endlocal & set "USE_THIS_PORT=%PORT%"
-  goto :set_rocket_port
-)
-
-:scan_loop
-if !PORT! GTR %MAX_PORT% (
-  endlocal
-  echo No free TCP port found up to %MAX_PORT% 1>&2
-  exit /b 1
-)
-
-set "LISTENING=0"
-for /f "usebackq delims=" %%L in (`netstat -ano -p tcp 2^>nul`) do (
-  set "line=%%L"
-  echo "!line!" | findstr /C:":!PORT! " /C:":!PORT!" >nul
-  if not errorlevel 1 (
-    echo "!line!" | findstr /I "LISTENING" >nul
-    if errorlevel 1 (
-      echo "!line!" | findstr /I "\<LISTEN\>" >nul
-    )
-    if not errorlevel 1 (
-      set "LISTENING=1"
-      goto :after_for
-    )
-  )
-)
-:after_for
-if "!LISTENING!"=="1" (
-  set /a PORT+=1
-  goto :scan_loop
-)
-
-rem candidate found: move chosen port into outer env
-endlocal & set "USE_THIS_PORT=%PORT%"
-
-:set_rocket_port
-REM set port environment variables
-set ROCKET_PORT=%USE_THIS_PORT%
+REM set available port environment variable (returned as %ROCKET_PORT% )
+call ..\buildResources\port_checker.bat
+echo "%ROCKET_PORT%"
 
 if exist ..\build (
   echo "Removing last build environment"
