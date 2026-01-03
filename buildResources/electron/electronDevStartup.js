@@ -26,7 +26,8 @@ const path = require('path');
 const net = require('net');
 
 const env = {
-  ...process.env
+  ...process.env,
+  APP_RESOURCES_DIR: process.env.APP_RESOURCES_DIR === undefined ? './lib/' : process.env.APP_RESOURCES_DIR,
 };
 
 function findFreePort(start = 19119, end = 65535) {
@@ -56,7 +57,7 @@ async function getPort() {
 getPort()
   .then(port => {
     console.log('Using port ', port);
-    // continue startup with port...
+    if (env.ROCKET_PORT === undefined) env.ROCKET_PORT = port;
   })
   .catch(err => {
     console.error('Failed to obtain port:', err);
