@@ -25,10 +25,45 @@
 const { app, BrowserWindow, Menu, shell, ipcMain, ipcRenderer, contextBridge, dialog } = require('electron');
 const { spawn, execSync } = require('child_process');
 const path = require('path');
+const net = require('net');
 
 const env = {
   ...process.env
 };
+
+function findFreePort(start = 19119, end = 65535) {
+  return new Promise((resolve, reject) => {
+    let port = start;
+    function tryPort() {
+      if (port > end) return reject(new Error('free port not found'));
+      const server = net.createServer();
+      server.once('error', () => { port++; tryPort(); });
+      server.once('listening', () => {
+        server.close(() => resolve(port));
+      });
+      server.listen(port, '127.0.0.1');
+    }
+    tryPort();
+  });
+}
+
+// Use existing env var or find one
+async function getPort() {
+  if (env.ROCKET_PORT && env.ROCKET_PORT.trim() !== '') {
+    return Number(env.ROCKET_PORT);
+  }
+  return await findFreePort(19119);
+}
+
+getPort()
+  .then(port => {
+    console.log('Using port ', port);
+    // continue startup with port...
+  })
+  .catch(err => {
+    console.error('Failed to obtain port:', err);
+    app.quit?.();
+  });
 
 let serverProcess = null;
 app.name = '${APP_NAME}';
@@ -165,7 +200,6 @@ function startServer() {
     const workingDir =  path.join(__dirname, '..');
 
   console.log('resourcesDir is ' + env.APP_RESOURCES_DIR);
-  console.log('port is ' + env.ROCKET_PORT);
 
     // console.log('startServer() - workingDir is ' + workingDir);
     // console.log('startServer() - resourcesDir is ' + resourcesDir);
