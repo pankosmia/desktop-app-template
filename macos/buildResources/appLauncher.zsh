@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
 # set available port environment variable (exported as $ROCKET_PORT )
-source ../buildResources/find_free_port.sh
+source ./find_free_port.sh
 
 clear
 URL="http://localhost:$ROCKET_PORT"

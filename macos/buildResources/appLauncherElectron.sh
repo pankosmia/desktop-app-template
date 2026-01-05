@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# set available port environment variable (exported as $ROCKET_PORT )
-source ../buildResources/find_free_port.sh
-
 echo "========================"
 echo "Starting up:"
 echo "Current directory:"
@@ -42,6 +39,9 @@ else
 fi
 
 echo "bin folder found at $BASE"
+
+# set available port environment variable (exported as $ROCKET_PORT )
+source ./find_free_port.sh
 
 # start electron
 cd "$BASE"

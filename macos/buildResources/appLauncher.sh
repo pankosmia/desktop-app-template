@@ -39,7 +39,7 @@ else
 fi
 
 # set available port environment variable (exported as $ROCKET_PORT )
-source ../buildResources/find_free_port.sh
+source ./find_free_port.sh
 
 # launch browser
 URL="http://localhost:$ROCKET_PORT"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # set available port environment variable (exported as $ROCKET_PORT )
-source ../buildResources/find_free_port.sh
+source ./find_free_port.sh
 
 # Setting variables
 BASE_DIR=/opt/{PACKAGE_NAME}
