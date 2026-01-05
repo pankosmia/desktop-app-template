@@ -91,14 +91,14 @@ try {
 
     New-Item -ItemType Directory -Force -Path $payloadPath | Out-Null
 
-    # Copy appLauncherElectron.bat and port_checker.bat
+    # Copy appLauncherElectron.bat and find_free_port.bat
     $startupSrc = "..\buildResources\appLauncherElectron.bat"
-    $portCheckerSrc = "..\buildResources\port_checker.bat"
+    $portCheckerSrc = "..\buildResources\find_free_port.bat"
     $startupDest = "$payloadPath"
     if (Test-Path $startupSrc) {
         New-Item -ItemType Directory -Force -Path $startupDest | Out-Null
         Copy-Item -Path $startupSrc -Destination "$startupDest\appLauncherElectron.bat" -Force
-        Copy-Item -Path $portCheckerSrc -Destination "$startupDest\port_checker.bat" -Force
+        Copy-Item -Path $portCheckerSrc -Destination "$startupDest\find_free_port.bat" -Force
     }
 
     # Copy electron files

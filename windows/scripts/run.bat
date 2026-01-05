@@ -115,7 +115,7 @@ copy %configFile% %tmpFile%
 endlocal
 
 REM set available port environment variable (returned as %ROCKET_PORT% )
-call ..\buildResources\port_checker.bat
+call ..\buildResources\find_free_port.bat
 echo "%ROCKET_PORT%"
 
 if exist ..\build (

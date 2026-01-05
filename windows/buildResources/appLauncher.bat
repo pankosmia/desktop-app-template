@@ -1,7 +1,7 @@
 @echo off
 
 REM set available port environment variable (returned as %ROCKET_PORT% )
-call .\port_checker.bat
+call .\find_free_port.bat
 
 SET APP_RESOURCES_DIR=.\lib\
 
