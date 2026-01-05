@@ -38,8 +38,11 @@ else
     exit 1
 fi
 
+# set available port environment variable (exported as $ROCKET_PORT )
+source ../buildResources/find_free_port.sh
+
 # launch browser
-URL="http://localhost:19119"
+URL="http://localhost:$ROCKET_PORT"
 if [ -e /Applications/Firefox.app ]
 then
     echo "Launching Firefox"
@@ -51,10 +54,9 @@ fi
 
 
 echo "bin folder found at $BASE"
-echo "Launch a web browser and enter http://localhost:19119"
+echo "Launch a web browser and enter http://localhost:$ROCKET_PORT"
 echo "(Best viewed with a Graphite-enabled browser such as Firefox.)"
 echo " "
 cd "$BASE"
-export ROCKET_PORT=19119
 export APP_RESOURCES_DIR=./lib/
 ./bin/server.bin

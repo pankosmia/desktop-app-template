@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
+# set available port environment variable (exported as $ROCKET_PORT )
+source ../buildResources/find_free_port.sh
+
 # Setting variables
 BASE_DIR=/opt/{PACKAGE_NAME}
 APP_DIR=$BASE_DIR
 SETTINGS_FILE=$BASE_DIR/app_config.env
-export ROCKET_PORT=19119
 export APP_RESOURCES_DIR="$APP_DIR/lib/"
 
 USER_APP_DIR=~/.local/share/{PACKAGE_NAME}
