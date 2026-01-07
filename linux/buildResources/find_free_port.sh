@@ -2,7 +2,8 @@
 
 # This script is intended for linux an differs from the macos sh script.
 #   ss is not present on macOS by default, so that test isn't so useful there.
-#   The macOS netstat test is written differently as -ltn may not list listeners the same way.
+#   The macOS netstat response is different, and has so far been elusive.
+#   The lsof test on the other hand, should be available on MacOS and works the same.
 
 # This script works as follows:
 #   If ss (fastest) is available it listens there until it finds an available port.
