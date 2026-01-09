@@ -1,0 +1,32 @@
+{
+  "core-client-content": [
+    {
+      "id": "firstSection",
+      "i18n": "first_section",
+      "fields": [
+        {
+          "id": "nThings",
+          "i18n": "n_things",
+          "min_value": 0,
+          "value": 5
+        },
+        {
+          "id": "aFruit",
+          "i18n": "a_fruit",
+          "options": ["banana", "apple", "pear"]
+        }
+      ]
+    },
+    {
+      "id": "secondSection",
+      "i18n": "second_section",
+      "fields": [
+        {
+          "id": "someTruth",
+          "i18n": "some_truth",
+          "value": true
+        }
+      ]
+    }
+  ]
+}
