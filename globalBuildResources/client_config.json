@@ -13,7 +13,8 @@
         {
           "id": "aFruit",
           "i18n": "a_fruit",
-          "options": ["banana", "apple", "pear"]
+          "options": ["banana", "apple", "pear"],
+          "value": "banana"
         }
       ]
     },
