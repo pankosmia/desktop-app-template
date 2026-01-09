@@ -20,7 +20,6 @@ clients="../buildResources/setup/app_setup.json"
 spec="../../buildSpec.json"
 name="../../globalBuildResources/i18nPatch.json"
 product="../../globalBuildResources/product.json"
-client_config="../../globalBuildResources/client_config.json"
 
 echo "{"> $name
 echo "  \"branding\": {">> $name
