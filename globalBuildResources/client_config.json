@@ -1,6 +1,17 @@
 {
   "core-client-content": [
     {
+      "id": "config",
+      "i18n": "Config Menu",
+      "fields": [
+        {
+          "id": "archiveMenu",
+          "i18n": "Archive Menu",
+          "value": false
+        }
+      ]
+    },
+    {
       "id": "firstSection",
       "i18n": "first_section",
       "fields": [
