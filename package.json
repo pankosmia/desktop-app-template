@@ -1,7 +1,7 @@
 {
-  "name": "desktop-app-tc4",
+  "name": "desktop-app-template",
   "version": "0.1.0",
-  "description": "A desktop app for tCore v4: It assembles an executable and resources from other Pankosmia repos.",
+  "description": "Customizable repo template for development and release of desktop apps built on Pankosmia: It assembles an executable and resources from other Pankosmia repos.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
