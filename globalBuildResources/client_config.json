@@ -37,7 +37,7 @@
       "fields": [
         {
           "id": "internetConnectionAccess",
-          "i18n": "internet acces",
+          "i18n": "Internet Access",
           "value": true
         }
       ]
