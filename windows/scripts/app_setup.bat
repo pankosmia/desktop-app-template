@@ -10,7 +10,6 @@ echo      *   - \linux\buildResources\setup\app_setup.json   *
 echo      *   - \buildSpec.json                              *
 echo      *   - \globalBuildResources\i18nPatch.json         *
 echo      *   - \globalBuildResources\product.json           *
-echo      *   - \globalBuildResources\client_config.json     *
 echo      ****************************************************
 echo.
 
@@ -167,7 +166,6 @@ echo.
 echo \buildSpec.json generated/rebuilt/replaced
 echo \globalBuildResources\i18nPatch.json generated/rebuilt/replaced
 echo \globalBuildResources\product.json generated/rebuilt/replaced
-echo \globalBuildResources\client_config.json generated/rebuilt/replaced
 echo \windows\buildResources\setup\app_setup.json generated/rebuilt/replaced
 echo.
 echo Copying \windows\buildResources\setup\app_setup.json to \linux\buildResources\setup\
