@@ -47,7 +47,7 @@ for /l %%a in (1,1,%count%) do (
       cd !CLIENT%%a!
       call git checkout main
       call git pull
-      call npm install
+      call npm ci
       call npm run build
       echo "################################ END Client %%a: !CLIENT%%a! ################################"
       echo.
