@@ -21,7 +21,9 @@ for ((i=1;i<=count;i++)); do
       echo
     else
       cd $asset
+      echo "> git checkout main..."
       git checkout main
+      echo "> git pull..."
       git pull
       echo "################################ END Asset $i: $asset ################################"
       echo
@@ -43,9 +45,13 @@ for ((i=1;i<=count;i++)); do
       echo
     else
       cd $client
+      echo "> git checkout main..." 
       git checkout main
+      echo "> git pull..."
       git pull
-      npm install
+      echo "> npm ci..."
+      npm ci
+      echo "> npm run build..."
       npm run build
       echo "################################ END Client $i: $client ################################"
       echo

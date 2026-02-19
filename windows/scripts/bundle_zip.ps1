@@ -4,7 +4,7 @@
 # with the optional arguments of: `.\bundle_zip.ps1 -ServerOff "Y"` or: `.\bundle_zip.ps1 -ServerOff "y"`
 # and: `.\bundle_zip.ps1 -IsGHA "Y"` or: `.\bundle_zip.ps1 -IsGHA "y"`
 
-# This script is also used with gh action runner with the -ServerOff switch set to yes and -IsGHA set to yes. All three of `app_setup.bat` and `npm install` and 'node build.js` have already run in earlier steps in windows-build-steps.yml
+# This script is also used with gh action runner with the -ServerOff switch set to yes and -IsGHA set to yes. All three of `app_setup.bat` and `npm ci` and 'node build.js` have already run in earlier steps in windows-build-steps.yml
 
 param(
     [string]$ServerOff,
