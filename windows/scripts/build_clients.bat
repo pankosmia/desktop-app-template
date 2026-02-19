@@ -24,7 +24,9 @@ for /l %%a in (1,1,%count%) do (
       echo.
     ) else (
       cd !ASSET%%a!
+      echo ^> git checkout main...
       call git checkout main
+      echo ^> git pull...
       call git pull
       echo "################################ END Asset %%a: !ASSET%%a! ################################"
       echo.
@@ -45,9 +47,13 @@ for /l %%a in (1,1,%count%) do (
       echo.
     ) else (
       cd !CLIENT%%a!
+      echo ^> git checkout main...
       call git checkout main
+      echo ^> git pull...
       call git pull
-      call npm install
+      echo ^> npm ci...
+      call npm ci
+      echo ^> npm run build...
       call npm run build
       echo "################################ END Client %%a: !CLIENT%%a! ################################"
       echo.
