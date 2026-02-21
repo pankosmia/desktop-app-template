@@ -154,12 +154,18 @@ if %FAILCOUNT% EQU 0 (
   for /l %%i in (1,1,%FAILCOUNT%) do echo !FAIL%%i!
 )
 echo.
-for %%F in ("%LOG%") do echo Full log: "%%~nxF" in the current directory.
+if /i "%GITHUB_ACTIONS%"=="true" (
+  echo Full log: scroll up in the "Run build_clients.bat" step output above.
+) else (
+  for %%F in ("%LOG%") do echo Full log: "%%~nxF" in the current directory.
+)
 echo ===========================================================================
 REM -----------------------------------
 
-endlocal
-exit /b
+set "EXITCODE=0"
+if %FAILCOUNT% GTR 0 set "EXITCODE=1"
+
+endlocal & exit /b %EXITCODE%
 
 
 :log
