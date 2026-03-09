@@ -1,36 +1,73 @@
 # branding
-Logos etc for Panskosmia-related projects
+Logo implementation for Panskosmia-related projects
 
 <span id="toc">————————————————————————————</span>
 
 ### Contents:
-1. [Source Images](#source)
-2. [Generate via script from source images](#generate)  
-2.1. [favicon.ico / favicon*.png - corner/tab of Viewer/Browser](#generate-favicon)  
-2.2. [icon*.png's for icon.icns - MacOS desktop (Applications, Launchpad, and Dock icon)](#generate-icon-icns)  
-2.3. [icon.ico and linux_icon.png - Windows desktop and start menu and Linux (Ubuntu) application menu](#generate-icon-ico-png)  
-3. [Additional Detail](#additional)  
-3.1. [Which image files are used in this repo's build process?](#used)  
-3.2. [favicon*.png - Electronite Browser Window icon (Windows and Linux)](#electron)  
-3.3. [icon.icns - Alternate approaches - MacOS Desktop](#alternate-icns)  
-4. [Endnotes](#endnotes)  
+1. [Recommendations](#recommendations)<br />
+1.1. [Design Tips](#design-tips)<br />
+1.2. [Conversion Tool](#conversion-tool) 
+2. [Source Images](#source) 
+3. [Generate via script from source images](#generate)  
+3.1. [favicon.ico / favicon*.png - corner/tab of Viewer/Browser](#generate-favicon)  
+3.2. [icon*.png's for icon.icns - MacOS desktop (Applications, Launchpad, and Dock icon)](#generate-icon-icns)  
+3.3. [icon.ico and linux_icon.png - Windows desktop and start menu and Linux (Ubuntu) application menu](#generate-icon-ico-png)  
+4. [Additional Detail](#additional)  
+4.1. [Which image files are used in this repo's build process?](#used)  
+4.2. [favicon*.png - Electronite Browser Window icon (Windows and Linux)](#electron)  
+4.3. [icon.icns - Alternate approaches - MacOS Desktop](#alternate-icns)  
+5. [Endnotes](#endnotes)  
 
 ————————————————————————————
+<span id="recommendations">&nbsp;</span>
+## Recommendations <sub><sup>... [↩](#toc)</sup></sub>
+<span id="design-tips">&nbsp;</span>
+### Design Tips <sub><sup>... [↩](#toc)</sup></sub>
+Favicons and some taskbar/dock launchers call for support as small as 16px.  When re-sizing a high quality file to a small png, clarity is a function of pixel-fitting -- simplifying shapes, consistent stroke widths, and aligning edges to the pixel grid. Be prepared for the possibility of need to simplify or redraw details that won’t survive at 16px.
+
+The following ***"simple"*** design approaches will yield the best results:
+- straight vertical/horizontal lines
+- with a width of at least 1 full pixel (when converted at 16px)
+- on a plain background
+
+Note that it is also possible to make a specific small variant for improved clarity (e.g., @ 16px square) .
+<span id="conversion-tool">&nbsp;</span>
+### Conversion Tool <sub><sup>... [↩](#toc)</sup></sub>
+Conversion scripts provided recognize what type of source files are provided and which tool is installed. If there is only one type of source and one conversion tool, then they just run. Otherwise, they present available options for quick selection.
+
+| Source ≥ 1024px square | Conversion Tool | ICO Packager |
+|---|---|---|
+| Vector SVG or EPS, complex design | Inkscape | ImageMagick |
+| PNG | ImageMagick | ImageMagick |
+| Vector SVG, "simple" design | Inkscape or ImageMagick | ImageMagick |
+
+#### Inkscape
+If your source files will be vector SVGs with complex design then install [Inkscape](https://inkscape.org/).
+- For provided scripts to work with Inkscape in Windows, after installing edit Environment Variables and add `C:\Program Files\Inkscape\bin` to Path.
+
+If the source is EPS, consider that [Inkscape](https://inkscape.org/) can also be used to convert EPS to a vector SVG.
+
+Inkscape can't build an ICO holding multiple PNG images at different sizes, so ImageMagick will also need to be installed for that step.
+
+#### ImageMagick
+If your source files will be PNG then install ImageMagick.
+- Linux: [download](https://imagemagick.org/script/download.php#linux)
+- Windows: [download](https://imagemagick.org/script/download.php#windows)
+- MacOS: `brew install imagemagick`
+
+ImageMagick can also be used with a vector SVG source. However, Inkscape may yield better rendering quality except on a "simple" design.
+
 <span id="source">&nbsp;</span>
 ## Source Images <sub><sup>... [↩](#toc)</sup></sub>
-Three source images are required. Place these images in the `source` subdirecftory of `branding`:
-- favicon_1024x1024.png
-- mac_icon_1024x1024.png
+Three source images are required. Place these images in the `source` subdirectory of `branding`. It is important that they be precisely square and at least 1024px x 1024px or higher:
+- favicon.png
+- mac_icon.png
   - Transparent margins, with a solid inner square background with rounded corners.
-- win_icon_1024x1024.png
+- win_icon.png
   - Small transparent margin, with solid inner background optional.
 <span id="generate">&nbsp;</span>
 ## Generate via script from source images <sub><sup>... [↩](#toc)</sup></sub>
 All but the final icns step can be generated from any system
-1. Install ImageMagick
-  - Linux: [download](https://imagemagick.org/script/download.php#linux)
-  - Windows: [download](https://imagemagick.org/script/download.php#windows)
-  - MacOS: `brew install imagemagick`
 <span id="generate-favicon">&nbsp;</span>
 ### favicon.ico (Browser) / favicon*.png (Electronite) <sub><sup>... [↩](#toc)</sup></sub>
 The following script generates favicon.ico for the Web Browser tab icon and favicon*.png's for the Electronite Browser Window icon (Windows and Linux). It places favicon.ico and favicon*.png in the `globalBuildResources` directory, and it also puts the building blocks it used to build favicon.ico in the `building blocks\for_favicon_ico` subdirectory of `branding`.
