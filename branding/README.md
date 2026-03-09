@@ -42,12 +42,9 @@ Conversion scripts provided recognize what type of source files are provided and
 | Vector SVG, "simple" design | Inkscape or ImageMagick | ImageMagick |
 
 #### Inkscape
-If your source files will be vector SVGs with complex design then install [Inkscape](https://inkscape.org/).
-- For provided scripts to work with Inkscape in Windows, after installing edit Environment Variables and add `C:\Program Files\Inkscape\bin` to Path.
-
-If the source is EPS, consider that [Inkscape](https://inkscape.org/) can also be used to convert EPS to a vector SVG.
-
-Inkscape can't build an ICO holding multiple PNG images at different sizes, so ImageMagick will also need to be installed for that step.
+- If your source files will be vector SVGs with complex design then install [Inkscape](https://inkscape.org/).
+- If the source is EPS, consider that [Inkscape](https://inkscape.org/) can also be used to convert EPS to a vector SVG.
+- Inkscape can't build an ICO holding multiple PNG images at different sizes. ImageMagick is used for that step by this script.
 
 #### ImageMagick
 If your source files will be PNG then install ImageMagick.

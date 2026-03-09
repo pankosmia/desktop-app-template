@@ -30,12 +30,46 @@ goto parse_args
 REM Detect which tools are installed
 set MAGICK_INSTALLED=0
 set INKSCAPE_INSTALLED=0
+set INKSCAPE_CMD=inkscape
+set INKSCAPE_PATH=
 
 magick -version >nul 2>&1
 if %ERRORLEVEL%==0 set MAGICK_INSTALLED=1
 
+REM Check if inkscape is in PATH first
 inkscape --version >nul 2>&1
-if %ERRORLEVEL%==0 set INKSCAPE_INSTALLED=1
+if %ERRORLEVEL%==0 (
+    set INKSCAPE_INSTALLED=1
+    set INKSCAPE_CMD=inkscape
+) else (
+    REM Check common installation locations
+    if exist "C:\Program Files\Inkscape\bin\inkscape.exe" set "INKSCAPE_PATH=C:\Program Files\Inkscape\bin\inkscape.exe"
+    if exist "C:\Program Files (x86)\Inkscape\bin\inkscape.exe" set "INKSCAPE_PATH=C:\Program Files (x86)\Inkscape\bin\inkscape.exe"
+    
+    REM Use a temporary variable to avoid parentheses issues
+    set "LOCALAPP_INKSCAPE=%LOCALAPPDATA%\Programs\Inkscape\bin\inkscape.exe"
+    if exist "!LOCALAPP_INKSCAPE!" set "INKSCAPE_PATH=!LOCALAPP_INKSCAPE!"
+    
+    set "PF_INKSCAPE=%ProgramFiles%\Inkscape\bin\inkscape.exe"
+    if exist "!PF_INKSCAPE!" if not defined INKSCAPE_PATH set "INKSCAPE_PATH=!PF_INKSCAPE!"
+    
+    REM Handle ProgramFiles(x86) by using the environment variable directly in a separate variable
+    call set "PFX86_INKSCAPE=%%ProgramFiles(x86)%%\Inkscape\bin\inkscape.exe"
+    if exist "!PFX86_INKSCAPE!" if not defined INKSCAPE_PATH set "INKSCAPE_PATH=!PFX86_INKSCAPE!"
+    
+    if defined INKSCAPE_PATH (
+        set INKSCAPE_INSTALLED=1
+        set "INKSCAPE_CMD=!INKSCAPE_PATH!"
+        for %%I in ("!INKSCAPE_PATH!") do set "INKSCAPE_BIN_DIR=%%~dpI"
+        REM Remove trailing backslash
+        if "!INKSCAPE_BIN_DIR:~-1!"=="\" set "INKSCAPE_BIN_DIR=!INKSCAPE_BIN_DIR:~0,-1!"
+        echo.
+        echo Inkscape is not in your PATH, though was found Inkscape at: !INKSCAPE_PATH!
+        echo.
+        echo While not necessary for this script, if you want to use Inkscape CLI yourself then add this directory to your PATH:
+        echo       !INKSCAPE_BIN_DIR!
+    )
+)
 
 set PNG_EXISTS=0
 set SVG_EXISTS=0
@@ -227,10 +261,10 @@ if /i "%SOURCE_FORMAT%"=="png" (
         magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 24x24 ..\globalBuildResources\favicon@1.5x.png
         magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 32x32 ..\globalBuildResources\favicon@2x.png
     ) else if /i "%CONVERSION_TOOL%"=="inkscape" (
-        inkscape %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon.png --export-width=16 --export-height=16
-        inkscape %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon@1.25x.png --export-width=20 --export-height=20
-        inkscape %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon@1.5x.png --export-width=24 --export-height=24
-        inkscape %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon@2x.png --export-width=32 --export-height=32
+        "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon.png --export-width=16 --export-height=16
+        "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon@1.25x.png --export-width=20 --export-height=20
+        "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon@1.5x.png --export-width=24 --export-height=24
+        "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon@2x.png --export-width=32 --export-height=32
     )
 )
 
