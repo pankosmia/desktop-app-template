@@ -42,13 +42,13 @@ Conversion scripts provided recognize what type of source files are provided and
 | Vector SVG, "simple" design | Inkscape or ImageMagick | ImageMagick |
 
 #### Inkscape
-- If your source files will be vector SVGs with complex design then install [Inkscape](https://inkscape.org/).
+- If your source files will be vector SVGs with complex design then install Inkscape -- [Windows/MacOS](https://inkscape.org/) | linux: `sudo apt install inkscape`.
 - If the source is EPS, consider that [Inkscape](https://inkscape.org/) can also be used to convert EPS to a vector SVG.
 - Inkscape can't build an ICO holding multiple PNG images at different sizes. Provided scripts use ImageMagick for that step.
 
 #### ImageMagick
 If your source files will be PNG then install ImageMagick.
-- Linux: [download](https://imagemagick.org/script/download.php#linux)
+- Linux: `sudo apt install imagemagick`
 - Windows: [download](https://imagemagick.org/script/download.php#windows)
 - MacOS: `brew install imagemagick`
 
@@ -79,7 +79,7 @@ The following script generates favicon.ico for the Web Browser tab icon and favi
 Review the following after running this script:
 - In the `building blocks/for_favicon_ico` subdirectory of `branding`, look at both images at 100% resolutions to confirm they are as desired. Adjust or change each manually as needed.
   - To recreate favicon.ico from custom files, in a terminal from the `building blocks/for_favicon_ico` subdirectory of `branding` run:
-    - `magick -verbose favicon_16x16.png favicon_32x32.png favicon.ico`
+    - `magick -verbose favicon_16x16.png favicon_32x32.png favicon.ico` Replace magick with convert on older linux installs.
   - If you make any changes and run the script on the line immediately above, then also replace the `favicon.ico` in the `globalBuildResources` directory with your improved version.
 - If `favicon_16x16.png` was improved, then copy it over `globalBuildResources/favicon.png` (used by Electron).
 - If `favicon_32x32.png` was improved, then copy it over `globalBuildResources/favicon@2x.png` (used by Electron).
@@ -99,6 +99,7 @@ Review the following after running this script:
   - If changes are made to `icon_16x16.png` or `icon_32x32.png` then adjust the upscaled version as well so that it matches. Do this by running the applicable of the following in a terminal from the `building blocks/for_icon_icns` subdirectory of `branding`:
     - `magick icon_16x16.png -resize 200%% icon_16x16@2x.png`  
     - `magick icon_32x32.png -resize 200%% icon_32x32@2x.png`
+    -  Replace magick with convert on older linux installs.
 
 Create icon.icns with iconutil on MacOS as follows:
 
@@ -136,8 +137,9 @@ The following script generates icon.ico, placing it in the `globalBuildResources
 Review the following after running this script:
 - In the `building_blocks/for_icon_ico` subdirectory of `branding`, look over `win_icon_16x16.png` and `win_icon_32x32.png` for things like anti-aliasing issues. Look at them at 100% resolutions to confirm they are as desired. Adjust or change each manually as needed.
   - To recreate icon.ico from custom files, in a terminal from the `building blocks/for_icon_ico` subdirectory of `branding` run:
-    - `magick -verbose win_icon_16x16.png win_icon_32x32.png win_icon_48x48.png win_icon_256x256.png icon.ico`
+    - `magick -verbose win_icon_16x16.png win_icon_32x32.png win_icon_48x48.png win_icon_256x256.png icon.ico` 
   - If you make any changes and run the script in the line immediately above, then also replace the `icon.ico` in the `globalBuildResources` directory with your improved version.
+  - Replace magick with convert on older linux installs.
 
 ---
 ---
@@ -185,10 +187,10 @@ ImageMagick does not yet support the icns file format at the time this is being 
 
 <span id="endnotes">&nbsp;</span>
 ## Endnotes <sub><sup>... [↩](#toc)</sup></sub>
-[<b id="f1">1</b>] ... ImageMagick tip: See `magick -help` ... [↩](#a1)  
-[<b id="f2">2</b>] ... This is a scaled-up version, different from icon_32x32.png, e.g., `magick icon_16x16.png -resize 200% icon_16x16@2x.png` ... [↩](#a2)  
+[<b id="f1">1</b>] ... ImageMagick tip: See `magick -help`, or `convert -help` on older linux installs. ... [↩](#a1)  
+[<b id="f2">2</b>] ... This is a scaled-up version, different from icon_32x32.png, e.g., `magick icon_16x16.png -resize 200% icon_16x16@2x.png`. Replace magick with convert on older linux installs. ... [↩](#a2)  
 [<b id="f3">3</b>] ... `magick icon_32x32.png -resize 200% icon_32x32@2x.png` ... [↩](#a3)  
-[<b id="f4">4</b>] ... This is a scaled-up version, different from icon_256x256.png, e.g., `magick icon_128x128.png -resize 200% icon_128x128@2x.png`  ... [↩](#a4)  
-[<b id="f5">5</b>] ... This is a scaled-up version, different from icon_512x512.png, e.g., `magick icon_256x256.png -resize 200% icon_256x256@2x.png` ... [↩](#a5)  
-[<b id="f6">6</b>] ... This is a scaled-up version, different from icon_1024x1024.png, e.g., `magick icon_512x512.png -resize 200% icon_512x512@2x.png` ... [↩](#a6)  
-[<b id="f7">7</b>] ... `magick icon_1024x1024.png -resize 200% icon_1024x1024@2x.png` ... [↩](#a7)  
+[<b id="f4">4</b>] ... This is a scaled-up version, different from icon_256x256.png, e.g., `magick icon_128x128.png -resize 200% icon_128x128@2x.png`. Replace magick with convert on older linux installs.  ... [↩](#a4)  
+[<b id="f5">5</b>] ... This is a scaled-up version, different from icon_512x512.png, e.g., `magick icon_256x256.png -resize 200% icon_256x256@2x.png`. Replace magick with convert on older linux installs. ... [↩](#a5)  
+[<b id="f6">6</b>] ... This is a scaled-up version, different from icon_1024x1024.png, e.g., `magick icon_512x512.png -resize 200% icon_512x512@2x.png`. Replace magick with convert on older linux installs. ... [↩](#a6)  
+[<b id="f7">7</b>] ... `magick icon_1024x1024.png -resize 200% icon_1024x1024@2x.png` Replace magick with convert on older linux installs. ... [↩](#a7)  
