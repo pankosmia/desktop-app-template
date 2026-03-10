@@ -110,7 +110,7 @@ goto prompt_format
 if "%SOURCE_FORMAT%"=="" (
     if exist "source\mac_icon.svg" (
         set SOURCE_FORMAT=svg
-    ) else if exist "source\mac_icon" (
+    ) else if exist "source\mac_icon.png" (
         set SOURCE_FORMAT=png
     )
 )
