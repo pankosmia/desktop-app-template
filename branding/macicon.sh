@@ -13,7 +13,10 @@ CONVERSION_TOOL=""
 
 # Parse arguments in any order
 for arg in "$@"; do
-    case "${arg,,}" in
+    # Convert to lowercase manually for bash 3.2 compatibility
+    arg_lower=$(echo "$arg" | tr '[:upper:]' '[:lower:]')
+    
+    case "$arg_lower" in
         png)
             SOURCE_FORMAT="png"
             ;;
