@@ -1,6 +1,6 @@
 @echo off
 
-REM 1. Create favicon source file (PNG or SVG) and place it in the `source` subdirectory, one level down from `branding`.
+REM 1. Create favicon.svg or favicon.png source file ≥ 1024px square, and place it in the `source` subdirectory, one level down from `branding`.
 REM 2. Run this script in a terminal by entering: `.\favicon.bat [inkscape|imagemagick|magick] [svg|png]` from the `branding` directory.
 REM    - Arguments can be provided in any order
 REM    - If arguments are not provided, you will be prompted if needed
@@ -79,7 +79,7 @@ if exist "source\favicon.svg" set SVG_EXISTS=1
 if not "%SOURCE_FORMAT%"=="" goto validate_format
 
 if %PNG_EXISTS%==0 if %SVG_EXISTS%==0 (
-    echo Error: No source file found. Please create either source\favicon.png or source\favicon.svg
+    echo Error: No source file found. Please create either source\favicon.png or source\favicon.svg, ≥ 1024px square.
     exit /b 1
 )
 
@@ -180,7 +180,7 @@ if %INKSCAPE_INSTALLED%==1 (
 
 if %MAGICK_INSTALLED%==1 (
     set /a MENU_COUNT+=1
-    set MENU_!MENU_COUNT!=ImageMagick ^(fast^)
+    set MENU_!MENU_COUNT!=ImageMagick
     set TOOL_!MENU_COUNT!=magick
     if not defined DEFAULT_TOOL set DEFAULT_TOOL=magick
 )
@@ -244,6 +244,7 @@ echo Source file: %SOURCE_FILE%
 echo.
 echo Generating favicons...
 if "%CONVERSION_TOOL%"=="inkscape" (
+  echo.
   echo Inkscape is a complete GUI application that loads its entire rendering engine, even when run from command line.
   echo Please wait patiently...
   )
@@ -274,7 +275,7 @@ magick building_blocks\for_favicon_ico\favicon_16x16.png building_blocks\for_fav
 
 echo.
 echo ***************************************************************************************************
-echo * Review rendering quality of smaller size icons                                                  *
+echo * Review rendering quality of smaller size icons.                                                 *
 echo *      - See favicon*.png in the `globalBuildResources` directory                                 *
 echo *      - See `for_favicon_ico` directory                                                          *
 echo * Consider if smaller sizes need a different variation.                                           *

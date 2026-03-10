@@ -44,7 +44,7 @@ Conversion scripts provided recognize what type of source files are provided and
 #### Inkscape
 - If your source files will be vector SVGs with complex design then install [Inkscape](https://inkscape.org/).
 - If the source is EPS, consider that [Inkscape](https://inkscape.org/) can also be used to convert EPS to a vector SVG.
-- Inkscape can't build an ICO holding multiple PNG images at different sizes. ImageMagick is used for that step by this script.
+- Inkscape can't build an ICO holding multiple PNG images at different sizes. Provided scripts use ImageMagick for that step.
 
 #### ImageMagick
 If your source files will be PNG then install ImageMagick.
