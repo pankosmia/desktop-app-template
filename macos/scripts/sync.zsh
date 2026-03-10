@@ -90,15 +90,24 @@ doSync() {
   echo branding/building_blocks/for_icon_ico/win_icon_48x48.png:
   git reset branding/building_blocks/for_icon_ico/win_icon_48x48.png
   git checkout branding/building_blocks/for_icon_ico/win_icon_48x48.png
-  echo branding/source/favicon_1024x1024.png:
-  git reset branding/source/favicon_1024x1024.png
-  git checkout branding/source/favicon_1024x1024.png
-  echo branding/source/mac_icon_1024x1024.png:
-  git reset branding/source/mac_icon_1024x1024.png
-  git checkout branding/source/mac_icon_1024x1024.png
-  echo branding/source/win_icon_1024x1024.png:
-  git reset branding/source/win_icon_1024x1024.png
-  git checkout branding/source/win_icon_1024x1024.png
+  echo branding/source/favicon.png:
+  git reset branding/source/favicon.png
+  git checkout branding/source/favicon.png
+  echo branding/source/mac_icon.png:
+  git reset branding/source/mac_icon.png
+  git checkout branding/source/mac_icon.png
+  echo branding/source/win_icon.png:
+  git reset branding/source/win_icon.png
+  git checkout branding/source/win_icon.png
+  echo branding/source/favicon.svg:
+  git reset branding/source/favicon.svg
+  git checkout branding/source/favicon.svg
+  echo branding/source/mac_icon.svg:
+  git reset branding/source/mac_icon.svg
+  git checkout branding/source/mac_icon.svg
+  echo branding/source/win_icon.svg:
+  git reset branding/source/win_icon.svg
+  git checkout branding/source/win_icon.svg
   echo branding/source/artwork/favicon_transparent_square_blue-turqoise.psd:
   git reset branding/source/artwork/favicon_transparent_square_blue-turqoise.psd
   git checkout branding/source/artwork/favicon_transparent_square_blue-turqoise.psd
