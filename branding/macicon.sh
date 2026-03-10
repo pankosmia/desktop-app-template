@@ -36,6 +36,8 @@ done
 MAGICK_INSTALLED=0
 INKSCAPE_INSTALLED=0
 MAGICK_CMD=""
+INKSCAPE_CMD=""
+INKSCAPE_PATH=""
 
 # Detect OS
 OS_TYPE="$(uname -s)"
@@ -50,8 +52,35 @@ elif [ "$OS_TYPE" = "Linux" ] && command -v convert >/dev/null 2>&1; then
     MAGICK_CMD="convert"
 fi
 
+# Check if inkscape is in PATH first
 if command -v inkscape >/dev/null 2>&1; then
     INKSCAPE_INSTALLED=1
+    INKSCAPE_CMD="inkscape"
+else
+    # Inkscape not in PATH - check common installation locations (macOS only)
+    if [ "$OS_TYPE" = "Darwin" ]; then
+        # Check common macOS installation paths
+        if [ -f "/Applications/Inkscape.app/Contents/MacOS/inkscape" ]; then
+            INKSCAPE_PATH="/Applications/Inkscape.app/Contents/MacOS/inkscape"
+            INKSCAPE_INSTALLED=1
+            INKSCAPE_CMD="$INKSCAPE_PATH"
+        elif [ -f "$HOME/Applications/Inkscape.app/Contents/MacOS/inkscape" ]; then
+            INKSCAPE_PATH="$HOME/Applications/Inkscape.app/Contents/MacOS/inkscape"
+            INKSCAPE_INSTALLED=1
+            INKSCAPE_CMD="$INKSCAPE_PATH"
+        fi
+        
+        # Notify user if found but not in PATH
+        if [ -n "$INKSCAPE_PATH" ]; then
+            echo
+            echo "Inkscape is not in your PATH, but was found at: $INKSCAPE_PATH"
+            echo
+            echo "While not necessary for this script, if you want to use Inkscape CLI yourself,"
+            echo "you can add it to your PATH by adding this line to your shell profile (~/.zprofile, ~/.bash_profile, or ~/.bashrc):"
+            echo "  export PATH=\"/Applications/Inkscape.app/Contents/MacOS:\$PATH\""
+            echo
+        fi
+    fi
 fi
 
 PNG_EXISTS=0
@@ -250,18 +279,18 @@ else
         "$MAGICK_CMD" -background none MSVG:"$SOURCE_FILE" -filter Lanczos -resize 1024x1024 building_blocks/for_icon_icns/icon_1024x1024.png
         "$MAGICK_CMD" building_blocks/for_icon_icns/icon_1024x1024.png -filter Lanczos -resize 200% building_blocks/for_icon_icns/icon_1024x1024@2x.png
     elif [ "$CONVERSION_TOOL" = "inkscape" ]; then
-        inkscape "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_16x16.png --export-width=16 --export-height=16
-        inkscape "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_16x16@2x.png --export-width=32 --export-height=32
-        inkscape "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_32x32.png --export-width=32 --export-height=32
-        inkscape "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_32x32@2x.png --export-width=64 --export-height=64
-        inkscape "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_128x128.png --export-width=128 --export-height=128
-        inkscape "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_128x128@2x.png --export-width=256 --export-height=256
-        inkscape "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_256x256.png --export-width=256 --export-height=256
-        inkscape "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_256x256@2x.png --export-width=512 --export-height=512
-        inkscape "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_512x512.png --export-width=512 --export-height=512
-        inkscape "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_512x512@2x.png --export-width=1024 --export-height=1024
-        inkscape "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_1024x1024.png --export-width=1024 --export-height=1024
-        inkscape "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_1024x1024@2x.png --export-width=2048 --export-height=2048
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_16x16.png --export-width=16 --export-height=16
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_16x16@2x.png --export-width=32 --export-height=32
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_32x32.png --export-width=32 --export-height=32
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_32x32@2x.png --export-width=64 --export-height=64
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_128x128.png --export-width=128 --export-height=128
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_128x128@2x.png --export-width=256 --export-height=256
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_256x256.png --export-width=256 --export-height=256
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_256x256@2x.png --export-width=512 --export-height=512
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_512x512.png --export-width=512 --export-height=512
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_512x512@2x.png --export-width=1024 --export-height=1024
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_1024x1024.png --export-width=1024 --export-height=1024
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=building_blocks/for_icon_icns/icon_1024x1024@2x.png --export-width=2048 --export-height=2048
     fi
 fi
 

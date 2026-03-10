@@ -37,6 +37,8 @@ done
 MAGICK_INSTALLED=0
 INKSCAPE_INSTALLED=0
 MAGICK_CMD=""
+INKSCAPE_CMD=""
+INKSCAPE_PATH=""
 
 # Detect OS
 OS_TYPE="$(uname -s)"
@@ -51,8 +53,35 @@ elif [ "$OS_TYPE" = "Linux" ] && command -v convert >/dev/null 2>&1; then
     MAGICK_CMD="convert"
 fi
 
+# Check if inkscape is in PATH first
 if command -v inkscape >/dev/null 2>&1; then
     INKSCAPE_INSTALLED=1
+    INKSCAPE_CMD="inkscape"
+else
+    # Inkscape not in PATH - check common installation locations (macOS only)
+    if [ "$OS_TYPE" = "Darwin" ]; then
+        # Check common macOS installation paths
+        if [ -f "/Applications/Inkscape.app/Contents/MacOS/inkscape" ]; then
+            INKSCAPE_PATH="/Applications/Inkscape.app/Contents/MacOS/inkscape"
+            INKSCAPE_INSTALLED=1
+            INKSCAPE_CMD="$INKSCAPE_PATH"
+        elif [ -f "$HOME/Applications/Inkscape.app/Contents/MacOS/inkscape" ]; then
+            INKSCAPE_PATH="$HOME/Applications/Inkscape.app/Contents/MacOS/inkscape"
+            INKSCAPE_INSTALLED=1
+            INKSCAPE_CMD="$INKSCAPE_PATH"
+        fi
+        
+        # Notify user if found but not in PATH
+        if [ -n "$INKSCAPE_PATH" ]; then
+            echo
+            echo "Inkscape is not in your PATH, but was found at: $INKSCAPE_PATH"
+            echo
+            echo "While not necessary for this script, if you want to use Inkscape CLI yourself,"
+            echo "you can add it to your PATH by adding this line to your shell profile (~/.zprofile, ~/.bash_profile, or ~/.bashrc):"
+            echo "  export PATH=\"/Applications/Inkscape.app/Contents/MacOS:\$PATH\""
+            echo
+        fi
+    fi
 fi
 
 PNG_EXISTS=0
@@ -234,10 +263,10 @@ else
         "$MAGICK_CMD" -background none MSVG:"$SOURCE_FILE" -filter Lanczos -resize 24x24 ../globalBuildResources/favicon@1.5x.png
         "$MAGICK_CMD" -background none MSVG:"$SOURCE_FILE" -filter Lanczos -resize 32x32 ../globalBuildResources/favicon@2x.png
     elif [ "$CONVERSION_TOOL" = "inkscape" ]; then
-        inkscape "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon.png --export-width=16 --export-height=16
-        inkscape "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon@1.25x.png --export-width=20 --export-height=20
-        inkscape "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon@1.5x.png --export-width=24 --export-height=24
-        inkscape "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon@2x.png --export-width=32 --export-height=32
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon.png --export-width=16 --export-height=16
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon@1.25x.png --export-width=20 --export-height=20
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon@1.5x.png --export-width=24 --export-height=24
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon@2x.png --export-width=32 --export-height=32
     fi
 fi
 
