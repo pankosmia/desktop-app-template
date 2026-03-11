@@ -156,9 +156,10 @@ That would be the following images, located in `globalBuildResources`:
 <table>
 <tr><th>Filename</th><th>Where Applied</th></tr>
 <tr><td>favicon.ico</td><td>Web Browser tab</td></tr>
-<tr><td>favicon.png<td rowspan="4">Windows and Linux<br />Electronite<br />Browser<br />Window<br /><em>(Not applicable to MacOS)</em></td></tr>
+<tr><td>favicon.png<td rowspan="4">Windows and Linux only:<br /> Electron taskbar,<br /> window title bar,<br /> and Alt+Tab/task switcher<br /> <em>(Not applicable to MacOS)</em></td></tr>
 <tr><td>favicon@1.25.png</td></tr>
 <tr><td>favicon@1.5x.png</td></tr>
+<tr><td>favicon@1.75x.png</td></tr>
 <tr><td>favicon@2x.png</td></tr>
 <tr><td>icon.ico</td><td>Windows desktop and start menu</td></tr>
 <tr><td>linux_icon.png</td><td>Linux (Ubuntu) applications menu</td></tr>
@@ -168,14 +169,17 @@ That would be the following images, located in `globalBuildResources`:
 
 <span id="electron">&nbsp;</span>
 ### favicon*.png - Electronite Browser Window icon (Windows and Linux) <sub><sup>... [↩](#toc)</sup></sub>
-The Electronite Browser Window support displays with different DPI densities at the same through a special naming convention. The first of the following is named in the start up file, and Electron switches it out with other variations where applicable.
+Electron adjusts its display for differing DPI densities through a special naming convention. The base filename (favicon.png) is specified in the startup file, and Electron automatically switches to higher-resolution variants based on the system's display scaling.
 
 | # | Filename | Size (in pixels) | DPI Scale |
 | --- | --- | --- | ---- |
 | 1. | favicon.png | 16x16 | 100% |
 | 2. | favicon<!-- -->@1.25x.png | 20x20 | 125% |
 | 3. | favicon<!-- -->@1.5x.png | 24x24 | 150% |
-| 4. | favicon<!-- -->@2x.png | 32x32 | 200% |
+| 4. | favicon<!-- -->@1.75x.png	| 28x28 |	175% |
+| 5. | favicon<!-- -->@2x.png | 32x32 | 200% |
+
+These icons appear in the taskbar, window title bar, and Alt+Tab/task switcher while the application is running on Windows and Linux.
 <span id="alternate-icns">&nbsp;</span>
 ### icon.icns - Alternate approaches - MacOS Desktop <sub><sup>... [↩](#toc)</sup></sub>
 The support section of [the icns wikipedia article](https://en.wikipedia.org/wiki/Apple_Icon_Image_format#Support) cites several options for creating an icns file. However, avoid Icon Composer. It is unable to create high-resolution icns files used on retina displays.

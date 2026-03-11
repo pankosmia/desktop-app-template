@@ -254,17 +254,20 @@ if /i "%SOURCE_FORMAT%"=="png" (
     magick %SOURCE_FILE% -filter Lanczos -resize 16x16 ..\globalBuildResources\favicon.png
     magick %SOURCE_FILE% -filter Lanczos -resize 20x20 ..\globalBuildResources\favicon@1.25x.png
     magick %SOURCE_FILE% -filter Lanczos -resize 24x24 ..\globalBuildResources\favicon@1.5x.png
+    magick %SOURCE_FILE% -filter Lanczos -resize 28x28 ..\globalBuildResources\favicon@1.75x.png
     magick %SOURCE_FILE% -filter Lanczos -resize 32x32 ..\globalBuildResources\favicon@2x.png
 ) else (
     if /i "%CONVERSION_TOOL%"=="magick" (
         magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 16x16 ..\globalBuildResources\favicon.png
         magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 20x20 ..\globalBuildResources\favicon@1.25x.png
         magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 24x24 ..\globalBuildResources\favicon@1.5x.png
+        magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 28x28 ..\globalBuildResources\favicon@1.75x.png
         magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 32x32 ..\globalBuildResources\favicon@2x.png
     ) else if /i "%CONVERSION_TOOL%"=="inkscape" (
         "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon.png --export-width=16 --export-height=16
         "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon@1.25x.png --export-width=20 --export-height=20
         "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon@1.5x.png --export-width=24 --export-height=24
+        "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon@1.75x.png --export-width=28 --export-height=28
         "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=..\globalBuildResources\favicon@2x.png --export-width=32 --export-height=32
     )
 )
@@ -272,6 +275,8 @@ if /i "%SOURCE_FORMAT%"=="png" (
 copy ..\globalBuildResources\favicon.png building_blocks\for_favicon_ico\favicon_16x16.png >nul
 copy ..\globalBuildResources\favicon@2x.png building_blocks\for_favicon_ico\favicon_32x32.png >nul
 magick building_blocks\for_favicon_ico\favicon_16x16.png building_blocks\for_favicon_ico\favicon_32x32.png ..\globalBuildResources\favicon.ico
+
+endlocal
 
 echo.
 echo ***************************************************************************************************
@@ -282,11 +287,9 @@ echo * Consider if smaller sizes need a different variation.                    
 echo *                                                                                                 *
 echo * This script places its final product - `favicon.ico` - in the `globalBuildResources` directory. *
 echo *                                                                                                 *
-echo * NOTE: Re-running this script over-writes the same files it creates!                             *
+echo * NOTE: Re-running this script over-writes the same files it creates^!                             *
 echo *                                                                                                 *
 echo * To recreate favicon.ico from custom files, run this from the `for_favicon_ico` directory:       *
 echo * `magick favicon_16x16.png favicon_32x32.png favicon.ico`                                        *
 echo ***************************************************************************************************
 echo.
-
-endlocal
