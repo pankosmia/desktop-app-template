@@ -92,7 +92,7 @@ try {
     New-Item -ItemType Directory -Force -Path $payloadPath | Out-Null
 
     # Copy Rocket.toml, appLauncherElectron.bat, and find_free_port.bat
-    $rocketConfig = "..\buildResources\Rocket.toml"
+    $rocketConfig = "..\..\Rocket.toml"
     $startupSrc = "..\buildResources\appLauncherElectron.bat"
     $portCheckerSrc = "..\buildResources\find_free_port.bat"
     $startupDest = "$payloadPath"
