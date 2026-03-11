@@ -296,6 +296,8 @@ if /i "%SOURCE_FORMAT%"=="png" (
     )
 )
 
+endlocal
+
 echo.
 echo ********************************************************************************************
 echo * Review rendering quality of smaller size icons.                                          *
@@ -304,7 +306,7 @@ echo * Consider if smaller sizes need a different variation.                    
 echo *                                                                                          *
 echo * Expect icon*@2x.png icons to look different. They are scaled-up for use in icns creation.*
 echo *                                                                                          *
-echo * NOTE: Re-running this script over-writes the same files it creates!                      *
+echo * NOTE: Re-running this script over-writes the same files it creates^!                      *
 echo *                                                                                          *
 echo * To creating icon.icns with these file using iconutil on MacOS:                           *
 echo *  1. On MacOS, create a folder _on your desktop_ and put the following in it:             *
@@ -326,5 +328,3 @@ echo *  4. Then enter: `iconutil -c icns icon.iconset`                          
 echo *  5. Use the icon.icns file created on your Desktop.                                      *
 echo ********************************************************************************************
 echo.
-
-endlocal

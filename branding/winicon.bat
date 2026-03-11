@@ -276,6 +276,8 @@ magick -verbose building_blocks\for_icon_ico\win_icon_16x16.png building_blocks\
 REM For Linux
 copy building_blocks\for_icon_ico\win_icon_256x256.png ..\globalBuildResources\linux_icon.png >nul
 
+endlocal
+
 echo.
 echo ************************************************************************************************************
 echo * Review rendering quality of smaller size icons.                                                          *
@@ -284,7 +286,7 @@ echo * Consider if smaller sizes need a different variation.                    
 echo *                                                                                                          *
 echo * This script places its final product - `icon.ico` - in the `globalBuildResources` directory.             *
 echo *                                                                                                          *
-echo * NOTE: Re-running this script will over-write the same files it creates!                                  *
+echo * NOTE: Re-running this script will over-write the same files it creates^!                                  *
 echo *                                                                                                          *
 echo * To recreate icon.ico from custom files, run this from the `for_icon_ico` directory:                      *
 echo * `magick -verbose win_icon_16x16.png win_icon_32x32.png win_icon_48x48.png win_icon_256x256.png icon.ico` *
@@ -294,5 +296,3 @@ echo *      - The script has set that at 256x256 pixels.  Use a different resolu
 echo *      -  Multiple png resolutions or svg are not supported by workflow scripts as currently provided.     *
 echo ************************************************************************************************************
 echo.
-
-endlocal
