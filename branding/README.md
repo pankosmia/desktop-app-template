@@ -162,7 +162,7 @@ That would be the following images, located in `globalBuildResources`:
 <table>
 <tr><th>Filename</th><th>Where Applied</th></tr>
 <tr><td>favicon.ico</td><td>Web Browser tab</td></tr>
-<tr><td>favicon.png<td rowspan="4">Windows and Linux only:<br /> Electron taskbar,<br /> window title bar,<br /> and Alt+Tab/task switcher<br /> <em>(Not applicable to MacOS)</em></td></tr>
+<tr><td>favicon.png<td rowspan="5">Windows and Linux only:<br /> Electron taskbar,<br /> window title bar,<br /> and Alt+Tab/task switcher<br /> <em>(Not applicable to MacOS)</em></td></tr>
 <tr><td>favicon@1.25.png</td></tr>
 <tr><td>favicon@1.5x.png</td></tr>
 <tr><td>favicon@1.75x.png</td></tr>
