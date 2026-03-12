@@ -258,17 +258,20 @@ if [ "$SOURCE_FORMAT" = "png" ]; then
     "$MAGICK_CMD" "$SOURCE_FILE" -filter Lanczos -resize 16x16 ../globalBuildResources/favicon.png
     "$MAGICK_CMD" "$SOURCE_FILE" -filter Lanczos -resize 20x20 ../globalBuildResources/favicon@1.25x.png
     "$MAGICK_CMD" "$SOURCE_FILE" -filter Lanczos -resize 24x24 ../globalBuildResources/favicon@1.5x.png
+    "$MAGICK_CMD" "$SOURCE_FILE" -filter Lanczos -resize 28x28 ../globalBuildResources/favicon@1.75x.png
     "$MAGICK_CMD" "$SOURCE_FILE" -filter Lanczos -resize 32x32 ../globalBuildResources/favicon@2x.png
 else
     if [ "$CONVERSION_TOOL" = "magick" ]; then
         "$MAGICK_CMD" -background none MSVG:"$SOURCE_FILE" -filter Lanczos -resize 16x16 ../globalBuildResources/favicon.png
         "$MAGICK_CMD" -background none MSVG:"$SOURCE_FILE" -filter Lanczos -resize 20x20 ../globalBuildResources/favicon@1.25x.png
         "$MAGICK_CMD" -background none MSVG:"$SOURCE_FILE" -filter Lanczos -resize 24x24 ../globalBuildResources/favicon@1.5x.png
+        "$MAGICK_CMD" -background none MSVG:"$SOURCE_FILE" -filter Lanczos -resize 28x28 ../globalBuildResources/favicon@1.75x.png
         "$MAGICK_CMD" -background none MSVG:"$SOURCE_FILE" -filter Lanczos -resize 32x32 ../globalBuildResources/favicon@2x.png
     elif [ "$CONVERSION_TOOL" = "inkscape" ]; then
         "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon.png --export-width=16 --export-height=16
         "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon@1.25x.png --export-width=20 --export-height=20
         "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon@1.5x.png --export-width=24 --export-height=24
+        "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon@1.75x.png --export-width=28 --export-height=28
         "$INKSCAPE_CMD" "$SOURCE_FILE" --export-filename=../globalBuildResources/favicon@2x.png --export-width=32 --export-height=32
     fi
 fi

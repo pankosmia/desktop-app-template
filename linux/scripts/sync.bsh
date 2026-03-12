@@ -30,6 +30,9 @@ doSync() {
   echo globalBuildResources/favicon@1.5x.png:
   git reset globalBuildResources/favicon@1.5x.png
   git checkout globalBuildResources/favicon@1.5x.png
+  echo globalBuildResources/favicon@1.75x.png:
+  git reset globalBuildResources/favicon@1.75x.png
+  git checkout globalBuildResources/favicon@1.75x.png
   echo globalBuildResources/favicon@2x.png:
   git reset globalBuildResources/favicon@2x.png
   git checkout globalBuildResources/favicon@2x.png
