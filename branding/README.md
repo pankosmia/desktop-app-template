@@ -42,9 +42,11 @@ Conversion scripts provided recognize what type of source files are provided and
 | Vector SVG, "simple" design | Inkscape or ImageMagick | ImageMagick |
 
 #### Inkscape
-- If your source files will be vector SVGs with complex design then install Inkscape -- [Windows/MacOS](https://inkscape.org/) | linux: `sudo apt install inkscape`.
-- If the source is EPS, consider that [Inkscape](https://inkscape.org/) can also be used to convert EPS to a vector SVG.
-- Inkscape can't build an ICO holding multiple PNG images at different sizes. Provided scripts use ImageMagick for that step.
+If your source files will be vector SVGs with complex design then install Inkscape -- [Windows/MacOS](https://inkscape.org/) | linux: `sudo apt install inkscape`. If the source is EPS, consider that [Inkscape](https://inkscape.org/) can also be used to convert EPS to a vector SVG.
+
+Inkscape can't build an ICO holding multiple PNG images at different sizes. Provided scripts use ImageMagick for that step.
+
+If converting a vector svg file not created by Inkscape, then it's CLI will recognize any instances of CSS properties not support, ignore them, and return a warning. Review the output in such instances to confirm it remains satisfactory.
 
 #### ImageMagick
 If your source files will be PNG then install ImageMagick.
@@ -53,6 +55,9 @@ If your source files will be PNG then install ImageMagick.
 - MacOS: `brew install imagemagick`
 
 ImageMagick can also be used with a vector SVG source. However, Inkscape may yield better rendering quality except on a "simple" design.
+
+If converting a vector svg file that contains CSS properties not support, then ImageMagick will fail to recognize this and will plow on through its conversion without ignoring them. Review its output identify if it is satisfactory.
+
 
 <span id="source">&nbsp;</span>
 ## Source Images <sub><sup>... [↩](#toc)</sup></sub>
@@ -77,12 +82,13 @@ The following script generates favicon.ico for the Web Browser tab icon and favi
    - Note that re-running these script over-writes files it just created (or any other files of the same names).
 
 Review the following after running this script:
-- In the `building blocks/for_favicon_ico` subdirectory of `branding`, look at both images at 100% resolutions to confirm they are as desired. Adjust or change each manually as needed.
+- In the `building blocks/for_favicon_ico` subdirectory of `branding`, look over the rendering quality of both images at 100% resolutions. They may require customization. See [Design Tips](#design-tips).
   - To recreate favicon.ico from custom files, in a terminal from the `building blocks/for_favicon_ico` subdirectory of `branding` run:
     - `magick -verbose favicon_16x16.png favicon_32x32.png favicon.ico` Replace magick with convert on older linux installs.
   - If you make any changes and run the script on the line immediately above, then also replace the `favicon.ico` in the `globalBuildResources` directory with your improved version.
 - If `favicon_16x16.png` was improved, then copy it over `globalBuildResources/favicon.png` (used by Electron).
 - If `favicon_32x32.png` was improved, then copy it over `globalBuildResources/favicon@2x.png` (used by Electron).
+- If any changes are made to one or both of the last two files mentioned above, then see [favicon*.png - Electronite Browser Window icon (Windows and Linux)](#electron) for the names a file-sizes of other globalBuildResources/favicon*.png to review for potential similar customizations at 20px, 24px and 28px.
 
 <span id="generate-icon-icns">&nbsp;</span>
 ### icon*.png's for icon.icns - MacOS Desktop (Applications, Launchpad, and Dock icon) <sub><sup>... [↩](#toc)</sup></sub>
@@ -95,7 +101,7 @@ The following script generates icon*.png's - for creating .icns for MacOS. It do
    - Note that re-running these script over-writes files it just created (or any other files of the same names).
 
 Review the following after running this script:
-- In the `building blocks/for_icon_icns` subdirectory of `branding`, look over `icon_16x16.png` and `icon_32x32.png` for things like anti-aliasing issues. They may tend need some pixel-level touch-up with respect to anti-aliasing, or other adjustments.
+- In the `building blocks/for_icon_icns` subdirectory of `branding`, look over the rendering quality of `icon_16x16.png` and `icon_32x32.png` at 100% resolution. They may require customization. See [Design Tips](#design-tips).
   - If changes are made to `icon_16x16.png` or `icon_32x32.png` then adjust the upscaled version as well so that it matches. Do this by running the applicable of the following in a terminal from the `building blocks/for_icon_icns` subdirectory of `branding`:
     - `magick icon_16x16.png -resize 200%% icon_16x16@2x.png`  
     - `magick icon_32x32.png -resize 200%% icon_32x32@2x.png`
@@ -135,7 +141,7 @@ The following script generates icon.ico, placing it in the `globalBuildResources
    - Note that re-running these script over-writes files it just created (or any other files of the same names).
 
 Review the following after running this script:
-- In the `building_blocks/for_icon_ico` subdirectory of `branding`, look over `win_icon_16x16.png` and `win_icon_32x32.png` for things like anti-aliasing issues. Look at them at 100% resolutions to confirm they are as desired. Adjust or change each manually as needed.
+- In the `building_blocks/for_icon_ico` subdirectory of `branding`, look over the rendering quality of `win_icon_16x16.png` and `win_icon_32x32.png` at 100% resolution. They may require customization. See [Design Tips](#design-tips).
   - To recreate icon.ico from custom files, in a terminal from the `building blocks/for_icon_ico` subdirectory of `branding` run:
     - `magick -verbose win_icon_16x16.png win_icon_32x32.png win_icon_48x48.png win_icon_256x256.png icon.ico` 
   - If you make any changes and run the script in the line immediately above, then also replace the `icon.ico` in the `globalBuildResources` directory with your improved version.
@@ -179,7 +185,7 @@ Electron adjusts its display for differing DPI densities through a special namin
 | 4. | favicon<!-- -->@1.75x.png	| 28x28 |	175% |
 | 5. | favicon<!-- -->@2x.png | 32x32 | 200% |
 
-These icons appear in the taskbar, window title bar, and Alt+Tab/task switcher while the application is running on Windows and Linux.
+These icons appear in the taskbar, window title bar, and Alt+Tab/task switcher while the application is running on Windows and Linux. The larger versions come into play when a user scales their resolution to 125%, 150%, 175%, or 200%.
 <span id="alternate-icns">&nbsp;</span>
 ### icon.icns - Alternate approaches - MacOS Desktop <sub><sup>... [↩](#toc)</sup></sub>
 The support section of [the icns wikipedia article](https://en.wikipedia.org/wiki/Apple_Icon_Image_format#Support) cites several options for creating an icns file. However, avoid Icon Composer. It is unable to create high-resolution icns files used on retina displays.
