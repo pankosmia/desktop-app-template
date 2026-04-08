@@ -9,8 +9,8 @@ Logo implementation for Panskosmia-related projects
 1.2. [Conversion Tool](#conversion-tool) 
 2. [Source Images](#source) 
 3. [Generate via script from source images](#generate)  
-3.1. [favicon.ico / favicon*.png - corner/tab of Viewer/Browser](#generate-favicon)  
-3.2. [icon*.png's for icon.icns - MacOS desktop (Applications, Launchpad, and Dock icon)](#generate-icon-icns)  
+3.1. [favicon.ico (Browser) / favicon*.png (Windows/Linux Electronite)](#generate-favicon)  
+3.2. [icon*.png's for icon.icns - MacOS desktop (Applications, Launchpad prior to Tahoe, and Dock icon)](#generate-icon-icns)  
 3.3. [icon.ico and linux_icon.png - Windows desktop and start menu and Linux (Ubuntu) application menu](#generate-icon-ico-png)  
 4. [Additional Detail](#additional)  
 4.1. [Which image files are used in this repo's build process?](#used)  
@@ -71,10 +71,10 @@ Three source images are required. Place these images in the `source` subdirector
 ## Generate via script from source images <sub><sup>... [↩](#toc)</sup></sub>
 All but the final icns step can be generated from any system
 <span id="generate-favicon">&nbsp;</span>
-### favicon.ico (Browser) / favicon*.png (Electronite) <sub><sup>... [↩](#toc)</sup></sub>
+### favicon.ico (Browser) / favicon*.png (Windows/Linux Electronite) <sub><sup>... [↩](#toc)</sup></sub>
 The following script generates favicon.ico for the Web Browser tab icon and favicon*.png's for the Electronite Browser Window icon (Windows and Linux). It places favicon.ico and favicon*.png in the `globalBuildResources` directory, and it also puts the building blocks it used to build favicon.ico in the `building blocks\for_favicon_ico` subdirectory of `branding`.
 
-1. Create favicon_1024x1024.png and place it in the `source` subdirectory, one level down from `branding`.
+1. Create favicon.svg or favicon.png and place it in the `source` subdirectory, one level down from `branding`.
 2. In a terminal, cd to the new subdirectory.
 3. In the terminal enter the following from the `branding` directory:
    - Windows: `.\favicon.bat`
@@ -84,17 +84,17 @@ The following script generates favicon.ico for the Web Browser tab icon and favi
 Review the following after running this script:
 - In the `building blocks/for_favicon_ico` subdirectory of `branding`, look over the rendering quality of both images at 100% resolutions. They may require customization. See [Design Tips](#design-tips).
   - To recreate favicon.ico from custom files, in a terminal from the `building blocks/for_favicon_ico` subdirectory of `branding` run:
-    - `magick -verbose favicon_16x16.png favicon_32x32.png favicon.ico` Replace magick with convert on older linux installs.
+    - `magick -verbose favicon_16x16.png favicon_32x32.png favicon.ico` Replace "magick" with "convert" on older linux installs.
   - If you make any changes and run the script on the line immediately above, then also replace the `favicon.ico` in the `globalBuildResources` directory with your improved version.
 - If `favicon_16x16.png` was improved, then copy it over `globalBuildResources/favicon.png` (used by Electron).
 - If `favicon_32x32.png` was improved, then copy it over `globalBuildResources/favicon@2x.png` (used by Electron).
-- If any changes are made to one or both of the last two files mentioned above, then see [favicon*.png - Electronite Browser Window icon (Windows and Linux)](#electron) for the names a file-sizes of other globalBuildResources/favicon*.png to review for potential similar customizations at 20px, 24px and 28px.
+- If any changes are made to one or both of the last two files mentioned above, then see [favicon*.png - Electronite Browser Window icon (Windows and Linux)](#electron) for the names and file-sizes of other globalBuildResources/favicon*.png to review for potential similar customizations at 20px, 24px and 28px.
 
 <span id="generate-icon-icns">&nbsp;</span>
-### icon*.png's for icon.icns - MacOS Desktop (Applications, Launchpad, and Dock icon) <sub><sup>... [↩](#toc)</sup></sub>
+### icon*.png's for icon.icns - MacOS Desktop (Applications, Launchpad prior to Tahoe, and Dock icon) <sub><sup>... [↩](#toc)</sup></sub>
 The following script generates icon*.png's - for creating .icns for MacOS. It does not creates the actual icns file. However, it does provide png's for use in creating the icns file. It places these icon*.png building blocks in the `building blocks\for_icon_icns` subdirectory of `branding`.
 
-1. Create icon_1024x1024.png and place it in the `source` subdirectory, one level down from `branding`.
+1. Create mac_icon.svg or mac_icon.png and place it in the `source` subdirectory, one level down from `branding`.
 2. In the terminal enter the following from the `branding` directory:
    - Windows: `.\macicon.bat`
    - Linux/MacOS: `./macicon.sh`
@@ -102,10 +102,8 @@ The following script generates icon*.png's - for creating .icns for MacOS. It do
 
 Review the following after running this script:
 - In the `building blocks/for_icon_icns` subdirectory of `branding`, look over the rendering quality of `icon_16x16.png` and `icon_32x32.png` at 100% resolution. They may require customization. See [Design Tips](#design-tips).
-  - If changes are made to `icon_16x16.png` or `icon_32x32.png` then adjust the upscaled version as well so that it matches. Do this by running the applicable of the following in a terminal from the `building blocks/for_icon_icns` subdirectory of `branding`:
-    - `magick icon_16x16.png -resize 200%% icon_16x16@2x.png`  
-    - `magick icon_32x32.png -resize 200%% icon_32x32@2x.png`
-    -  Replace magick with convert on older linux installs.
+  - If changes are made to `icon_16x16.png` then adjust the corresponding icon_16x16@2x.png so its design matches `icon_16x16.png` at 32px square.
+  - If changes are made to `icon_32x32.png` then adjust the corresponding icon_32x32@2x.png so its design matches `icon_32x32.png` at 64px square.
 
 Create icon.icns with iconutil on MacOS as follows:
 
@@ -120,8 +118,6 @@ Create icon.icns with iconutil on MacOS as follows:
    - icon_256x256<!-- -->@2x.png<sup id="a5">[[5]](#f5)</sup>
    - icon_512x512.png
    - icon_512x512<!-- -->@2x.png<sup id="a6">[[6]](#f6)</sup>
-   - icon_1024x1024.png
-   - icon_1024x1024<!-- -->@2x.png<sup id="a7">[[7]](#f7)</sup>
 2. Rename the folder to: icon.iconset
 3. In a terminal enter: `cd Desktop`
 4. Then enter: `iconutil -c icns icon.iconset`
@@ -134,7 +130,7 @@ The Linux (Ubuntu) application menu is currently set to use a 256x256 pixel imag
 
 The following script generates icon.ico, placing it in the `globalBuildResources` directory, and puts the building blocks it used to build icon.ico in the `building blocks\for_icon_ico` subdirectory of `branding`.  It also places a copy of `building_blocks/for_icon_ico/win_icon_256x256.png` in `globalBuildResources/linux_icon.png`.
 
-1. Create win_icon_1024x1024.png and place it in the new subdirectory.
+1. Create win_icon.svg or win_icon.png and place it in the new subdirectory.
 2. In the terminal enter the following from the `branding` directory:
    - Windows: `.\winicon.bat`
    - Linux/MacOS: `./winicon.sh`
@@ -145,7 +141,7 @@ Review the following after running this script:
   - To recreate icon.ico from custom files, in a terminal from the `building blocks/for_icon_ico` subdirectory of `branding` run:
     - `magick -verbose win_icon_16x16.png win_icon_32x32.png win_icon_48x48.png win_icon_256x256.png icon.ico` 
   - If you make any changes and run the script in the line immediately above, then also replace the `icon.ico` in the `globalBuildResources` directory with your improved version.
-  - Replace magick with convert on older linux installs.
+  - Replace "magick" with "convert" on older linux installs.
 
 ---
 ---
@@ -198,9 +194,8 @@ ImageMagick does not yet support the icns file format at the time this is being 
 <span id="endnotes">&nbsp;</span>
 ## Endnotes <sub><sup>... [↩](#toc)</sup></sub>
 [<b id="f1">1</b>] ... ImageMagick tip: See `magick -help`, or `convert -help` on older linux installs. ... [↩](#a1)  
-[<b id="f2">2</b>] ... This is a scaled-up version, different from icon_32x32.png, e.g., `magick icon_16x16.png -resize 200% icon_16x16@2x.png`. Replace magick with convert on older linux installs. ... [↩](#a2)  
-[<b id="f3">3</b>] ... `magick icon_32x32.png -resize 200% icon_32x32@2x.png` ... [↩](#a3)  
-[<b id="f4">4</b>] ... This is a scaled-up version, different from icon_256x256.png, e.g., `magick icon_128x128.png -resize 200% icon_128x128@2x.png`. Replace magick with convert on older linux installs.  ... [↩](#a4)  
-[<b id="f5">5</b>] ... This is a scaled-up version, different from icon_512x512.png, e.g., `magick icon_256x256.png -resize 200% icon_256x256@2x.png`. Replace magick with convert on older linux installs. ... [↩](#a5)  
-[<b id="f6">6</b>] ... This is a scaled-up version, different from icon_1024x1024.png, e.g., `magick icon_512x512.png -resize 200% icon_512x512@2x.png`. Replace magick with convert on older linux installs. ... [↩](#a6)  
-[<b id="f7">7</b>] ... `magick icon_1024x1024.png -resize 200% icon_1024x1024@2x.png` Replace magick with convert on older linux installs. ... [↩](#a7)  
+[<b id="f2">2</b>] ... If an icon_16x16.png with a different design from icon_32x32.png is in use, then icon_16x16@2x.png should match the 16px square design at 32px square.  Otherwise icon_16x16@2x.png and icon_32x32.png will be the same with different filenames. Both are needed. ... [↩](#a2)  
+[<b id="f3">3</b>] ... If an icon_32x32.png with a different design from the source mac_icon.svg/mac_icon.png, then icon_32x32@2x.png should match the 32px square design at 64px square. ... [↩](#a3)  
+[<b id="f4">4</b>] ... If an icon_128x128.png with a different design from icon_256x256.png is in use, then icon_128x128@2x.png should match the 128px square design at 256px square.  Otherwise icon_128x128@2x.png and icon_256x256.png will be the same with different filenames. Both are needed.  ... [↩](#a4)  
+[<b id="f5">5</b>] ... If an icon_256x256.png with a different design from icon_512x512.png is in use, then icon_256x256@2x.png should match the 256px square design at 512px square.  Otherwise icon_256x256@2x.png and icon_512x512.png will be the same with different filenames. Both are needed. ... [↩](#a5)  
+[<b id="f6">6</b>] ... If an icon_512x512.png with a different design from the source mac_icon.svg/mac_icon.png, then icon_512x512@2x.png should match the 512px square design at 1024px square. ... [↩](#a6)  
