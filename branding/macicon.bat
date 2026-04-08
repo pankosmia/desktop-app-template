@@ -255,44 +255,38 @@ echo.
 REM Generate all icon sizes
 if /i "%SOURCE_FORMAT%"=="png" (
     magick %SOURCE_FILE% -filter Lanczos -resize 16x16 building_blocks\for_icon_icns\icon_16x16.png
-    magick building_blocks\for_icon_icns\icon_16x16.png -filter Lanczos -resize 200%% building_blocks\for_icon_icns\icon_16x16@2x.png
+    magick %SOURCE_FILE% -filter Lanczos -resize 32x32 building_blocks\for_icon_icns\icon_16x16@2x.png
     magick %SOURCE_FILE% -filter Lanczos -resize 32x32 building_blocks\for_icon_icns\icon_32x32.png
-    magick building_blocks\for_icon_icns\icon_32x32.png -filter Lanczos -resize 200%% building_blocks\for_icon_icns\icon_32x32@2x.png
+    magick %SOURCE_FILE% -filter Lanczos -resize 64x64 building_blocks\for_icon_icns\icon_32x32@2x.png
     magick %SOURCE_FILE% -filter Lanczos -resize 128x128 building_blocks\for_icon_icns\icon_128x128.png
-    magick building_blocks\for_icon_icns\icon_128x128.png -filter Lanczos -resize 200%% building_blocks\for_icon_icns\icon_128x128@2x.png
+    magick %SOURCE_FILE% -filter Lanczos -resize 256x256 building_blocks\for_icon_icns\icon_128x128@2x.png
     magick %SOURCE_FILE% -filter Lanczos -resize 256x256 building_blocks\for_icon_icns\icon_256x256.png
-    magick building_blocks\for_icon_icns\icon_256x256.png -filter Lanczos -resize 200%% building_blocks\for_icon_icns\icon_256x256@2x.png
+    magick %SOURCE_FILE% -filter Lanczos -resize 512x512 building_blocks\for_icon_icns\icon_256x256@2x.png
     magick %SOURCE_FILE% -filter Lanczos -resize 512x512 building_blocks\for_icon_icns\icon_512x512.png
-    magick building_blocks\for_icon_icns\icon_512x512.png -filter Lanczos -resize 200%% building_blocks\for_icon_icns\icon_512x512@2x.png
-    copy %SOURCE_FILE% building_blocks\for_icon_icns\icon_1024x1024.png >nul
-    magick building_blocks\for_icon_icns\icon_1024x1024.png -filter Lanczos -resize 200%% building_blocks\for_icon_icns\icon_1024x1024@2x.png
+    magick %SOURCE_FILE% -filter Lanczos -resize 1024x1024 building_blocks\for_icon_icns\icon_512x512@2x.png
 ) else (
     if /i "%CONVERSION_TOOL%"=="magick" (
         magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 16x16 building_blocks\for_icon_icns\icon_16x16.png
-        magick building_blocks\for_icon_icns\icon_16x16.png -filter Lanczos -resize 200%% building_blocks\for_icon_icns\icon_16x16@2x.png
-        magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 32x32 building_blocks\for_icon_icns\icon_32x32.png
-        magick building_blocks\for_icon_icns\icon_32x32.png -filter Lanczos -resize 200%% building_blocks\for_icon_icns\icon_32x32@2x.png
+        magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 32x32 building_blocks\for_icon_icns\icon_16x16@2x.png
+        copy building_blocks\for_icon_icns\icon_16x16@2x.png building_blocks\for_icon_icns\icon_32x32.png >nul
+        magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 64x64 building_blocks\for_icon_icns\icon_32x32@2x.png
         magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 128x128 building_blocks\for_icon_icns\icon_128x128.png
-        magick building_blocks\for_icon_icns\icon_128x128.png -filter Lanczos -resize 200%% building_blocks\for_icon_icns\icon_128x128@2x.png
-        magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 256x256 building_blocks\for_icon_icns\icon_256x256.png
-        magick building_blocks\for_icon_icns\icon_256x256.png -filter Lanczos -resize 200%% building_blocks\for_icon_icns\icon_256x256@2x.png
-        magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 512x512 building_blocks\for_icon_icns\icon_512x512.png
-        magick building_blocks\for_icon_icns\icon_512x512.png -filter Lanczos -resize 200%% building_blocks\for_icon_icns\icon_512x512@2x.png
-        magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 1024x1024 building_blocks\for_icon_icns\icon_1024x1024.png
-        magick building_blocks\for_icon_icns\icon_1024x1024.png -filter Lanczos -resize 200%% building_blocks\for_icon_icns\icon_1024x1024@2x.png
+        magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 256x256 building_blocks\for_icon_icns\icon_128x128@2x.png
+        copy building_blocks\for_icon_icns\icon_128x128@2x.png building_blocks\for_icon_icns\icon_256x256.png >nul
+        magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 512x512 building_blocks\for_icon_icns\icon_256x256@2x.png
+        copy building_blocks\for_icon_icns\icon_256x256@2x.png building_blocks\for_icon_icns\icon_512x512.png >nul
+        magick -background none MSVG:%SOURCE_FILE% -filter Lanczos -resize 1024x1024 building_blocks\for_icon_icns\icon_512x512@2x.png
     ) else if /i "%CONVERSION_TOOL%"=="inkscape" (
         "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=building_blocks\for_icon_icns\icon_16x16.png --export-width=16 --export-height=16
         "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=building_blocks\for_icon_icns\icon_16x16@2x.png --export-width=32 --export-height=32
-        "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=building_blocks\for_icon_icns\icon_32x32.png --export-width=32 --export-height=32
+        copy building_blocks\for_icon_icns\icon_16x16@2x.png building_blocks\for_icon_icns\icon_32x32.png >nul
         "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=building_blocks\for_icon_icns\icon_32x32@2x.png --export-width=64 --export-height=64
         "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=building_blocks\for_icon_icns\icon_128x128.png --export-width=128 --export-height=128
         "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=building_blocks\for_icon_icns\icon_128x128@2x.png --export-width=256 --export-height=256
-        "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=building_blocks\for_icon_icns\icon_256x256.png --export-width=256 --export-height=256
+        copy building_blocks\for_icon_icns\icon_128x128@2x.png building_blocks\for_icon_icns\icon_256x256.png >nul
         "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=building_blocks\for_icon_icns\icon_256x256@2x.png --export-width=512 --export-height=512
-        "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=building_blocks\for_icon_icns\icon_512x512.png --export-width=512 --export-height=512
+        copy building_blocks\for_icon_icns\icon_256x256@2x.png building_blocks\for_icon_icns\icon_512x512.png >nul
         "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=building_blocks\for_icon_icns\icon_512x512@2x.png --export-width=1024 --export-height=1024
-        "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=building_blocks\for_icon_icns\icon_1024x1024.png --export-width=1024 --export-height=1024
-        "!INKSCAPE_CMD!" %SOURCE_FILE% --export-filename=building_blocks\for_icon_icns\icon_1024x1024@2x.png --export-width=2048 --export-height=2048
     )
 )
 
@@ -303,8 +297,6 @@ echo ***************************************************************************
 echo * Review rendering quality of smaller size icons.                                          *
 echo *      - See `for_icon_icns` directory                                                     *
 echo * Consider if smaller sizes need a different variation.                                    *
-echo *                                                                                          *
-echo * Expect icon*@2x.png icons to look different. They are scaled-up for use in icns creation.*
 echo *                                                                                          *
 echo * NOTE: Re-running this script over-writes the same files it creates^!                      *
 echo *                                                                                          *
@@ -320,8 +312,6 @@ echo *     icon_256x256.png                                                     
 echo *     icon_256x256@2x.png                                                                  *
 echo *     icon_512x512.png                                                                     *
 echo *     icon_512x512@2x.png                                                                  *
-echo *     icon_1024x1024.png                                                                   *
-echo *     icon_1024x1024@2x.png                                                                *
 echo *  2. Rename the folder to: icon.iconset                                                   *
 echo *  3. In a terminal enter: `cd Desktop`                                                    *
 echo *  4. Then enter: `iconutil -c icns icon.iconset`                                          *

@@ -141,12 +141,6 @@ git checkout branding\building_blocks\for_favicon_ico\favicon_16x16.png
 echo branding\building_blocks\for_favicon_ico\favicon_32x32.png:
 git reset branding\building_blocks\for_favicon_ico\favicon_32x32.png
 git checkout branding\building_blocks\for_favicon_ico\favicon_32x32.png
-echo branding\building_blocks\for_icon_icns\icon_1024x1024.png:
-git reset branding\building_blocks\for_icon_icns\icon_1024x1024.png
-git checkout branding\building_blocks\for_icon_icns\icon_1024x1024.png
-echo branding\building_blocks\for_icon_icns\icon_1024x1024@2x.png:
-git reset branding\building_blocks\for_icon_icns\icon_1024x1024@2x.png
-git checkout branding\building_blocks\for_icon_icns\icon_1024x1024@2x.png
 echo branding\building_blocks\for_icon_icns\icon_128x128.png:
 git reset branding\building_blocks\for_icon_icns\icon_128x128.png
 git checkout branding\building_blocks\for_icon_icns\icon_128x128.png
