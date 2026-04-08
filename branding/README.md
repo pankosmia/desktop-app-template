@@ -35,10 +35,10 @@ Note that it is also possible to make a specific small variant for improved clar
 ### Conversion Tool <sub><sup>... [↩](#toc)</sup></sub>
 Conversion scripts provided recognize what type of source files are provided and which tool is installed. If there is only one type of source and one conversion tool, then they just run. Otherwise, they present available options for quick selection.
 
-| Source ≥ 1024px square | Conversion Tool | ICO Packager |
+| Square Source (1:1 aspect ratio) | Conversion Tool | ICO Packager |
 |---|---|---|
 | Vector SVG or EPS, complex design | Inkscape | ImageMagick |
-| PNG | ImageMagick | ImageMagick |
+| PNG ≥ 1024px square | ImageMagick | ImageMagick |
 | Vector SVG, "simple" design | Inkscape or ImageMagick | ImageMagick |
 
 #### Inkscape
@@ -61,7 +61,7 @@ If converting a vector svg file that contains CSS properties not support, then I
 
 <span id="source">&nbsp;</span>
 ## Source Images <sub><sup>... [↩](#toc)</sup></sub>
-Three source images are required. Place these images in the `source` subdirectory of `branding`. It is important that they be precisely square and at least 1024px x 1024px or higher:
+Three source images are required. Place these images in the `source` subdirectory of `branding`. It is important that they have a 1:1 aspect ratio (width:height), as in precisely square. Any PNG source must be at least 1024px x 1024px or larger:
 - favicon.png
 - mac_icon.png
   - Transparent margins, with a solid inner square background with rounded corners.
