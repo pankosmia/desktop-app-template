@@ -1,22 +1,22 @@
 {
   "palette": {
     "primary": {
-      "main": "#008A37",
-      "light":"#33A15F",
-      "dark":"#006026",
-      "contrastText":"#FFF"
+      "main": "#21A0A0",
+      "light":"#4DB3B3",
+      "dark":"#177070",
+      "contrastText":"#000"
     },
     "secondary": {
-	    "main": "#018376",
-      "light":"#339B91",
-      "dark":"#005B52",
+	    "main": "#2161A0",
+      "light":"#4D80B3",
+      "dark":"#174370",
       "contrastText":"#FFF"
     },
       "appbar-chip-inactive":{
-      "main":"#339B91",
-      "light":"#5BAFA7",
-      "dark":"#236C65",
-      "contrastText":"#FFF"
+      "main":"#4D80B3",
+      "light":"#7099C2",
+      "dark":"#35597D",
+      "contrastText":"#000"
     }
   }
 }
