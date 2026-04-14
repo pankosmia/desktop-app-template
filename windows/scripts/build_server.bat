@@ -167,12 +167,21 @@ echo "Building local %serverType% server at /%replace% ..."
 cd ..\..\local_server
 echo "%buildCommand%"
 %buildCommand%
+set "buildResult=%errorlevel%"
 cd ..\windows\scripts
 
 REM Restore Cargo.toml if it was rewritten
 if "%didRewrite%"=="1" (
   copy "..\..\local_server\Cargo.toml.bak" "..\..\local_server\Cargo.toml" >nul
   del "..\..\local_server\Cargo.toml.bak"
+)
+
+REM Exit if the build failed
+if not "%buildResult%"=="0" (
+  echo.
+  echo      Build failed with exit code %buildResult%.
+  echo.
+  exit /b %buildResult%
 )
 
 REM Clean the build environment
