@@ -4,8 +4,8 @@ set -e
 set -u # Zsh will want 1-based arrays, not 0-based.
 
 doSync() {
-  git fetch upstream
-  git merge --no-log --no-ff --no-commit upstream/main || true
+  git fetch upstream main
+  git merge --no-log --no-ff --no-commit upstream/main > /dev/null || true
 
   # --- Protected files: these should not be overwritten by the upstream merge ---
   PROTECTED_FILES=(
