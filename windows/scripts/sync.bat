@@ -100,6 +100,7 @@ if "%upstreamtest%"=="different_if_not_changed" (
 )
 
 :sync
+del "%TEMP%\sync_excluded.txt" >nul 2>&1
 git fetch upstream
 git merge --no-log --no-ff --no-commit upstream/main
 
@@ -163,7 +164,7 @@ FOR /F "tokens=* USEBACKQ" %%S IN (`git diff --name-only --cached`) DO (
     git reset "%%S" >nul 2>&1
     git checkout "%%S" >nul 2>&1
     SET /a excluded_count=!excluded_count!+1
-    SET "excluded_list=!excluded_list!      - !staged_file!!LF!"
+    echo        - !staged_file!>> "%TEMP%\sync_excluded.txt"
   )
 )
 
@@ -174,16 +175,8 @@ IF !excluded_count! EQU 0 (
 ) ELSE (
   echo      !excluded_count! protected file(s) were excluded from this sync:
   echo.
-  REM Print each excluded file
-  FOR /F "tokens=* USEBACKQ" %%S IN (`git diff --name-only`) DO (
-    SET "unstaged=%%S"
-    SET "unstaged=!unstaged:/=\!"
-    FOR %%P IN (%PROTECTED_FILES%) DO (
-      IF /I "!unstaged!"=="%%P" (
-        echo        - !unstaged!
-      )
-    )
-  )
+  type "%TEMP%\sync_excluded.txt"
+  del "%TEMP%\sync_excluded.txt" >nul 2>&1
   echo.
   echo      These files were reset to preserve this repo's versions.
 )
