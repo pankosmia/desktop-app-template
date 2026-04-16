@@ -64,7 +64,7 @@ doSync() {
     for protected in "${PROTECTED_FILES[@]}"; do
       if [[ "$staged_file" == "$protected" ]]; then
         git reset "$staged_file" > /dev/null 2>&1
-        git checkout "$staged_file" > /dev/null 2>&1
+        git checkout "$staged_file" > /dev/null 2>&1 || true
         excluded_count=$((excluded_count + 1))
         excluded_list+=("$staged_file")
         break
