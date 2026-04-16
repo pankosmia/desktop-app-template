@@ -102,131 +102,94 @@ if "%upstreamtest%"=="different_if_not_changed" (
 :sync
 git fetch upstream
 git merge --no-log --no-ff --no-commit upstream/main
-echo package-lock.json:
-git reset package-lock.json
-git checkout package-lock.json
-echo globalBuildResources\favicon.ico:
-git reset globalBuildResources\favicon.ico
-git checkout globalBuildResources\favicon.ico
-echo globalBuildResources\icon.icns:
-git reset globalBuildResources\icon.icns
-git checkout globalBuildResources\icon.icns
-echo globalBuildResources\icon.ico:
-git reset globalBuildResources\icon.ico
-git checkout globalBuildResources\icon.ico
-echo globalBuildResources\linux_icon.png:
-git reset globalBuildResources\linux_icon.png
-git checkout globalBuildResources\linux_icon.png
-echo globalBuildResources\favicon.png:
-git reset globalBuildResources\favicon.png
-git checkout globalBuildResources\favicon.png
-echo globalBuildResources\favicon@1.25x.png:
-git reset globalBuildResources\favicon@1.25x.png
-git checkout globalBuildResources\favicon@1.25x.png
-echo globalBuildResources\favicon@1.5x.png:
-git reset globalBuildResources\favicon@1.5x.png
-git checkout globalBuildResources\favicon@1.5x.png
-echo globalBuildResources\favicon@1.75x.png:
-git reset globalBuildResources\favicon@1.75x.png
-git checkout globalBuildResources\favicon@1.75x.png
-echo globalBuildResources\favicon@2x.png:
-git reset globalBuildResources\favicon@2x.png
-git checkout globalBuildResources\favicon@2x.png
-echo globalBuildResources\theme.json:
-git reset globalBuildResources\theme.json
-git checkout globalBuildResources\theme.json
-echo branding\building_blocks\for_favicon_ico\favicon_16x16.png:
-git reset branding\building_blocks\for_favicon_ico\favicon_16x16.png
-git checkout branding\building_blocks\for_favicon_ico\favicon_16x16.png
-echo branding\building_blocks\for_favicon_ico\favicon_32x32.png:
-git reset branding\building_blocks\for_favicon_ico\favicon_32x32.png
-git checkout branding\building_blocks\for_favicon_ico\favicon_32x32.png
-echo branding\building_blocks\for_icon_icns\icon_128x128.png:
-git reset branding\building_blocks\for_icon_icns\icon_128x128.png
-git checkout branding\building_blocks\for_icon_icns\icon_128x128.png
-echo branding\building_blocks\for_icon_icns\icon_128x128@2x.png:
-git reset branding\building_blocks\for_icon_icns\icon_128x128@2x.png
-git checkout branding\building_blocks\for_icon_icns\icon_128x128@2x.png
-echo branding\building_blocks\for_icon_icns\icon_16x16.png:
-git reset branding\building_blocks\for_icon_icns\icon_16x16.png
-git checkout branding\building_blocks\for_icon_icns\icon_16x16.png
-echo branding\building_blocks\for_icon_icns\icon_16x16@2x.png:
-git reset branding\building_blocks\for_icon_icns\icon_16x16@2x.png
-git checkout branding\building_blocks\for_icon_icns\icon_16x16@2x.png
-echo branding\building_blocks\for_icon_icns\icon_256x256.png:
-git reset branding\building_blocks\for_icon_icns\icon_256x256.png
-git checkout branding\building_blocks\for_icon_icns\icon_256x256.png
-echo branding\building_blocks\for_icon_icns\icon_256x256@2x.png:
-git reset branding\building_blocks\for_icon_icns\icon_256x256@2x.png
-git checkout branding\building_blocks\for_icon_icns\icon_256x256@2x.png
-echo branding\building_blocks\for_icon_icns\icon_32x32.png:
-git reset branding\building_blocks\for_icon_icns\icon_32x32.png
-git checkout branding\building_blocks\for_icon_icns\icon_32x32.png
-echo branding\building_blocks\for_icon_icns\icon_32x32@2x.png:
-git reset branding\building_blocks\for_icon_icns\icon_32x32@2x.png
-git checkout branding\building_blocks\for_icon_icns\icon_32x32@2x.png
-echo branding\building_blocks\for_icon_icns\icon_512x512.png:
-git reset branding\building_blocks\for_icon_icns\icon_512x512.png
-git checkout branding\building_blocks\for_icon_icns\icon_512x512.png
-echo branding\building_blocks\for_icon_icns\icon_512x512@2x.png:
-git reset branding\building_blocks\for_icon_icns\icon_512x512@2x.png
-git checkout branding\building_blocks\for_icon_icns\icon_512x512@2x.png
-echo branding\building_blocks\for_icon_ico\win_icon_16x16.png:
-git reset branding\building_blocks\for_icon_ico\win_icon_16x16.png
-git checkout branding\building_blocks\for_icon_ico\win_icon_16x16.png
-echo branding\building_blocks\for_icon_ico\win_icon_256x256.png:
-git reset branding\building_blocks\for_icon_ico\win_icon_256x256.png
-git checkout branding\building_blocks\for_icon_ico\win_icon_256x256.png
-echo branding\building_blocks\for_icon_ico\win_icon_32x32.png:
-git reset branding\building_blocks\for_icon_ico\win_icon_32x32.png
-git checkout branding\building_blocks\for_icon_ico\win_icon_32x32.png
-echo branding\building_blocks\for_icon_ico\win_icon_48x48.png:
-git reset branding\building_blocks\for_icon_ico\win_icon_48x48.png
-git checkout branding\building_blocks\for_icon_ico\win_icon_48x48.png
-echo branding\source\favicon.png:
-git reset branding\source\favicon.png
-git checkout branding\source\favicon.png
-echo branding\source\mac_icon.png:
-git reset branding\source\mac_icon.png
-git checkout branding\source\mac_icon.png
-echo branding\source\win_icon.png:
-git reset branding\source\win_icon.png
-git checkout branding\source\win_icon.png
-echo branding\source\favicon.svg:
-git reset branding\source\favicon.svg
-git checkout branding\source\favicon.svg
-echo branding\source\mac_icon.svg:
-git reset branding\source\mac_icon.svg
-git checkout branding\source\mac_icon.svg
-echo branding\source\win_icon.svg:
-git reset branding\source\win_icon.svg
-git checkout branding\source\win_icon.svg
-echo branding\source\artwork\favicon_transparent_square_blue-turqoise.psd:
-git reset branding\source\artwork\favicon_transparent_square_blue-turqoise.psd
-git checkout branding\source\artwork\favicon_transparent_square_blue-turqoise.psd
-echo branding\source\artwork\logo_512.png:
-git reset branding\source\artwork\logo_512.png
-git checkout branding\source\artwork\logo_512.png
-echo branding\source\artwork\logo_favicon_inkscape.svg:
-git reset branding\source\artwork\logo_favicon_inkscape.svg
-git checkout branding\source\artwork\logo_favicon_inkscape.svg
-echo branding\source\artwork\logo_inkscape.svg:
-git reset branding\source\artwork\logo_inkscape.svg
-git checkout branding\source\artwork\logo_inkscape.svg
-echo branding\source\artwork\logo_macos.psd:
-git reset branding\source\artwork\logo_macos.psd
-git checkout branding\source\artwork\logo_macos.psd
-echo branding\source\artwork\logo_windows.psd:
-git reset branding\source\artwork\logo_windows.psd
-git checkout branding\source\artwork\logo_windows.psd
+
+REM --- Build the list of files we want to protect from the merge ---
+SET "PROTECTED_FILES=package-lock.json"
+SET "PROTECTED_FILES=%PROTECTED_FILES% globalBuildResources\favicon.ico"
+SET "PROTECTED_FILES=%PROTECTED_FILES% globalBuildResources\icon.icns"
+SET "PROTECTED_FILES=%PROTECTED_FILES% globalBuildResources\icon.ico"
+SET "PROTECTED_FILES=%PROTECTED_FILES% globalBuildResources\linux_icon.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% globalBuildResources\favicon.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% globalBuildResources\favicon@1.25x.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% globalBuildResources\favicon@1.5x.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% globalBuildResources\favicon@1.75x.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% globalBuildResources\favicon@2x.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% globalBuildResources\theme.json"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_favicon_ico\favicon_16x16.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_favicon_ico\favicon_32x32.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_icns\icon_128x128.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_icns\icon_128x128@2x.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_icns\icon_16x16.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_icns\icon_16x16@2x.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_icns\icon_256x256.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_icns\icon_256x256@2x.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_icns\icon_32x32.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_icns\icon_32x32@2x.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_icns\icon_512x512.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_icns\icon_512x512@2x.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_ico\win_icon_16x16.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_ico\win_icon_256x256.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_ico\win_icon_32x32.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\building_blocks\for_icon_ico\win_icon_48x48.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\source\favicon.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\source\mac_icon.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\source\win_icon.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\source\favicon.svg"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\source\mac_icon.svg"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\source\win_icon.svg"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\source\artwork\favicon_transparent_square_blue-turqoise.psd"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\source\artwork\logo_512.png"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\source\artwork\logo_favicon_inkscape.svg"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\source\artwork\logo_inkscape.svg"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\source\artwork\logo_macos.psd"
+SET "PROTECTED_FILES=%PROTECTED_FILES% branding\source\artwork\logo_windows.psd"
+
+REM --- Get the list of files actually staged by the merge ---
+SET "excluded_count=0"
+SET "excluded_list="
+
+REM --- For each staged file, check if it's in our protected list ---
+FOR /F "tokens=* USEBACKQ" %%S IN (`git diff --name-only --cached`) DO (
+  REM git outputs forward slashes; convert to backslashes for comparison
+  SET "staged_file=%%S"
+  SET "staged_file=!staged_file:/=\!"
+  SET "was_protected=0"
+  FOR %%P IN (%PROTECTED_FILES%) DO (
+    IF /I "!staged_file!"=="%%P" (
+      SET "was_protected=1"
+    )
+  )
+  IF "!was_protected!"=="1" (
+    git reset "%%S" >nul 2>&1
+    git checkout "%%S" >nul 2>&1
+    SET /a excluded_count=!excluded_count!+1
+    SET "excluded_list=!excluded_list!      - !staged_file!!LF!"
+  )
+)
+
+REM --- Print a clean summary ---
+echo.
+IF !excluded_count! EQU 0 (
+  echo      No protected files were affected by this sync.
+) ELSE (
+  echo      !excluded_count! protected file(s) were excluded from this sync:
+  echo.
+  REM Print each excluded file
+  FOR /F "tokens=* USEBACKQ" %%S IN (`git diff --name-only`) DO (
+    SET "unstaged=%%S"
+    SET "unstaged=!unstaged:/=\!"
+    FOR %%P IN (%PROTECTED_FILES%) DO (
+      IF /I "!unstaged!"=="%%P" (
+        echo        - !unstaged!
+      )
+    )
+  )
+  echo.
+  echo      These files were reset to preserve this repo's versions.
+)
 echo.
 echo      *******************************************************************************
-echo      * Files expected to differ have been excluded from the sync.                  *
 echo      * Now review staged changes, and commit if there are no conflicts, then push. *
 echo      *******************************************************************************
 echo.
 exit /b
-
-:end
-cd windows\scripts\
-ENDLOCAL
