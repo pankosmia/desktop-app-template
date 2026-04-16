@@ -5,7 +5,7 @@ set -u # Zsh will want 1-based arrays, not 0-based.
 
 doSync() {
   git fetch upstream main
-  git merge --no-log --no-ff --no-commit upstream/main > /dev/null || true
+  git merge --no-log --no-ff --no-commit upstream/main > /dev/null 2>&1 || true
 
   # --- Protected files: these should not be overwritten by the upstream merge ---
   PROTECTED_FILES=(
