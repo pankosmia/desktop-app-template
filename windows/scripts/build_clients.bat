@@ -11,8 +11,8 @@ REM     The second non-flag argument is the fallback tier: dev, qa, or main (def
 REM Examples:
 REM   .\build_clients.bat                        # defaults to "main"
 REM   .\build_clients.bat dev                    # tries dev → qa → main
-REM   .\build_clients.bat my-feature dev         # tries my-feature → dev → qa → main
-REM   .\build_clients.bat my-feature qa -d       # tries my-feature → qa → main, deletes past logs
+REM   .\build_clients.bat my-branch dev         # tries my-branch → dev → qa → main
+REM   .\build_clients.bat my-branch qa -d       # tries my-branch → qa → main, deletes past logs
 REM   .\build_clients.bat -f -d dev              # fresh clones (skips pulling), delete logs, branch=dev → qa → main
 
 set "deleteLogs="
@@ -295,8 +295,8 @@ set "SP_TYPE=%~1"
 set "SP_REPO=%~2"
 
 if defined FRESH_CLONE (
-  call :log ^> Skipping pull -- no pull - fresh clone -f
-  call :markskip "%SP_TYPE%" "%SP_REPO%" "!CHECKED_OUT_BRANCH!" "no pull - fresh clone -f"
+  call :log ^> Skipping pull -- -f 'fresh' clone, no pull
+  call :markskip "%SP_TYPE%" "%SP_REPO%" "!CHECKED_OUT_BRANCH!" "-f 'fresh' clone, no pull"
   goto :safe_pull_done
 )
 
