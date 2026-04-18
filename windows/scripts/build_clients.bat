@@ -1,5 +1,4 @@
 @echo off
-set "SCRIPT_DIR=%~dp0"
 REM Run from pankosmia\[this-repo's-name]\windows\scripts directory in PowerShell or cmd by:  .\build_clients.bat
 
 REM Usage:
@@ -12,10 +11,11 @@ REM     The second non-flag argument is the fallback tier: dev, qa, or main (def
 REM Examples:
 REM   .\build_clients.bat                        # defaults to "main"
 REM   .\build_clients.bat dev                    # tries dev → qa → main
-REM   .\build_clients.bat my-branch dev         # tries my-branch → dev → qa → main
-REM   .\build_clients.bat my-branch qa -d       # tries my-branch → qa → main, deletes past logs
+REM   .\build_clients.bat my-branch dev          # tries my-branch → dev → qa → main
+REM   .\build_clients.bat my-branch qa -d        # tries my-branch → qa → main, deletes past logs
 REM   .\build_clients.bat -f -d dev              # fresh clones (skips pulling), delete logs, branch=dev → qa → main
 
+set "SCRIPT_DIR=%~dp0"
 set "deleteLogs="
 set "BRANCH="
 set "FALLBACK_TIER="
