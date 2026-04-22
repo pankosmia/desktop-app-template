@@ -9,6 +9,12 @@ OutputBaseFilename={#GetEnv('FILE_APP_NAME')}-windows-setup-standalone-{#GetEnv(
 Compression=lzma
 SolidCompression=yes
 
+[Tasks]
+Name: "desktopicon"; Description: "Create a {#GetEnv('APP_NAME')} &desktop icon"; GroupDescription: "{#GetEnv('APP_NAME')} icons:"
+
+[InstallDelete]
+Type: filesandordirs; Name: "~\pankosmia\{#GetEnv('APP_SHORT_NAME')}"
+
 [Files]
 Source: "..\temp\project\payload\app\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 Source: "..\..\globalBuildResources\{#AppIcoName}"; DestDir: "{app}"
@@ -21,6 +27,3 @@ Name: "{group}\Uninstall {#GetEnv('APP_NAME')} (Delete App Files)"; Filename: "{
 
 [Run]
 Filename: "{app}\custom_uninstaller.bat"; Parameters: "{app}"
-
-[Tasks]
-Name: "desktopicon"; Description: "Create a {#GetEnv('APP_NAME')} &desktop icon"; GroupDescription: "{#GetEnv('APP_NAME')} icons:"

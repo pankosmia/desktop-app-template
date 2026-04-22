@@ -64,6 +64,13 @@ try {
         echo "FILE_APP_NAME=$env:FILE_APP_NAME"
     }
 
+    # Check if APP_SHORT_NAME environment variable is set
+    if (-not $env:APP_SHORT_NAME) {
+        Write-Host "Error: APP_SHORT_NAME environment variable is not set."
+        Write-Host "Set it in app_config.env"
+        exit 1
+    }
+
     Write-Host "Version is $env:APP_VERSION"
 
     # Needed for local bundles. Not required in GHA but does no harm.
