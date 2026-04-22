@@ -1,9 +1,9 @@
 @echo off
 REM Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell or command by:  .\build_server.bat
 
-REM Do not ask if the server is off if the -s positional argument is provided
-REM Debug server if the -d positional argument is provided
-REM Specify environment as first non-flag positional argument: dev, qa, or main (default: main)
+REM Do not ask if the server is off if the -s argument is provided
+REM Specify environment as an optional non-flag argument: dev, qa, or main (default: main)
+REM Specify log level as as an optional non-flag argument: critical, normal, debug, or off (default: normal)
 set "envArg="
 set "logArg="
 :loop
