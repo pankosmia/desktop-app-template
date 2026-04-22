@@ -39,37 +39,25 @@ if /I not "%logArg%"=="critical" if /I not "%logArg%"=="debug" if /I not "%logAr
   set "logArg=normal"
 )
 
-REM For critical, debug, or off, back up Rocket.toml and rewrite the log level
-REM For normal, Rocket.toml already has the correct version — no replacement needed
+REM Rewrite the log level in Rocket.toml (read at run time, so the change is left in place)
 set "rocketFile=..\..\Rocket.toml"
-set "rocketBackup=..\..\Rocket.toml.bak"
-set "didRewriteRocket=0"
 
-if /I not "%logArg%"=="normal" (
-  setlocal enabledelayedexpansion
-  echo.
-  echo   Using log level "%logArg%"
+setlocal enabledelayedexpansion
+echo.
+echo   Using log level "%logArg%"
 
-  copy "%rocketFile%" "%rocketBackup%" >nul
-
-  set "rocketTmp=..\..\Rocket.toml.tmp"
-  (for /f "usebackq tokens=*" %%a in ("!rocketBackup!") do (
-    set "line=%%a"
-    echo !line! | findstr /C:"log_level" >nul
-    if !errorlevel! equ 0 (
-      echo log_level = "%logArg%"
-    ) else (
-      echo(!line!
-    )
-  )) > "!rocketTmp!"
-  move /y "!rocketTmp!" "!rocketFile!" >nul
-
-  endlocal
-  set "didRewriteRocket=1"
-) else (
-  echo.
-  echo   Using log level version from Rocket.toml ^(normal^)
-)
+set "rocketTmp=..\..\Rocket.toml.tmp"
+(for /f "usebackq tokens=*" %%a in ("!rocketFile!") do (
+  set "line=%%a"
+  echo !line! | findstr /C:"log_level" >nul
+  if !errorlevel! equ 0 (
+    echo log_level = "%logArg%"
+  ) else (
+    echo(!line!
+  )
+)) > "!rocketTmp!"
+move /y "!rocketTmp!" "!rocketFile!" >nul
+endlocal
 
 REM Normalize: anything other than dev or qa is treated as main
 if not defined envArg (
@@ -148,12 +136,6 @@ echo.
 echo      If the server is on, turn it off by exiting the terminal window or app where it is running, then re-run this script.
 echo.
 
-REM Restore Rocket.toml if it was rewritten
-if "%didRewriteRocket%"=="1" (
-  copy "..\..\Rocket.toml.bak" "..\..\Rocket.toml" >nul
-  del "..\..\Rocket.toml.bak"
-)
-
 REM Restore Cargo.toml if it was rewritten
 if "%didRewriteCargo%"=="1" (
   copy "..\..\local_server\Cargo.toml.bak" "..\..\local_server\Cargo.toml" >nul
@@ -183,12 +165,6 @@ echo "cargo build --release"
 cargo build --release
 set "buildResult=%errorlevel%"
 cd ..\windows\scripts
-
-REM Restore Rocket.toml if it was rewritten
-if "%didRewriteRocket%"=="1" (
-  copy "..\..\Rocket.toml.bak" "..\..\Rocket.toml" >nul
-  del "..\..\Rocket.toml.bak"
-)
 
 REM Restore Cargo.toml if it was rewritten
 if "%didRewriteCargo%"=="1" (
