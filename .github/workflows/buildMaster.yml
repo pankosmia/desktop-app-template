@@ -37,7 +37,7 @@ on:
           - critical
           - normal
           - debug
-          - off
+          - 'off'
         default: critical
 
 # set run name from input so the run appears with that name (no API call needed)
