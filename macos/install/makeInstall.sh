@@ -6,18 +6,19 @@ source ../../app_config.env
 # requires shc - do `brew install shc`
 
 # Confirm both APP_VERSION and APP_NAME environment variables are set
+EMSG="environment variable is not set in makeInstall.sh."
 if [ \( -z "$APP_VERSION" \) -o \( -z "$APP_NAME" \) -o \( -z "$APP_SHORT_NAME" \) ]; then
 
     if [ -z "$APP_VERSION" ]; then
-      echo "Error: APP_VERSION environment variable is not set."
+      echo "Error: APP_VERSION $EMSG"
     fi
 
     if [ -z "$APP_NAME" ]; then
-      echo "Error: APP_NAME environment variable is not set."
+      echo "Error: APP_NAME $EMSG"
     fi
 
     if [ -z "$APP_SHORT_NAME" ]; then
-      echo "Error: APP_SHORT_NAME environment variable is not set."
+      echo "Error: APP_SHORT_NAME $EMSG"
     fi
 
     exit 1
