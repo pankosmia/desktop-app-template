@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e
+
+CONFIG_DIR="~/pankosmia/{APP_SHORT_NAME}"
+
+if [ -d "$CONFIG_DIR" ]; then
+    echo "Removing prior config directory: $CONFIG_DIR"
+    rm -rf "$CONFIG_DIR"
+fi

@@ -44,6 +44,12 @@ if [ -z "$APP_VERSION" ]; then
     exit 1
 fi
 
+# Check if APP_SHORT_NAME environment variable is set
+if [ -z "$APP_SHORT_NAME" ]; then
+    echo "Error: APP_SHORT_NAME environment variable is not set."
+    exit 1
+fi
+
 # Check if FILE_APP_NAME environment variable is set
 if [ -z "$FILE_APP_NAME" ]; then
     echo "Error: FILE_APP_NAME environment variable is not set."
@@ -180,8 +186,12 @@ if ! [[ $devRun =~ ^(-d) ]]; then
   echo "copied lib to $APP_BASE_DIR/Contents/"
 
   mkdir -p ../$pkgDir/project/scripts
-  cp ../install/post_install_script.sh ../$pkgDir/project/scripts/postinstall
+  cp ../buildResources/post_install_script.sh ../$pkgDir/project/scripts/postinstall
   chmod +x ../$pkgDir/project/scripts/postinstall
+  PREINST_FILE="../project/scripts/preinstall"
+  cp ../buildResources/preinstall "$PREINST_FILE"
+  sed -i.bak "s/\${APP_SHORT_NAME}/$APP_SHORT_NAME/g" "$PREINST_FILE"
+  chmod +x "$PREINST_FILE"
 fi
 
 # set execute permission on all folders
