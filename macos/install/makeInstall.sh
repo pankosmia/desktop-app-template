@@ -97,7 +97,8 @@ cp ../buildResources/post_install_script.sh ../project/scripts/postinstall
 chmod +x ../project/scripts/postinstall
 PREINST_FILE="../project/scripts/preinstall"
 cp ../buildResources/preinstall "$PREINST_FILE"
-sed -i.bak "s/\${APP_SHORT_NAME}/$APP_SHORT_NAME/g" "$PREINST_FILE"
+sed -i.bak "s/{APP_SHORT_NAME}/$APP_SHORT_NAME/g" "$PREINST_FILE"
+echo "Replaced {APP_SHORT_NAME} with \"$APP_SHORT_NAME\" in $PREINST_FILE"
 chmod +x "$PREINST_FILE"
 
 # build pkg

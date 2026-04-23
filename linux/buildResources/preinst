@@ -13,9 +13,9 @@ for USER_HOME in /home/*; do
             echo "Removing prior temp directory: $CONFIG_DIR/temp"
             rm -rf "$CONFIG_DIR/temp"
         fi
-        if [ -d "$CONFIG_DIR/i18n.json" ]; then
+        if [ -f "$CONFIG_DIR/i18n.json" ]; then
             echo "Removing prior config file: $CONFIG_DIR/i18n.json"
-            rm "$CONFIG_DIR/i18n.json"
+            rm -f "$CONFIG_DIR/i18n.json"
         fi
     fi
 done

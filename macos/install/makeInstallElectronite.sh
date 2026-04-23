@@ -192,7 +192,7 @@ if ! [[ $devRun =~ ^(-d) ]]; then
   PREINST_FILE="../$pkgDir/project/scripts/preinstall"
   cp ../buildResources/preinstall "$PREINST_FILE"
   echo "copied preinstall to $SCRIPTS_DIR"
-  sed -i.bak "s/\${APP_SHORT_NAME}/$APP_SHORT_NAME/g" "$PREINST_FILE"
+  sed -i.bak "s/{APP_SHORT_NAME}/$APP_SHORT_NAME/g" "$PREINST_FILE"
   echo "Replaced {APP_SHORT_NAME} with \"$APP_SHORT_NAME\" in $PREINST_FILE."
   chmod +x "$PREINST_FILE"
   POSTINST_FILE="../$pkgDir/project/scripts/postinstall"
