@@ -13,7 +13,9 @@ SolidCompression=yes
 Name: "desktopicon"; Description: "Create a {#GetEnv('APP_NAME')} &desktop icon"; GroupDescription: "{#GetEnv('APP_NAME')} icons:"
 
 [InstallDelete]
-Type: filesandordirs; Name: "{%USERPROFILE}\pankosmia\{#GetEnv('APP_SHORT_NAME')}"
+Type: filesandordirs; Name: "{%USERPROFILE}\pankosmia\{#GetEnv('APP_SHORT_NAME')}\webfonts"
+Type: filesandordirs; Name: "{%USERPROFILE}\pankosmia\{#GetEnv('APP_SHORT_NAME')}\temp"
+Type: files; Name: "{%USERPROFILE}\pankosmia\{#GetEnv('APP_SHORT_NAME')}\i18n.json"
 
 [Files]
 Source: "..\build\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
