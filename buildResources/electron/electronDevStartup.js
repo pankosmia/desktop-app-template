@@ -258,7 +258,38 @@ function createWindow() {
 
 app.whenReady().then(() => {
   ipcMain.on('setCanClose', handleSetCanClose);
+  ipcMain.handle("generate-pdf", async (event, uuid) => {
+    const browser = await puppeteer.launch({
+      headless: "new",
+      browser: "firefox",
+    });
+    const result = await dialog.showSaveDialog();
 
+    const page = await browser.newPage();
+    const response = await fetch(
+      `http://127.0.0.1:${env.ROCKET_PORT}/temp/bytes/${uuid}`,
+      {
+        method: "GET",
+      },
+    );
+
+    const resultHTML = await response.text();
+    await page.setContent(resultHTML, {
+      waitUntil: "networkidle0",
+    });
+
+    await page.evaluate(() => document.fonts.ready);
+
+    await page.pdf({
+      path: result.filePath,
+      format: "A3",
+      printBackground: true,
+    });
+
+    await browser.close();
+
+    return result.filePath;
+  });
   setTimeout(createWindow, 0); // Do not wait for server to start (dev viewer)
 });
 
