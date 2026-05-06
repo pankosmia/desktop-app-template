@@ -26,6 +26,7 @@ const { app, BrowserWindow, Menu, shell, ipcMain, ipcRenderer, contextBridge, di
 const { spawn, execSync } = require('child_process');
 const path = require('path');
 const net = require('net');
+const puppeteer = require('puppeteer');
 
 const env = {
   ...process.env,
