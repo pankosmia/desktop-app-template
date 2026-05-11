@@ -78,7 +78,7 @@ chmod +x $TO_DIR/DEBIAN/preinst
 
 # Finally, build the package and write it to the Release directory
 cd /tmp
-dpkg-deb --root-owner-group --build $PACKAGE_NAME $RELEASE_DIR/$PACKAGE_NAME-linux-standalone-intel64-$APP_VERSION.deb
+dpkg-deb --root-owner-group --build $PACKAGE_NAME $RELEASE_DIR/$PACKAGE_NAME-$APP_VERSION-linux-x64.deb
 
 # Get back into the scripts dir
 cd $REPOPATH/linux/scripts

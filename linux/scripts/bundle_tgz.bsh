@@ -101,5 +101,5 @@ APP_NAME=${APP_NAME,,}
 APP_NAME=${APP_NAME// /-}
 # Make executable and compress
 chmod +x $APP_NAME
-tar cfz ../../releases/linux/$APP_NAME-linux-$APP_VERSION.tgz .
+tar cfz ../../releases/linux/$APP_NAME-$APP_VERSION-linux-x64-cli.tgz .
 cd ../scripts
