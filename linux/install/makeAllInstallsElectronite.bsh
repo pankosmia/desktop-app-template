@@ -60,7 +60,7 @@ ElectronX64="https://github.com/unfoldingWord/electronite/releases/download/v37.
 CPU_ARCH=$(uname -m)
 if [ "$CPU_ARCH" = "x86_64" ]; then
     CPU_ARCH="x64"
-elif [ "$CPU_ARCH" = "arm64" ]; then
+elif [ "$CPU_ARCH" = "aarch64" ]; then
     CPU_ARCH="arm64"
 else
     echo "Error: Unsupported CPU architecture: $CPU_ARCH, default to x64"
