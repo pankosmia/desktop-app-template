@@ -93,8 +93,8 @@ if [ "$CPU_ARCH" = "x86_64" ]; then
 elif [ "$CPU_ARCH" = "arm64" ]; then
     CPU_ARCH="arm64"
 else
-    echo "Error: Unsupported CPU architecture: $CPU_ARCH, default to x64"
-    CPU_ARCH="x64"
+    echo "Error: Unsupported CPU architecture: $CPU_ARCH"
+    exit 1
 fi
 
 echo
