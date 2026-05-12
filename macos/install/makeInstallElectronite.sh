@@ -64,6 +64,7 @@ devRun="${2:-no}" # This is a development viewer run if $1 is -d
 
 # Needed for local bundles. Not required in GHA but does no harm.
 if ! [[ $devRun =~ ^(-d) ]]; then
+  PKG_NAME="${FILE_APP_NAME}-${APP_VERSION}-macos-${arch}.pkg"
   rm -f ../releases/macos/${FILE_APP_NAME}-*-macos-${arch}.pkg
 fi
 
