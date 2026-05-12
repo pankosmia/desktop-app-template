@@ -7,7 +7,7 @@
     - Downloads Electron and zip releases for specified architectures
     - Processes and packages the files
     - Creates installation packages for each supported architecture
-    - Currently supports x64 (Intel) architecture (ARM64 support is commented out)
+    - Currently supports x64 (Intel) and arm64 architecture
 
 .NOTES
     Requires PowerShell and depends on:
@@ -51,10 +51,19 @@ if ($IsGHA -ne 'N') {
 $ElectronArm64 = "https://github.com/unfoldingWord/electronite/releases/download/v37.1.0-graphite/electronite-v37.1.0-graphite-win32-arm64.zip"
 $ElectronX64 = "https://github.com/unfoldingWord/electronite/releases/download/v37.1.0-graphite/electronite-v37.1.0-graphite-win32-x64.zip"
 
-# Loop through architectures
-# foreach ($ARCH in @("x64", "arm64")) {
+$CPU_ARCH = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) {
+    "arm64"
+} else {
+    "intel64"
+}
 
-foreach ($ARCH in @("x64")) {
+# Loop through architectures
+foreach ($ARCH in @("x64", "arm64")) {
+    # Skip if not running on native architecture
+    if ($ARCH -ne $CPU_ARCH) {
+        Write-Host "Skipping $ARCH build on $CPU_ARCH machine"
+        continue
+    }
     Write-Host "Building for architecture: $ARCH"
 
     # Set download URLs based on architecture
@@ -63,7 +72,7 @@ foreach ($ARCH in @("x64")) {
 
     if ($ARCH -eq "arm64") {
         $downloadElectronUrl = $ElectronArm64
-        $expectedZip = "*-win-arm64-cli*.zip" # TODO need to set for arm
+        $expectedZip = "*-win-arm64-cli*.zip"
     }
 
     # Get Electron release
