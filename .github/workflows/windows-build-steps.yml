@@ -165,7 +165,7 @@ jobs:
         id: get-electronite-exe-name
         run: |
           echo "Electronite exe for terminal name:"
-          $EXE_NAME = Get-ChildItem -Path ".\releases\windows\x64\*.exe" -Name
+          $EXE_NAME = Get-ChildItem -Path ".\releases\windows\*.exe" -Name
           echo "electronite-exe-name=$EXE_NAME" >> $env:GITHUB_OUTPUT
           echo "ELECTRONITE_EXE_NAME=$EXE_NAME" >> $env:GITHUB_ENV
 
