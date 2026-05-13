@@ -116,13 +116,21 @@ jobs:
         working-directory: .\windows\scripts
         run: .\clone.bat
 
+      # Check npm version
+      - name: Check npm version
+        shell: pwsh
+        run: |
+          npm --version
+          node --version
+
       # Single npm ci test
       - name: Single npm ci test
         shell: pwsh
         run: |
-          $time = Measure-Command { npm ci --prefix "C:\a\desktop-app-template\core-contenthandler_t_core" }
+          Push-Location "C:\a\desktop-app-template\core-contenthandler_t_core"
+          $time = Measure-Command { npm ci }
           Write-Host "npm ci took: $($time.TotalSeconds) seconds"
-
+          Pop-Location
 
       # Confirm Node architecture
       - name: Check Node arch
