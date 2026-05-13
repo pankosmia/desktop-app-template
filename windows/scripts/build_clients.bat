@@ -21,9 +21,6 @@ set "BRANCH="
 set "FALLBACK_TIER="
 set "FRESH_CLONE="
 
-echo.
-echo Working directory: %CD%
-
 :loop
 if "%~1"=="" goto :continue
 if /I "%~1"=="-d" (

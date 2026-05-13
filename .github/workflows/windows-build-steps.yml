@@ -123,26 +123,10 @@ jobs:
           npm --version
           node --version
 
-      # Single npm ci test
-      - name: Single npm ci test
-        shell: pwsh
-        run: |
-          Push-Location "$env:GITHUB_WORKSPACE\..\core-contenthandler_t_core"
-          $time = Measure-Command { npm ci }
-          Write-Host "npm ci took: $($time.TotalSeconds) seconds"
-          Pop-Location
-
       # Confirm Node architecture
       - name: Check Node arch
         shell: pwsh
         run: node -p "process.arch"
-
-      # Check paths
-      - name: Check paths
-        shell: pwsh
-        run: |
-          Write-Host "Workspace: $env:GITHUB_WORKSPACE"
-          npm config get cache
 
       # Install and build clients
       - name: Build ${{ inputs.branches }} clients
