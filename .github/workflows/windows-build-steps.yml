@@ -116,6 +116,14 @@ jobs:
         working-directory: .\windows\scripts
         run: .\clone.bat
 
+      # Single npm ci test
+      - name: Single npm ci test
+        shell: pwsh
+        run: |
+          $time = Measure-Command { npm ci --prefix "C:\a\desktop-app-template\core-contenthandler_t_core" }
+          Write-Host "npm ci took: $($time.TotalSeconds) seconds"
+
+
       # Confirm Node architecture
       - name: Check Node arch
         shell: pwsh
@@ -127,19 +135,6 @@ jobs:
         run: |
           Write-Host "Workspace: $env:GITHUB_WORKSPACE"
           npm config get cache
-
-      # Disk IO test
-      - name: Disk IO test
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Path "$PWD\testdir" -Force | Out-Null
-          $time = Measure-Command {
-              1..10000 | ForEach-Object {
-                  [System.IO.File]::WriteAllText("$PWD\testdir\$_.txt", "hello")
-              }
-          }
-          Write-Host "10,000 file writes: $($time.TotalSeconds) seconds"
-          Remove-Item -Recurse -Force "$PWD\testdir"
 
       # Install and build clients
       - name: Build ${{ inputs.branches }} clients
