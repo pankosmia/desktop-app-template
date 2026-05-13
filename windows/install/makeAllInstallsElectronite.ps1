@@ -54,7 +54,7 @@ $ElectronX64 = "https://github.com/unfoldingWord/electronite/releases/download/v
 $CPU_ARCH = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) {
     "arm64"
 } else {
-    "intel64"
+    "x64"
 }
 
 # Loop through architectures
