@@ -14,7 +14,7 @@
     - APP_VERSION environment variable must be set in app_config.env
 
 .OUTPUTS
-    Creates an installer at releases\windows\$arch\<appname>-<version>-win-<arch>.exe
+    Creates an installer at releases\windows\<appname>-<version>-win-<arch>.exe
 
 .NOTES
     - Cleans up existing installers before building
@@ -57,7 +57,7 @@ try {
         Write-Host "Set it in app_config.env"
         exit 1
     }
-    
+
     # Check if FILE_APP_NAME environment variable is set
     if (-not $env:FILE_APP_NAME) {
         Write-Host "FILE_APP_NAME $eMsg. Generating..."
@@ -78,7 +78,7 @@ try {
     # Needed for local bundles. Not required in GHA but does no harm.
     if ($Dev -ne 'Y') {
         # Clean up any existing installers
-        Get-ChildItem -Path "..\..\releases\windows\"$fileAppName"-"$env:APP_VERSION"-win-"$arch".exe" | Remove-Item -Force
+        Remove-Item -Path "..\..\releases\windows\$($env:FILE_APP_NAME)-*-win-$arch.exe" -Force -ErrorAction SilentlyContinue
     }
 
     # Change to build directory
