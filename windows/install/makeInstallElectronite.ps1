@@ -207,7 +207,7 @@ try {
       }
 
       Set-Location -Path ".."
-      $outputPath = "..\releases\windows\$arch"
+      $outputPath = "..\releases\windows"
 
       # Delete existing exe files from releases directory, only if path exists
       if (Test-Path "$outputPath\*.exe") {
