@@ -127,7 +127,7 @@ jobs:
       - name: Single npm ci test
         shell: pwsh
         run: |
-          Push-Location "C:\a\desktop-app-template\core-contenthandler_t_core"
+          Push-Location "$env:GITHUB_WORKSPACE\..\core-contenthandler_t_core"
           $time = Measure-Command { npm ci }
           Write-Host "npm ci took: $($time.TotalSeconds) seconds"
           Pop-Location
