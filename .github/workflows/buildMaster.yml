@@ -57,7 +57,7 @@ jobs:
           echo "Log level is ${{ inputs.log_level }}"
 
   build-macos-x64:
-    name: Build on macOS Intel64 (x64)
+    name: Build on macOS x64 (Intel64)
     if: ${{ inputs.os == 'all' || inputs.os == 'macos' }}
     uses: ./.github/workflows/macos-build-steps.yml
     with:
