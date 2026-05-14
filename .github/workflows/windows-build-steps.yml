@@ -116,6 +116,18 @@ jobs:
         working-directory: .\windows\scripts
         run: .\clone.bat
 
+      # Check npm version
+      - name: Check npm version
+        shell: pwsh
+        run: |
+          npm --version
+          node --version
+
+      # Confirm Node architecture
+      - name: Check Node arch
+        shell: pwsh
+        run: node -p "process.arch"
+
       # Install and build clients
       - name: Build ${{ inputs.branches }} clients
         working-directory: .\windows\scripts
@@ -135,13 +147,13 @@ jobs:
       - name: Get names for zip artifact
         id: get-zip-name
         run: |
-          echo "Zip for terminal name:"
-          $ZIP_NAME = Get-ChildItem -Path ".\releases\windows\*.zip" -Name
+          echo "Zip for cli name:"
+          $ZIP_NAME = Get-ChildItem -Path ".\releases\windows\*-cli.zip" -Name
           echo "zip-name=$ZIP_NAME" >> $env:GITHUB_OUTPUT
           echo "ZIP_NAME=$ZIP_NAME" >> $env:GITHUB_ENV
 
-      # Upload zip for terminal artifact
-      - name: Upload zip for terminal artifact
+      # Upload zip for cli artifacts
+      - name: Upload zip for cli artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ZIP_NAME }}
@@ -165,7 +177,7 @@ jobs:
         id: get-electronite-exe-name
         run: |
           echo "Electronite exe for terminal name:"
-          $EXE_NAME = Get-ChildItem -Path ".\releases\windows\intel64\*.exe" -Name
+          $EXE_NAME = Get-ChildItem -Path ".\releases\windows\*.exe" -Name
           echo "electronite-exe-name=$EXE_NAME" >> $env:GITHUB_OUTPUT
           echo "ELECTRONITE_EXE_NAME=$EXE_NAME" >> $env:GITHUB_ENV
 
@@ -174,6 +186,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ELECTRONITE_EXE_NAME }}
-          path: .\releases\windows\intel64\${{ env.ELECTRONITE_EXE_NAME }}
+          path: .\releases\windows\${{ env.ELECTRONITE_EXE_NAME }}
           if-no-files-found: error
           retention-days: 90
