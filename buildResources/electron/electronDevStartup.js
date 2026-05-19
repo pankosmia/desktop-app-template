@@ -417,35 +417,41 @@ app.whenReady().then(() => {
       throw new Error('Firefox browser engine is not installed. Please download it first.');
     }
 
+    const result = await dialog.showSaveDialog();
+    if (result.canceled) return null;
+
     const browser = await puppeteer.launch({
       headless: true,
       browser: "firefox",
       executablePath: getFirefoxExecutablePath(),
     });
-    const result = await dialog.showSaveDialog();
 
-    const page = await browser.newPage();
-    const response = await fetch(
-      `http://127.0.0.1:${env.ROCKET_PORT}/temp/bytes/${uuid}`,
-      {
-        method: "GET",
-      },
-    );
+    try {
+      const page = await browser.newPage();
+      const response = await fetch(
+        `http://127.0.0.1:${env.ROCKET_PORT}/temp/bytes/${uuid}`,
+        {
+          method: "GET",
+        },
+      );
 
-    const resultHTML = await response.text();
-    await page.setContent(resultHTML, {
-      waitUntil: "networkidle0",
-    });
+      const resultHTML = await response.text();
+      await page.setContent(resultHTML, {
+        waitUntil: "networkidle0",
+      });
 
-    await page.evaluate(() => document.fonts.ready);
+      await page.evaluate(() => document.fonts.ready);
 
-    await page.pdf({
-      path: result.filePath,
-      format: "A3",
-      printBackground: true,
-    });
+      await page.pdf({
+        path: result.filePath,
+        format: "A3",
+        printBackground: true,
+      });
 
-    await browser.close();
+      return result.filePath;
+    } finally {
+      await browser.close();
+    }
 
     return result.filePath;
   });
