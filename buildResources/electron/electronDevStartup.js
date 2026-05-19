@@ -418,7 +418,7 @@ app.whenReady().then(() => {
     }
 
     const browser = await puppeteer.launch({
-      headless: "new",
+      headless: true,
       browser: "firefox",
       executablePath: getFirefoxExecutablePath(),
     });
