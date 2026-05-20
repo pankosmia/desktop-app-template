@@ -122,6 +122,12 @@ ALL_OS_MODULES=(
     "typed-query-selector"
     "webdriver-bidi-protocol"
     "ws"
+    "semver"
+    "proxy-agent"
+    "lru-cache"
+    "agent-base"
+    "proxy-from-env"
+    "progress"
 )
 
 for mod in "${ALL_OS_MODULES[@]}"; do
