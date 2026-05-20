@@ -128,6 +128,7 @@ ALL_OS_MODULES=(
     "agent-base"
     "proxy-from-env"
     "progress"
+    "mitt"
 )
 
 for mod in "${ALL_OS_MODULES[@]}"; do
