@@ -178,6 +178,7 @@ try {
             "agent-base"
             "proxy-from-env"
             "progress"
+            "mitt"
         )
 
         foreach ($mod in $allOsModules) {
