@@ -172,6 +172,12 @@ try {
             "typed-query-selector",
             "webdriver-bidi-protocol",
             "ws"
+            "semver"
+            "proxy-agent"
+            "lru-cache"
+            "agent-base"
+            "proxy-from-env"
+            "progress"
         )
 
         foreach ($mod in $allOsModules) {
