@@ -468,7 +468,7 @@ app.whenReady().then(() => {
     } catch (err) {
       console.error('Firefox download failed:', err.message);
       console.error('Full error:', err);
-      event.sender.send('download-complete', false);
+      event.sender.send('download-complete', false, err.message);
     }
   });
 

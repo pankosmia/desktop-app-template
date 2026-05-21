@@ -13,7 +13,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('download-progress', handler);
   },
   onDownloadComplete: (callback) => {
-    const handler = (_event, success) => callback(success);
+    const handler = (_event, success, errorMessage) => callback(success, errorMessage);
     ipcRenderer.on('download-complete', handler);
     return () => ipcRenderer.removeListener('download-complete', handler);
   },
