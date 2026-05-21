@@ -128,6 +128,25 @@ for mod in "${ALL_OS_MODULES[@]}"; do
     cp -R "${NODE_MODULES_SRC}/${mod}/." "${NODE_MODULES_DEST}/${mod}/"
 done
 
+LINUX_MODULES=(
+    "tar-fs"
+    "tar-stream"
+    "streamx"
+    "events-universal"
+    "fast-fifo"
+    "text-decoder"
+    "b4a"
+    "pump"
+    "once"
+    "wrappy"
+    "end-of-stream"
+)
+
+for mod in "${LINUX_MODULES[@]}"; do
+    mkdir -p "${NODE_MODULES_DEST}/${mod}"
+    cp -R "${NODE_MODULES_SRC}/${mod}/." "${NODE_MODULES_DEST}/${mod}/"
+done
+
 echo "Successfully copied node_modules dependencies"
 
 # Determine which startup to use -- dev viewer or production
