@@ -114,6 +114,12 @@ checkout_branch() {
   local cb_repo="$2"
   local branch_lower="${BRANCH:l}"
 
+  # Fetch remote refs so all remote branches are known
+  log "> git fetch origin..."
+  if ! run git fetch origin; then
+    log "> WARNING: git fetch failed; proceeding with possibly stale remote refs"
+  fi
+
   log "> git checkout $BRANCH..."
   if run git checkout "$BRANCH"; then
     CHECKED_OUT_BRANCH="$BRANCH"
