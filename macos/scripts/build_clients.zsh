@@ -245,6 +245,7 @@ for ((i=1;i<=count;i++)); do
       log "$asset does not exist; Run ./clone.zsh"
       log "****************************************************"
       log
+      markfail "ASSET" "$asset" "directory not found; Run ./clone.bsh"
     else
       cd "$asset"
       checkout_branch "ASSET" "$asset"
@@ -268,6 +269,7 @@ for ((i=1;i<=count;i++)); do
       log "$client does not exist; Run ./clone.zsh then rerun this script"
       log "***************************************************************************************"
       log
+      markfail "CLIENT" "$client" "directory not found; Run ./clone.bsh"
     else
       cd "$client"
       checkout_branch "CLIENT" "$client"
