@@ -142,6 +142,7 @@ for /l %%a in (1,1,%count%) do (
       call :log !ASSET%%a! does not exist; Run .\clone.bat
       call :log ****************************************************
       call :log
+      call :markfail "ASSET" "!ASSET%%a!" "directory not found; run .\clone.bat"
     ) else (
       cd !ASSET%%a!
       call :checkout_branch "ASSET" "!ASSET%%a!"
@@ -165,6 +166,7 @@ for /l %%a in (1,1,%count%) do (
       call :log !CLIENT%%a! does not exist; Run .\clone.bat then rerun .\build_clients_main.bat
       call :log ***************************************************************************************
       call :log
+      call :markfail "CLIENT" "!CLIENT%%a!" "directory not found; run .\clone.bat"
     ) else (
       cd !CLIENT%%a!
       call :checkout_branch "CLIENT" "!CLIENT%%a!"
