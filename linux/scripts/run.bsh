@@ -3,8 +3,7 @@
 # Run from pankosmia/[this-repo's-name]/linux/scripts directory by:  ./run.bsh
 # with the optional argument of: `./run.bsh -s` to pre-specify that the server is off.
 
-set -e
-set -u
+set -euo pipefail
 
 echo
 
@@ -68,11 +67,9 @@ fi
 # set available port environment variable (exported as $ROCKET_PORT )
 source ../buildResources/find_free_port.sh
 echo "Serving on port $ROCKET_PORT..."
-echo
 
 if [ -d ../build ]; then
   echo "Removing last build environment..."
-  echo
   rm -rf ../build
 fi
 
@@ -83,14 +80,34 @@ fi
 
 cd ../build
 
-echo
-echo "Running with local server in release mode... When ready to stop this server, press Ctrl-C."
-echo "       If Ctrl-Z (suspend) is used by accident, then run \`killall -9 \"server.bin\"\` or Force Quit from the Activity Monitor,"
-echo "       or to resume run \`fg\` for the last suspended process, otherwise \`fg \"./run.bsh\"\`."
-echo
+# compact header to stderr
+echo >&2 "Server mode: release"
+echo >&2 "Stop: Ctrl-C"
+echo >&2 "Suspend: Ctrl-Z   Resume: fg"
+echo >&2 "Force kill (if suspended/hung): killall -9 server.bin"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 export APP_RESOURCES_DIR="$SCRIPT_DIR/lib/"
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-$SCRIPT_DIR/bin/server.bin
+LOG="$SCRIPT_DIR/../scripts/server.log"
+: > "$LOG"
+
+PID=""
+# start server in background, capture PID, route stdout to a log file
+"$SCRIPT_DIR/bin/server.bin" >"$LOG" 2>&1 &
+PID=$!
+
+echo >&2 "Server PID: ${PID}"
+
+PATTERN="launched"
+
+while ! grep -m1 -F "$PATTERN" "$LOG" >/dev/null 2>&1; do
+  sleep 0.05
+done
+
+grep -m1 -F "$PATTERN" "$LOG" | sed -n '1p'
+
+echo >&2 "Log: /linux/server.log"
+echo >&2
+
+wait "$PID"
