@@ -107,7 +107,7 @@ done
 
 grep -m1 -F "$PATTERN" "$LOG" | sed -n '1p'
 
-echo >&2 "Log: /linux/server.log"
+echo >&2 "Log: /linux/scripts/server.log"
 echo >&2
 
 wait "$PID"
