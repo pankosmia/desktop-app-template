@@ -68,6 +68,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Determine whether this is an ARM build so we can branch behavior:
+      #  - x64: clone + build clients on Window.
+      #  - ARM: skip those and pull prebuilt libs from the Linux ARM job.
+      - name: Detect architecture
+        id: detect-arch
+        shell: pwsh
+        run: |
+          $isArm = "${{ inputs.runner }}" -match 'arm'
+          echo "IS_ARM=$isArm" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "is-arm=$isArm" >> $env:GITHUB_OUTPUT
+          echo "IS_ARM=$isArm"
+
       # Specify node.js version
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -111,8 +123,9 @@ jobs:
         working-directory: .\windows\scripts
         run: .\app_setup.bat
 
-      # Clone resources and clients
+      # Clone resources and clients (x64 only; ARM uses prebuilt libs from the Linux ARM job)
       - name: Run clone.bat
+        if: ${{ env.IS_ARM != 'True' }}
         working-directory: .\windows\scripts
         run: .\clone.bat
 
@@ -128,10 +141,30 @@ jobs:
         shell: pwsh
         run: node -p "process.arch"
 
-      # Install and build clients
+      # Install and build clients (x64 only)
       - name: Build ${{ inputs.branches }} clients
+        if: ${{ env.IS_ARM != 'True' }}
         working-directory: .\windows\scripts
         run: .\build_clients.bat -f "$env:BRANCHES"
+
+      # ARM only: replace clone.bat + build_clients.bat by pulling the libs
+      # that the Linux ARM job built and uploaded as `linux-build-lib`.
+      - name: Ensure windows/build/lib exists (ARM only)
+        if: ${{ env.IS_ARM == 'True' }}
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path .\windows\build\lib | Out-Null
+
+      - name: Download linux build/lib from Linux ARM job (ARM only)
+        if: ${{ env.IS_ARM == 'True' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-build-lib
+          path: .\windows\build\lib
+
+      - name: List downloaded windows/build/lib contents (ARM only)
+        if: ${{ env.IS_ARM == 'True' }}
+        shell: pwsh
+        run: Get-ChildItem -Recurse .\windows\build\lib | Select-Object FullName, Length
 
       # Build RELEASE server and assemble build environment without asking if the server is off
       - name: Run ${{ inputs.branches }} RELEASE server and assemble build environment without asking if the server is off

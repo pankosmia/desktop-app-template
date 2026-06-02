@@ -86,6 +86,7 @@ jobs:
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
 
   build-windows-arm64:
+    needs: build-linux-arm64
     name: Build on Windows arm64
     if: ${{ inputs.os == 'all' || inputs.os == 'windows' }}
     uses: ./.github/workflows/windows-build-steps.yml
