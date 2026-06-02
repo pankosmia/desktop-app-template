@@ -100,6 +100,10 @@ jobs:
         working-directory: ./linux/scripts
         run: ./build_clients.bsh -f "$BRANCHES"
 
+      - name: Build ${{ inputs.branches }} RELEASE server and assemble build environment without asking if the server is off
+        working-directory: ./linux/scripts
+        run: ./build_server.bsh -s "$BRANCHES" "$LOG_LEVEL"
+
       # Package /linux/build/lib/ for the Windows ARM job to consume
       # in place of its clone.bat / build_clients.bat steps.
       - name: Upload linux build/lib for Windows ARM
@@ -110,10 +114,6 @@ jobs:
           path: ./linux/build/lib/
           if-no-files-found: error
           retention-days: 1
-
-      - name: Build ${{ inputs.branches }} RELEASE server and assemble build environment without asking if the server is off
-        working-directory: ./linux/scripts
-        run: ./build_server.bsh -s "$BRANCHES" "$LOG_LEVEL"
 
       - name: Bundle tgz without asking if the server is off and indicate GHA
         working-directory: ./linux/scripts
