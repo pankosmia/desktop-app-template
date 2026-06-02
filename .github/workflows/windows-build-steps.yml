@@ -123,9 +123,8 @@ jobs:
         working-directory: .\windows\scripts
         run: .\app_setup.bat
 
-      # Clone resources and clients (x64 only; ARM uses prebuilt libs from the Linux ARM job)
+      # Clone resources and clients
       - name: Run clone.bat
-        if: ${{ env.IS_ARM != 'True' }}
         working-directory: .\windows\scripts
         run: .\clone.bat
 
@@ -141,7 +140,7 @@ jobs:
         shell: pwsh
         run: node -p "process.arch"
 
-      # Install and build clients (x64 only)
+      # Install and build clients (x64 only; ARM uses prebuilt libs from the Linux ARM job)
       - name: Build ${{ inputs.branches }} clients
         if: ${{ env.IS_ARM != 'True' }}
         working-directory: .\windows\scripts
