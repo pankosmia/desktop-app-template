@@ -91,11 +91,11 @@ for /l %%a in (1,1,%count%) do (
   if "!ASSET%%a_NAME!" NEQ "" (
     REM Remove any spaces, e.g. trailing ones
     set ASSET%%a_NAME=!ASSET%%a_NAME: =!
-    REM In ARM mode, override the src for known staged assets.
-    if defined GHA_ARM_MODE (
-      if /I "!ASSET%%a_NAME!"=="app_resources" set "src=      ""src"": ""../../windows/build/lib/app_resources"","
-      if /I "!ASSET%%a_NAME!"=="templates"     set "src=      ""src"": ""../../windows/build/lib/templates"","
-      if /I "!ASSET%%a_NAME!"=="webfonts"      set "src=      ""src"": ""../../windows/build/lib/webfonts-core"","
+        REM In ARM mode, override the src for known staged assets.
+    if defined ARM_MODE (
+      if /I "!ASSET%%a_NAME!"=="app_resources" set src=      ^"src^": ^"../../windows/build/lib/app_resources^",
+      if /I "!ASSET%%a_NAME!"=="templates"     set src=      ^"src^": ^"../../windows/build/lib/templates^",
+      if /I "!ASSET%%a_NAME!"=="webfonts"      set src=      ^"src^": ^"../../windows/build/lib/webfonts-core^",
     )
     echo !src!>> %spec%
     echo       "targetName": "!ASSET%%a_NAME!">> %spec%
