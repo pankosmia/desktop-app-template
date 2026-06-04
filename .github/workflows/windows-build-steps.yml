@@ -166,10 +166,10 @@ jobs:
         shell: pwsh
         run: Get-ChildItem -Recurse .\windows\build\lib | Select-Object FullName, Length
 
-      # Build RELEASE server and assemble build environment without asking if the server is off
+      # Build RELEASE server and assemble build environment (x64 only) without asking if the server is off
       - name: Run ${{ inputs.branches }} RELEASE server and assemble build environment without asking if the server is off
         working-directory: .\windows\scripts
-        run: .\build_server.bat -s "$env:BRANCHES" "$env:LOG_LEVEL"
+        run: .\build_server.bat -s "$env:BRANCHES" "$env:LOG_LEVEL" github-actions
 
       # Bundle zip without asking if the server is off and indicate GHA
       - name: Run bundle_zip.ps1 -ServerOff "Y" -IsGHA "Y"
