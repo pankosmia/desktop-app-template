@@ -14,8 +14,15 @@ echo      * \globalBuildResources\i18nPatch.json:            *
 echo      *   - Created if it does not exist, otherwise      *
 echo      *     the English name (branding/software/name/en) *
 echo      *     is ensured as set to APP_NAME.               *
+echo      *                                                  *
+echo      * Optional 1st argument: "gha-arm" where Linux ARM *
+echo      * sources are in the Windows ARM build directory,  *
+echo      * bypassing slow Windows ARM runner's `npm ci`.    *
 echo      ****************************************************
 echo.
+
+set "GHA_ARM_MODE="
+if /I "%~1"=="gha-arm" set "GHA_ARM_MODE=1"
 
 for /F "tokens=1,2 delims==" %%a in (..\..\app_config.env) do set %%a=%%b
 
@@ -25,6 +32,15 @@ set "clients=..\buildResources\setup\app_setup.json"
 set "spec=..\..\buildSpec.json"
 set "name=..\..\globalBuildResources\i18nPatch.json"
 set "product=..\..\globalBuildResources\product.json"
+
+REM Prefixes that differ between normal and ARM (GitHub Actions Windows ARM) builds.
+REM Normal: sources are checked out as siblings at ..\..\..\<repo>
+REM ARM:    sources are staged under ..\..\windows\build\lib\...
+if defined GHA_ARM_MODE (
+  set "libClientPrefix=../../windows/build/lib/clients/"
+) else (
+  set "libClientPrefix=../../../"
+)
 
 set "nameFwd=%name:\=/%"
 if not exist %name% (
@@ -71,17 +87,27 @@ for /l %%a in (1,1,%count%) do (
     REM Remove any spaces, e.g. trailing ones
     set ASSET%%a_PATH=!ASSET%%a_PATH: =!
     set src=!src!!ASSET%%a_PATH!",
-    echo !src!>> %spec%
   )
   if "!ASSET%%a_NAME!" NEQ "" (
     REM Remove any spaces, e.g. trailing ones
     set ASSET%%a_NAME=!ASSET%%a_NAME: =!
+    REM In ARM mode, override the src for known staged assets.
+    if defined GHA_ARM_MODE (
+      if /I "!ASSET%%a_NAME!"=="app_resources" set "src=      ""src"": ""../../windows/build/lib/app_resources"","
+      if /I "!ASSET%%a_NAME!"=="templates"     set "src=      ""src"": ""../../windows/build/lib/templates"","
+      if /I "!ASSET%%a_NAME!"=="webfonts"      set "src=      ""src"": ""../../windows/build/lib/webfonts-core"","
+    )
+    echo !src!>> %spec%
     echo       "targetName": "!ASSET%%a_NAME!">> %spec%
     echo     },>> %spec%
   )
 )
 echo     {>> %spec%
-echo       "src": "../buildResources/setup",>> %spec%
+if defined GHA_ARM_MODE (
+  echo       "src": "../../windows/build/lib/setup",>> %spec%
+) else (
+  echo       "src": "../buildResources/setup",>> %spec%
+)
 echo       "targetName": "setup">> %spec%
 echo     }>> %spec%
 echo    ],>> %spec%
@@ -104,10 +130,10 @@ for /l %%a in (1,1,%count%) do (
     echo     {>> %clients%
     echo       "path": "%%%%PANKOSMIADIR%%%%/!CLIENT%%a!">> %clients%
     if %%a==%clientcount% (
-      echo     "../../../!CLIENT%%a!">> %spec%
+      echo     "!libClientPrefix!!CLIENT%%a!">> %spec%
       echo     }>> %clients%
     ) else (
-      echo     "../../../!CLIENT%%a!",>> %spec%
+      echo     "!libClientPrefix!!CLIENT%%a!",>> %spec%
       echo     },>> %clients%
     )
   )

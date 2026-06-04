@@ -121,10 +121,11 @@ jobs:
       # Setup
       - name: Run app_setup.bat
         working-directory: .\windows\scripts
-        run: .\app_setup.bat
+        run: .\app_setup.bat ${{ env.IS_ARM == 'True' && 'gha-arm' || '' }}
 
-      # Clone resources and clients
+      # Clone resources and clients (x64 only; ARM uses prebuilt libs from the Linux ARM job)
       - name: Run clone.bat
+        if: ${{ env.IS_ARM != 'True' }}
         working-directory: .\windows\scripts
         run: .\clone.bat
 
