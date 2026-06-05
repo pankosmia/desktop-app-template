@@ -85,8 +85,17 @@ jobs:
       log_level: ${{ inputs.log_level }}
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
 
+  linux-arm64-prep-for-win-arm64:
+    name: Linux arm64 Prep for Win arm64
+    if: ${{ inputs.os == 'all' || inputs.os == 'windows' }}
+    uses: ./.github/workflows/linux-arm-prep-for-win-arm.yml
+    with:
+      runner: ubuntu-22.04-arm
+      log_level: ${{ inputs.log_level }}
+      branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
+
   build-windows-arm64:
-    needs: build-linux-arm64
+    needs: linux-arm64-prep-for-win-arm64
     name: Windows arm64 build
     if: ${{ inputs.os == 'all' || inputs.os == 'windows' }}
     uses: ./.github/workflows/windows-build-steps.yml
