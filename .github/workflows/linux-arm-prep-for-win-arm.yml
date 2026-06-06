@@ -94,9 +94,10 @@ jobs:
         working-directory: ./linux/scripts
         run: ./build_clients.bsh -f "$BRANCHES"
 
+      # Include an argument skipping the linux server
       - name: Run build.js
         working-directory: ./linux/scripts
-        run: node ./build.js
+        run: node ./build.js gha-pre-win-arm
 
       # Package /linux/build/lib/ for the Windows ARM job to consume
       # in place of its clone.bat / build_clients.bat steps.

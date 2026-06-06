@@ -3,6 +3,10 @@ const fse = require('fs-extra');
 const copyDir = require('copy-dir');
 require('@dotenvx/dotenvx').config({path: ['../../app_config.env'], quiet: true});
 
+// Parse optional arguments
+const args = process.argv.slice(2);
+const isGhaPreWinArm = args.includes('gha-pre-win-arm');
+
 // Locations
 const BUILD_DIR = path.resolve('../build');
 if (BUILD_DIR.split("/").length < 5) {
@@ -47,14 +51,16 @@ fse.writeFileSync(
     path.join(BUILD_DIR, "README.txt"),
     readMe
 );
-// Make bin directory
-fse.mkdirSync(path.join(BUILD_DIR, "bin"));
-// Copy bin
-const BIN_SRC = path.resolve(spec['bin']['src']);
-fse.copySync(
-    BIN_SRC,
-    path.join(BUILD_DIR, "bin", "server.bin")
-);
+if (!isGhaPreWinArm) {
+    // Make bin directory
+    fse.mkdirSync(path.join(BUILD_DIR, "bin"));
+    // Copy bin
+    const BIN_SRC = path.resolve(spec['bin']['src']);
+    fse.copySync(
+        BIN_SRC,
+        path.join(BUILD_DIR, "bin", "server.bin")
+    );
+}
 // Make lib directory
 const libDirPath = path.join(BUILD_DIR, "lib");
 fse.mkdirSync(libDirPath);
