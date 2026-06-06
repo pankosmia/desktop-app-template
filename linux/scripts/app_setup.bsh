@@ -14,8 +14,26 @@ echo "     * /globalBuildResources/i18nPatch.json:            *"
 echo "     *   - Created if it does not exist, otherwise      *"
 echo "     *     the English name (branding/software/name/en) *"
 echo "     *     is ensured as set to APP_NAME.               *"
+echo "     *                                                  *"
+echo "     * Options:                                         *"
+echo "     *   --gha-pre-win-arm  Omit the \"bin\" entry from   *"
+echo "     *                      /buildSpec.json             *"
 echo "     ****************************************************"
 echo
+
+# Parse option arguments
+gha_pre_win_arm=0
+for arg in "$@"; do
+  case "$arg" in
+    --gha-pre-win-arm)
+      gha_pre_win_arm=1
+      ;;
+    *)
+      echo "Unknown option: $arg"
+      exit 1
+      ;;
+  esac
+done
 
 source ../../app_config.env
 
@@ -57,9 +75,11 @@ echo "    \"name\": \"$APP_NAME\",">> $spec
 echo "    \"version\": \"$APP_VERSION\"">> $spec
 echo "  },">> $spec
 
-echo "  \"bin\": {">> $spec
-echo "    \"src\": \"../../local_server/target/release/local_server\"">> $spec
-echo "  },">> $spec
+if [ "$gha_pre_win_arm" -eq 0 ]; then
+  echo "  \"bin\": {">> $spec
+  echo "    \"src\": \"../../local_server/target/release/local_server\"">> $spec
+  echo "  },">> $spec
+fi
 
 echo "  \"lib\": [">> $spec
 count=$( wc -l < "../../app_config.env" )
@@ -148,4 +168,3 @@ echo "Copying /linux/buildResources/setup/app_setup.json to /windows/buildResour
 cp ../buildResources/setup/app_setup.json ../../windows/buildResources/setup/app_setup.json
 echo "Copying /linux/buildResources/setup/app_setup.json to /macos/buildResources/setup/"
 cp ../buildResources/setup/app_setup.json ../../macos/buildResources/setup/app_setup.json
-

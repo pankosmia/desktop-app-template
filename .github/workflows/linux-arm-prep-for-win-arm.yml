@@ -81,9 +81,10 @@ jobs:
           chmod +x ./linux/scripts/clone.bsh
           chmod +x ./linux/scripts/build_clients.bsh
 
+      # Include an argument to not add the server to this buildSpec.json
       - name: Run app_setup.bsh
         working-directory: ./linux/scripts
-        run: ./app_setup.bsh
+        run: ./app_setup.bsh --gha-pre-win-arm
 
       - name: Run clone.bsh
         working-directory: ./linux/scripts
