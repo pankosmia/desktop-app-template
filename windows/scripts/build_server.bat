@@ -5,6 +5,7 @@ REM Do not ask if the server is off if the -s argument is provided
 REM Specify environment as an optional non-flag argument: dev, qa, or main (default: main)
 REM Specify log level as as an optional non-flag argument: critical, normal, debug, or off (default: normal)
 REM Specify github actions as an optional non-flag argument: github-actions
+REM Specify github actions as an optional non-flag argument: gha-win-arm
 set "envArg="
 set "logArg="
 set "ghaArg="
