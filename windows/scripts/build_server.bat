@@ -8,6 +8,7 @@ REM Specify github actions as an optional non-flag argument: github-actions
 set "envArg="
 set "logArg="
 set "ghaArg="
+set "ghaArmArg="
 :loop
 IF "%~1"=="" (
   goto :continue
@@ -19,6 +20,9 @@ IF "%~1"=="-s" (
 )
 IF not defined ghaArg (
   IF "%~1"=="github-actions" ( set "ghaArg=1" & shift & goto :loop )
+)
+IF not defined ghaArmArg (
+  IF "%~1"=="gha-win-arm" ( set "ghaArmArg=1" & shift & goto :loop )
 )
 IF not defined logArg (
   IF "%~1"=="critical" ( set "logArg=critical" & shift & goto :loop )
@@ -196,5 +200,9 @@ if not defined ghaArg (
 REM Assemble the build environment
 if not exist ..\build (
   echo "Assembling build environment..."
-  node build.js
+  if defined ghaArmArg (
+    node build.js gha-win-arm
+  ) else (
+    node build.js
+  )
 )

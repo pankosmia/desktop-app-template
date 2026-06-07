@@ -169,7 +169,7 @@ jobs:
       # Build RELEASE server and assemble build environment (x64 only) without asking if the server is off
       - name: Run ${{ inputs.branches }} RELEASE server and assemble build environment without asking if the server is off
         working-directory: .\windows\scripts
-        run: .\build_server.bat -s "$env:BRANCHES" "$env:LOG_LEVEL" github-actions
+        run: .\build_server.bat -s "$env:BRANCHES" "$env:LOG_LEVEL" github-actions ${{ env.IS_ARM == 'True' && 'gha-win-arm' || '' }}
 
       # Bundle zip without asking if the server is off and indicate GHA
       - name: Run bundle_zip.ps1 -ServerOff "Y" -IsGHA "Y"
