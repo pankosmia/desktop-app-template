@@ -148,7 +148,7 @@ jobs:
         run: .\build_clients.bat -f "$env:BRANCHES"
 
       # ARM only: replace clone.bat + build_clients.bat by pulling the libs
-      # that the Linux ARM job built and uploaded as `linux-build-lib`.
+      # that the Linux ARM job built and uploaded as `linux-arm-build-lib`.
       - name: Ensure windows/build/lib exists (ARM only)
         if: ${{ env.IS_ARM == 'True' }}
         shell: pwsh
@@ -158,7 +158,7 @@ jobs:
         if: ${{ env.IS_ARM == 'True' }}
         uses: actions/download-artifact@v4
         with:
-          name: linux-build-lib
+          name: linux-arm-build-lib
           path: .\windows\build\lib
 
       - name: List downloaded windows/build/lib contents (ARM only)

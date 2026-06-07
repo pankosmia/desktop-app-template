@@ -105,7 +105,7 @@ jobs:
         if: ${{ inputs.runner == 'ubuntu-22.04-arm' || contains(inputs.runner, 'arm') }}
         uses: actions/upload-artifact@v4
         with:
-          name: linux-build-lib
+          name: linux-arm-build-lib
           path: ./linux/build/lib/
           if-no-files-found: error
           retention-days: 1
