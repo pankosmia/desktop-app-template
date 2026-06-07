@@ -18,9 +18,11 @@ if (!isGhaWinArm) {
 const SPEC_PATH = path.resolve('../../buildSpec.json');
 const WINDOWS_BUILD_RESOURCES = path.resolve("../buildResources");
 const REPO_ROOT = path.resolve("../../");
-// Delete build dir if it exists
-if (fse.existsSync(BUILD_DIR)) {
-    fse.rmSync(BUILD_DIR, {recursive: true, force: true});
+if (!isGhaWinArm) {
+  // Delete build dir if it exists
+  if (fse.existsSync(BUILD_DIR)) {
+      fse.rmSync(BUILD_DIR, {recursive: true, force: true});
+  }
 }
 
 if (!isGhaWinArm) {
