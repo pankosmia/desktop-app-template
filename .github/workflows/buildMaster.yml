@@ -96,7 +96,7 @@ jobs:
 
   build-windows-arm64:
     needs: linux-arm64-prep-for-win-arm64
-    name: Windows arm64 build
+    name: Win arm64 build
     if: ${{ inputs.os == 'all' || inputs.os == 'windows' }}
     uses: ./.github/workflows/windows-build-steps.yml
     with:
