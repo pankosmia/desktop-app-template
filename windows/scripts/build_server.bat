@@ -4,11 +4,9 @@ REM Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershel
 REM Do not ask if the server is off if the -s argument is provided
 REM Specify environment as an optional non-flag argument: dev, qa, or main (default: main)
 REM Specify log level as as an optional non-flag argument: critical, normal, debug, or off (default: normal)
-REM Specify github actions as an optional non-flag argument: github-actions
 REM Specify github actions as an optional non-flag argument: gha-win-arm
 set "envArg="
 set "logArg="
-set "ghaArg="
 set "ghaArmArg="
 :loop
 IF "%~1"=="" (
@@ -18,9 +16,6 @@ IF "%~1"=="-s" (
   set "askIfOff=%~1"
   shift
   goto :loop
-)
-IF not defined ghaArg (
-  IF "%~1"=="github-actions" ( set "ghaArg=1" & shift & goto :loop )
 )
 IF not defined ghaArmArg (
   IF "%~1"=="gha-win-arm" ( set "ghaArmArg=1" & shift & goto :loop )
@@ -191,7 +186,7 @@ if not "%buildResult%"=="0" (
 )
 
 REM Clean the build environment (important not to for GHA Windows ARM)
-if not defined ghaArg (
+if not defined ghaArmArg (
   if exist ..\build (
     echo Removing last build environment
     rmdir ..\build /s /q
@@ -199,11 +194,11 @@ if not defined ghaArg (
 )
 
 REM Assemble the build environment
-if not exist ..\build (
-  echo "Assembling build environment..."
-  if defined ghaArmArg (
-    node build.js gha-win-arm
-  ) else (
+echo "Assembling build environment..."
+if defined ghaArmArg (
+  node build.js gha-win-arm
+) else (
+  if not exist ..\build (
     node build.js
   )
 )
