@@ -222,3 +222,11 @@ jobs:
           path: .\releases\windows\${{ env.ELECTRONITE_EXE_NAME }}
           if-no-files-found: error
           retention-days: 90
+
+        # Delete linux-arm-build-lib intermediate artifact
+      - name: Delete linux-arm-build-lib intermediate artifact
+        if: ${{ env.IS_ARM == 'True' && always() }}
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: linux-arm-build-lib
+          failOnError: false
