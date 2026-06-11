@@ -15,14 +15,15 @@ echo      *   - Created if it does not exist, otherwise      *
 echo      *     the English name (branding/software/name/en) *
 echo      *     is ensured as set to APP_NAME.               *
 echo      *                                                  *
-echo      * Optional 1st argument: "gha-arm" where Linux ARM *
-echo      * sources are in the Windows ARM build directory,  *
-echo      * bypassing slow Windows ARM runner's `npm ci`.    *
+echo      * Optional 1st argument: "gha" where Linux ARM     *
+echo      * sources are in the Windows build directory,      *
+echo      * bypassing slower Windows runners` `npm ci`       *
+echo      * (especially on Windows ARM!).                    *
 echo      ****************************************************
 echo.
 
-set "GHA_ARM_MODE="
-if /I "%~1"=="gha-arm" set "GHA_ARM_MODE=1"
+set "GHA_MODE="
+if /I "%~1"=="gha" set "GHA_MODE=1"
 
 for /F "tokens=1,2 delims==" %%a in (..\..\app_config.env) do set %%a=%%b
 
@@ -36,7 +37,7 @@ set "product=..\..\globalBuildResources\product.json"
 REM Prefixes that differ between normal and ARM (GitHub Actions Windows ARM) builds.
 REM Normal: sources are checked out as siblings at ..\..\..\<repo>
 REM ARM:    sources are staged under ..\..\windows\build\lib\...
-if defined GHA_ARM_MODE (
+if defined GHA_MODE (
   set "libClientPrefix=../../windows/build/lib/clients/"
 ) else (
   set "libClientPrefix=../../../"
@@ -103,7 +104,7 @@ for /l %%a in (1,1,%count%) do (
   )
 )
 echo     {>> %spec%
-if defined GHA_ARM_MODE (
+if defined GHA_MODE (
   echo       "src": "../../windows/build/lib/setup",>> %spec%
 ) else (
   echo       "src": "../buildResources/setup",>> %spec%

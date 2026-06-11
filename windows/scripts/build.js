@@ -6,11 +6,11 @@ require('@dotenvx/dotenvx').config({path: ['../../app_config.env'], quiet: true}
 
 // Parse optional arguments
 const args = process.argv.slice(2);
-const isGhaWinArm = args.includes('gha-win-arm');
+const isGhaWin = args.includes('gha-win');
 
 // Locations
 const BUILD_DIR = path.resolve('../build');
-if (!isGhaWinArm) {
+if (!isGhaWin) {
     if (BUILD_DIR.split("\\").length < 5) {
         throw new Error(`Deleting build dir, but the path '${BUILD_DIR}' seems dangerously short. Aborting!`);
     }
@@ -18,14 +18,14 @@ if (!isGhaWinArm) {
 const SPEC_PATH = path.resolve('../../buildSpec.json');
 const WINDOWS_BUILD_RESOURCES = path.resolve("../buildResources");
 const REPO_ROOT = path.resolve("../../");
-if (!isGhaWinArm) {
+if (!isGhaWin) {
   // Delete build dir if it exists
   if (fse.existsSync(BUILD_DIR)) {
       fse.rmSync(BUILD_DIR, {recursive: true, force: true});
   }
 }
 
-if (!isGhaWinArm) {
+if (!isGhaWin) {
     // Make build directory
     fse.mkdirSync(BUILD_DIR);
 }
@@ -78,7 +78,7 @@ fse.copySync(
     path.join(BUILD_DIR, "bin", "server.exe")
 );
 
-if (!isGhaWinArm) {
+if (!isGhaWin) {
     // Make lib directory
     const libDirPath = path.join(BUILD_DIR, "lib");
     fse.mkdirSync(libDirPath);
@@ -198,7 +198,7 @@ const fixWindowsUtf8 = (srcFilePath, destFilePath) => {
     });
 };
 
-if (!isGhaWinArm) {
+if (!isGhaWin) {
     const PAGED_JS = path.resolve(spec['lib'][0]['src'] + '/pdf/paged.polyfill.js');
     fixWindowsUtf8(PAGED_JS, BUILD_DIR + '/lib/' + spec['lib'][0]['targetName'] + '/pdf/paged.polyfill.js')
 }

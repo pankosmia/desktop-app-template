@@ -5,7 +5,7 @@ require('@dotenvx/dotenvx').config({path: ['../../app_config.env'], quiet: true}
 
 // Parse optional arguments
 const args = process.argv.slice(2);
-const isGhaPreWinArm = args.includes('gha-pre-win-arm');
+const isGhaPreWin = args.includes('gha-pre-win');
 
 // Locations
 const BUILD_DIR = path.resolve('../build');
@@ -27,7 +27,7 @@ const APP_NAME = spec['app']['name']
 const FILE_APP_NAME = spec['app']['name'].toLowerCase().replace(/ /g, "-");
 const APP_VERSION = process.env.APP_VERSION;
 
-if (!isGhaPreWinArm) {
+if (!isGhaPreWin) {
     // Copy Rocket config
     fse.copySync(
         path.join(REPO_ROOT, "Rocket.toml"),

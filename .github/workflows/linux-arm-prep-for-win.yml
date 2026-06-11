@@ -1,4 +1,4 @@
-name: Linux arm Prep for Win arm
+name: Linux arm Prep for Win
 
 on:
   workflow_call:
@@ -84,7 +84,7 @@ jobs:
       # Include an argument to not add the server to this buildSpec.json
       - name: Run app_setup.bsh
         working-directory: ./linux/scripts
-        run: ./app_setup.bsh --gha-pre-win-arm
+        run: ./app_setup.bsh --gha-pre-win
 
       - name: Run clone.bsh
         working-directory: ./linux/scripts
@@ -97,7 +97,7 @@ jobs:
       # Include an argument skipping the linux server
       - name: Run build.js
         working-directory: ./linux/scripts
-        run: node ./build.js gha-pre-win-arm
+        run: node ./build.js gha-pre-win
 
       # Package /linux/build/lib/ for the Windows ARM job to consume
       # in place of its clone.bat / build_clients.bat steps.

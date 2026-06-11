@@ -48,15 +48,24 @@ run-name: >-
   - log=${{ inputs.log_level }}
 
 jobs:
-  build:
+  preflight:
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - name: No re-runs please
+        run: |
+          if [ "$GITHUB_RUN_ATTEMPT" -gt 1 ]; then
+            echo "No re-runs. They use the commit SHA and git ref of the original event that triggered the workflow run. However, that does not extend to client and resource repos which may expect a more recent panksomia-web."
+            echo "Start a new workflow run instead."
+            exit 1
+          fi
+      - name: Show inputs
+        run: |
           echo "Branches is ${{ inputs.branches }}"
           echo "OS is ${{ inputs.os }}"
           echo "Log level is ${{ inputs.log_level }}"
 
   build-macos-x64:
+    needs: preflight
     name: macOS x64 build (Intel64)
     if: ${{ inputs.os == 'all' || inputs.os == 'macos' }}
     uses: ./.github/workflows/macos-build-steps.yml
@@ -67,6 +76,7 @@ jobs:
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
 
   build-macos-arm64:
+    needs: preflight
     name: macOS arm64 build (Apple Silicon)
     if: ${{ inputs.os == 'all' || inputs.os == 'macos' }}
     uses: ./.github/workflows/macos-build-steps.yml
@@ -76,16 +86,8 @@ jobs:
       log_level: ${{ inputs.log_level }}
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
 
-  build-windows-x64:
-    name: Win x64 build
-    if: ${{ inputs.os == 'all' || inputs.os == 'windows' }}
-    uses: ./.github/workflows/windows-build-steps.yml
-    with:
-      runner: windows-2025
-      log_level: ${{ inputs.log_level }}
-      branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
-
-  linux-arm64-prep-for-win-arm64:
+  linux-arm64-prep-for-win:
+    needs: preflight
     name: Linux arm64 Prep for Win arm64
     if: ${{ inputs.os == 'all' || inputs.os == 'windows' }}
     uses: ./.github/workflows/linux-arm-prep-for-win-arm.yml
@@ -94,8 +96,18 @@ jobs:
       log_level: ${{ inputs.log_level }}
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
 
+  build-windows-x64:
+    needs: linux-arm64-prep-for-win
+    name: Win x64 build
+    if: ${{ inputs.os == 'all' || inputs.os == 'windows' }}
+    uses: ./.github/workflows/windows-build-steps.yml
+    with:
+      runner: windows-2025
+      log_level: ${{ inputs.log_level }}
+      branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
+
   build-windows-arm64:
-    needs: linux-arm64-prep-for-win-arm64
+    needs: linux-arm64-prep-for-win
     name: Win arm64 build
     if: ${{ inputs.os == 'all' || inputs.os == 'windows' }}
     uses: ./.github/workflows/windows-build-steps.yml
@@ -105,6 +117,7 @@ jobs:
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
 
   build-linux-x64:
+    needs: preflight
     name: Linux x64 build
     if: ${{ inputs.os == 'all' || inputs.os == 'linux' }}
     uses: ./.github/workflows/linux-build-steps.yml
@@ -114,6 +127,7 @@ jobs:
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
 
   build-linux-arm64:
+    needs: preflight
     name: Linux arm64 build
     if: ${{ inputs.os == 'all' || inputs.os == 'linux' }}
     uses: ./.github/workflows/linux-build-steps.yml
@@ -122,15 +136,33 @@ jobs:
       log_level: ${{ inputs.log_level }}
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
 
+  cleanup-intermediate-artifacts:
+    needs: [linux-arm64-prep-for-win, build-windows-arm64, build-windows-x64]
+    if: ${{ !cancelled() && needs.linux-arm64-prep-for-win.result != 'skipped' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete linux-arm-build-lib intermediate artifact
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: linux-arm-build-lib
+          failOnError: false
+
   finalize:
-    needs: [build-macos-x64, build-macos-arm64, build-windows-x64, build-windows-arm64, build-linux-x64, build-linux-arm64]
+    needs:
+      - build-macos-x64
+      - build-macos-arm64
+      - build-windows-x64
+      - build-windows-arm64
+      - build-linux-x64
+      - build-linux-arm64
+      - cleanup-intermediate-artifacts
     runs-on: ubuntu-latest
     if: always()
     steps:
       # Turn off re-runs
       - name: No re-runs please
         run: |
-         if [ "$GITHUB_RUN_ATTEMPT" -gt 1 ]; then
+          if [ "$GITHUB_RUN_ATTEMPT" -gt 1 ]; then
             echo "No re-runs. They use the commit SHA and git ref of the original event that triggered the workflow run. However, that does not extend to client and resource repos which may expect a more recent panksomia-web."
             echo "Start a new workflow run instead."
             exit 1
@@ -138,7 +170,7 @@ jobs:
             echo "NOT a re-run"
           fi
 
-      # Check build status (allow skipped when OS not selected)
+      # Check build status (allow skipped when OS not selected; treat cancellation as neutral)
       - name: Check build status
         run: |
           check () {
@@ -146,19 +178,20 @@ jobs:
             result="$2"
 
             case "$result" in
-              success) echo "$job: success" ;;
-              skipped) echo "$job: skipped" ;;
-              failure|cancelled|timed_out) echo "$job: failed ($result)"; exit 1 ;;
-              *) echo "$job: failed (unknown result: $result)"; exit 1 ;;
+              success)            echo "$job: success" ;;
+              skipped)            echo "$job: skipped" ;;
+              cancelled)          echo "$job: cancelled (neutral)" ;;
+              failure|timed_out)  echo "$job: failed ($result)"; exit 1 ;;
+              *)                  echo "$job: failed (unknown result: $result)"; exit 1 ;;
             esac
           }
 
-          check "macos-x64"  "${{ needs.build-macos-x64.result }}"
-          check "macos-arm64"    "${{ needs.build-macos-arm64.result }}"
-          check "windows-x64"      "${{ needs.build-windows-x64.result }}"
-          check "windows-arm64"      "${{ needs.build-windows-arm64.result }}"
-          check "linux-x64"        "${{ needs.build-linux-x64.result }}"
-          check "linux-arm64"        "${{ needs.build-linux-arm64.result }}"
+          check "macos-x64"     "${{ needs.build-macos-x64.result }}"
+          check "macos-arm64"   "${{ needs.build-macos-arm64.result }}"
+          check "windows-x64"   "${{ needs.build-windows-x64.result }}"
+          check "windows-arm64" "${{ needs.build-windows-arm64.result }}"
+          check "linux-x64"     "${{ needs.build-linux-x64.result }}"
+          check "linux-arm64"   "${{ needs.build-linux-arm64.result }}"
 
           echo "Selected builds completed successfully"
 

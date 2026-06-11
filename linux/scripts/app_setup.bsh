@@ -16,17 +16,17 @@ echo "     *     the English name (branding/software/name/en) *"
 echo "     *     is ensured as set to APP_NAME.               *"
 echo "     *                                                  *"
 echo "     * Options:                                         *"
-echo "     *   --gha-pre-win-arm  Omit the \"bin\" entry from   *"
+echo "     *   --gha-pre-win  Omit the \"bin\" entry from       *"
 echo "     *                      /buildSpec.json             *"
 echo "     ****************************************************"
 echo
 
 # Parse option arguments
-gha_pre_win_arm=0
+_gha_pre_win=0
 for arg in "$@"; do
   case "$arg" in
-    --gha-pre-win-arm)
-      gha_pre_win_arm=1
+    --gha-pre-win)
+      gha_pre_win=1
       ;;
     *)
       echo "Unknown option: $arg"
@@ -75,7 +75,7 @@ echo "    \"name\": \"$APP_NAME\",">> $spec
 echo "    \"version\": \"$APP_VERSION\"">> $spec
 echo "  },">> $spec
 
-if [ "$gha_pre_win_arm" -eq 0 ]; then
+if [ "$gha_pre_win" -eq 0 ]; then
   echo "  \"bin\": {">> $spec
   echo "    \"src\": \"../../local_server/target/release/local_server\"">> $spec
   echo "  },">> $spec
