@@ -22,7 +22,7 @@ echo "     ****************************************************"
 echo
 
 # Parse option arguments
-_gha_pre_win=0
+gha_pre_win=0
 for arg in "$@"; do
   case "$arg" in
     --gha-pre-win)
