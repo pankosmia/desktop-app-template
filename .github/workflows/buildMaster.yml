@@ -90,7 +90,7 @@ jobs:
     needs: preflight
     name: Linux arm64 Prep for Win arm64
     if: ${{ inputs.os == 'all' || inputs.os == 'windows' }}
-    uses: ./.github/workflows/linux-arm-prep-for-win-arm.yml
+    uses: ./.github/workflows/linux-arm-prep-for-win.yml
     with:
       runner: ubuntu-22.04-arm
       log_level: ${{ inputs.log_level }}
