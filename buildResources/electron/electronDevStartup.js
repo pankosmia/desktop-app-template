@@ -33,7 +33,7 @@ const { pipeline } = require('stream/promises');
 
 const FIREFOX_VERSION = '149.0.2';
 const FIREFOX_BUILD_ID = 'stable_' + FIREFOX_VERSION;
-const BROWSER_CACHE_DIR = path.join(app.getPath('userData'), 'browsers');
+const BROWSER_CACHE_DIR = path.join(app.getPath('home'), 'pankosmia', '_assets');
 
 // Where the extracted Firefox binary lives on Windows
 const FIREFOX_WIN_EXTRACT_DIR = path.join(BROWSER_CACHE_DIR, 'firefox', 'win64-' + FIREFOX_BUILD_ID);
