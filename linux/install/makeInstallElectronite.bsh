@@ -174,7 +174,6 @@ if [ "$ELECTRON_OWNER" != "$CURRENT_USER" ]; then
     exit 1
 fi
 
-
 if ! [[ $devRun =~ ^(-d) ]]; then
   chmod 755 ${APP_BASE_DIR}/linux
   cp -R ./bin ${APP_BASE_DIR}/
