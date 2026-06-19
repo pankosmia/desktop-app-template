@@ -180,12 +180,18 @@ await new Promise((resolve, reject) => {
  * Downloads Firefox on macOS/Linux using @puppeteer/browsers install().
  */
 async function downloadFirefoxDefault(event) {
+  event.sender.send('download-progress', null);
+
   await install({
     browser: 'firefox',
     buildId: FIREFOX_BUILD_ID,
     cacheDir: BROWSER_CACHE_DIR,
     onProgress: (downloadedBytes, totalBytes) => {
-      if (totalBytes > 0) {
+      if (
+        typeof downloadedBytes === 'number' &&
+        typeof totalBytes === 'number' &&
+        totalBytes > 0
+      ) {
         const percent = Math.round((downloadedBytes / totalBytes) * 100);
         event.sender.send('download-progress', percent);
       }
