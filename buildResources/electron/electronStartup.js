@@ -32,14 +32,13 @@ const puppeteer = require('puppeteer-core');
 const os = require('os');
 const { install, computeExecutablePath } = require('@puppeteer/browsers');
 const { pipeline } = require('stream/promises');
-const extractZip = require('extract-zip');
-const tar = require('tar')
 
 const FIREFOX_VERSION = '149.0.2';
 const FIREFOX_BUILD_ID = 'stable_' + FIREFOX_VERSION;
 const ASSET_CACHE_DIR = path.join(app.getPath('home'), 'pankosmia', '_assets');
-const FFMPEG_DIR = path.join(ASSET_CACHE_DIR, 'ffmpeg');
-const FFMPEG_VERSION = '7.1.5';
+const FFMPEG_BASE_DIR = path.join(ASSET_CACHE_DIR, 'ffmpeg');
+const FFMPEG_VERSION = 'current_on_download';
+const FFMPEG_DIR = path.join(FFMPEG_BASE_DIR, FFMPEG_VERSION);
 
 // Where the extracted Firefox binary lives on Windows
 const FIREFOX_WIN_EXTRACT_DIR = path.join(ASSET_CACHE_DIR, 'firefox', 'win64-' + FIREFOX_BUILD_ID);
@@ -90,10 +89,14 @@ let canClose = true;
 // ffmpeg details
 function getPlatformInfo() {
   if (process.platform === 'win32') {
+    if (process.arch !== 'x64') {
+      throw new Error(`Unsupported Windows architecture: ${process.arch}`);
+    }
+
     return {
       archiveExt: 'zip',
       executableName: 'ffmpeg.exe',
-      downloadUrl: `https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip`,
+      downloadUrl: 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip',
     };
   }
 
@@ -101,41 +104,56 @@ function getPlatformInfo() {
     return {
       archiveExt: 'zip',
       executableName: 'ffmpeg',
-      // replace with your preferred pinned mac build source
-      downloadUrl: `https://evermeet.cx/ffmpeg/ffmpeg-7.0.2.zip`,
+      downloadUrl: 'https://evermeet.cx/ffmpeg/getrelease/zip',
     };
   }
 
-  return {
-    archiveExt: 'tar.xz',
-    executableName: 'ffmpeg',
-    // replace with your preferred pinned linux static build source
-    downloadUrl: `https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz`,
-  };
+  if (process.platform === 'linux') {
+    if (process.arch === 'x64') {
+      return {
+        archiveExt: 'tar.xz',
+        executableName: 'ffmpeg',
+        downloadUrl: 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz',
+      };
+    }
+
+    if (process.arch === 'arm64') {
+      return {
+        archiveExt: 'tar.xz',
+        executableName: 'ffmpeg',
+        downloadUrl: 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-arm64-static.tar.xz',
+      };
+    }
+
+    throw new Error(`Unsupported Linux architecture: ${process.arch}`);
+  }
+
+  throw new Error(`Unsupported platform: ${process.platform}`);
 }
 
 function getFfmpegExecutablePath() {
   const executableName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
 
-  const candidates = [];
-
   if (!fs.existsSync(FFMPEG_DIR)) return null;
 
-  function walk(dir) {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const stack = [FFMPEG_DIR];
+
+  while (stack.length) {
+    const current = stack.pop();
+    const entries = fs.readdirSync(current, { withFileTypes: true });
+
     for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
+      const fullPath = path.join(current, entry.name);
+
       if (entry.isDirectory()) {
-        walk(fullPath);
+        stack.push(fullPath);
       } else if (entry.isFile() && entry.name === executableName) {
-        candidates.push(fullPath);
+        return fullPath;
       }
     }
   }
 
-  walk(FFMPEG_DIR);
-
-  return candidates[0] || null;
+  return null;
 }
 
 function isFfmpegInstalled() {
@@ -313,29 +331,129 @@ async function downloadToFile(url, destination, onProgress) {
   });
 }
 
+function extractZipWith7zip(zipPath, destinationDir) {
+  return new Promise((resolve, reject) => {
+    fs.mkdirSync(destinationDir, { recursive: true });
+
+    // Same local-require pattern as your Firefox Windows extraction
+    const _7z = require("7zip-min");
+
+    _7z.unpack(zipPath, destinationDir, (err) => {
+      if (err) {
+        reject(new Error(`7zip extraction failed: ${err.message || err}`));
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+function extractZipWithDitto(zipPath, destinationDir) {
+  return new Promise((resolve, reject) => {
+    fs.mkdirSync(destinationDir, { recursive: true });
+
+    const child = spawn("ditto", ["-x", "-k", zipPath, destinationDir]);
+
+    let stderr = "";
+
+    child.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    child.on("error", (err) => {
+      reject(new Error(`Failed to start ditto: ${err.message}`));
+    });
+
+    child.on("close", (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`ditto extraction failed with code ${code}: ${stderr}`));
+      }
+    });
+  });
+}
+
+function extractTarXzWithSystemTar(archivePath, destinationDir) {
+  return new Promise((resolve, reject) => {
+    fs.mkdirSync(destinationDir, { recursive: true });
+
+    const child = spawn("tar", ["-xJf", archivePath, "-C", destinationDir]);
+
+    let stderr = "";
+
+    child.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    child.on("error", (err) => {
+      reject(new Error(`Failed to start tar: ${err.message}`));
+    });
+
+    child.on("close", (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`tar extraction failed with code ${code}: ${stderr}`));
+      }
+    });
+  });
+}
+
 async function extractFfmpegArchive(archivePath, destinationDir, archiveExt) {
   fs.mkdirSync(destinationDir, { recursive: true });
 
-  if (archiveExt === 'zip') {
-    await extractZip(archivePath, { dir: destinationDir });
+  if (process.platform === 'win32' && archiveExt === 'zip') {
+    await extractZipWith7zip(archivePath, destinationDir);
     return;
   }
 
-  if (archiveExt === 'tar.xz') {
-    await tar.x({
-      file: archivePath,
-      cwd: destinationDir,
-    });
+  if (process.platform === 'darwin' && archiveExt === 'zip') {
+    await extractZipWithDitto(archivePath, destinationDir);
     return;
   }
 
-  throw new Error(`Unsupported archive type: ${archiveExt}`);
+  if (process.platform === 'linux' && archiveExt === 'tar.xz') {
+    await extractTarXzWithSystemTar(archivePath, destinationDir);
+    return;
+  }
+
+  throw new Error(
+    `Unsupported archive/platform combination: ${process.platform} / ${archiveExt}`,
+  );
 }
 
 function ensureExecutablePermissions(filePath) {
   if (process.platform !== 'win32') {
     fs.chmodSync(filePath, 0o755);
   }
+}
+
+function verifyFfmpegWorks(ffmpegPath) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(ffmpegPath, ["-version"]);
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout.on("data", (d) => {
+      stdout += d.toString();
+    });
+
+    child.stderr.on("data", (d) => {
+      stderr += d.toString();
+    });
+
+    child.on("error", reject);
+
+    child.on("close", (code) => {
+      if (code === 0 && /ffmpeg version/i.test(stdout || stderr)) {
+        resolve(true);
+      } else {
+        reject(new Error(`FFmpeg verification failed with exit code ${code}`));
+      }
+    });
+  });
 }
 
 async function downloadFfmpeg(event) {
@@ -345,8 +463,7 @@ async function downloadFfmpeg(event) {
 
   event.sender.send('ffmpeg-download-progress', 0);
 
-  // Optional: clean old extracted files first
-  fs.rmSync(extractDir, { recursive: true, force: true });
+  fs.rmSync(FFMPEG_BASE_DIR, { recursive: true, force: true });
   fs.mkdirSync(extractDir, { recursive: true });
 
   await downloadToFile(downloadUrl, tempArchive, (percent) => {
@@ -361,6 +478,7 @@ async function downloadFfmpeg(event) {
   }
 
   ensureExecutablePermissions(exePath);
+  await verifyFfmpegWorks(exePath);
 
   try {
     fs.unlinkSync(tempArchive);
@@ -369,32 +487,6 @@ async function downloadFfmpeg(event) {
   }
 
   event.sender.send('ffmpeg-download-progress', 100);
-}
-
-function verifyFfmpegWorks(ffmpegPath) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(ffmpegPath, ['-version']);
-    let stderr = '';
-    let stdout = '';
-
-    child.stdout.on('data', (d) => {
-      stdout += d.toString();
-    });
-
-    child.stderr.on('data', (d) => {
-      stderr += d.toString();
-    });
-
-    child.on('error', reject);
-
-    child.on('close', (code) => {
-      if (code === 0 && /ffmpeg version/i.test(stdout || stderr)) {
-        resolve(true);
-      } else {
-        reject(new Error(`FFmpeg verification failed with exit code ${code}`));
-      }
-    });
-  });
 }
 
 function InitializeMenu() {
@@ -715,9 +807,6 @@ app.whenReady().then(() => {
   ipcMain.on('download-ffmpeg', async (event) => {
     try {
       await downloadFfmpeg(event);
-
-      const exePath = getFfmpegExecutablePath();
-      await verifyFfmpegWorks(exePath);
 
       event.sender.send('ffmpeg-download-complete', true);
     } catch (err) {
