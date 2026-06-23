@@ -86,15 +86,24 @@ let canClose = true;
 // ffmpeg details
 function getPlatformInfo() {
   if (process.platform === 'win32') {
-    if (process.arch !== 'x64') {
-      throw new Error(`Unsupported Windows architecture: ${process.arch}`);
+    if (process.arch === 'x64') {
+      return {
+        archiveExt: 'zip',
+        executableName: 'ffmpeg.exe',
+        downloadUrl: 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip',
+      };
     }
 
-    return {
-      archiveExt: 'zip',
-      executableName: 'ffmpeg.exe',
-      downloadUrl: 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip',
-    };
+    if (process.arch === 'arm64') {
+      return {
+        archiveExt: '7z',
+        executableName: 'ffmpeg.exe',
+        downloadUrl:
+          'https://github.com/tordona/ffmpeg-win-arm64/releases/download/latest-autobuild-2026.06.22.0/ffmpeg-master-latest-essentials-shared-win-arm64.7z',
+      };
+    }
+
+    throw new Error(`Unsupported Windows architecture: ${process.arch}`);
   }
 
   if (process.platform === 'darwin') {
@@ -389,7 +398,7 @@ function extractTarXzWithSystemTar(archivePath, destinationDir) {
 async function extractFfmpegArchive(archivePath, destinationDir, archiveExt) {
   fs.mkdirSync(destinationDir, { recursive: true });
 
-  if (process.platform === 'win32' && archiveExt === 'zip') {
+  if (process.platform === 'win32' && (archiveExt === 'zip' || archiveExt === '7z')) {
     await extractZipWith7zip(archivePath, destinationDir);
     return;
   }
