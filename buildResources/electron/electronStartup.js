@@ -37,7 +37,7 @@ const FIREFOX_VERSION = '149.0.2';
 const FIREFOX_BUILD_ID = 'stable_' + FIREFOX_VERSION;
 const ASSET_CACHE_DIR = path.join(app.getPath('home'), 'pankosmia', '_assets');
 const FFMPEG_BASE_DIR = path.join(ASSET_CACHE_DIR, 'ffmpeg');
-const FFMPEG_VERSION = 'current_on_download';
+const FFMPEG_VERSION = '7.1.1'; // Matching url's entered for each OS/Arch
 const FFMPEG_DIR = path.join(FFMPEG_BASE_DIR, FFMPEG_VERSION);
 
 // Where the extracted Firefox binary lives on Windows
@@ -93,7 +93,8 @@ function getPlatformInfo() {
       return {
         archiveExt: 'zip',
         executableName: 'ffmpeg.exe',
-        downloadUrl: 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip',
+        downloadUrl:
+          'https://github.com/GyanD/codexffmpeg/releases/download/7.1.1/ffmpeg-7.1.1-essentials_build.zip',
       };
     }
 
@@ -102,7 +103,7 @@ function getPlatformInfo() {
         archiveExt: '7z',
         executableName: 'ffmpeg.exe',
         downloadUrl:
-          'https://github.com/tordona/ffmpeg-win-arm64/releases/latest/download/ffmpeg-master-latest-essentials-shared-win-arm64.7z',
+          'https://github.com/tordona/ffmpeg-win-arm64/releases/download/7.1.1/ffmpeg-7.1.1-essentials-shared-win-arm64.7z',
       };
     }
 
@@ -110,27 +111,43 @@ function getPlatformInfo() {
   }
 
   if (process.platform === 'darwin') {
-    return {
-      archiveExt: 'zip',
-      executableName: 'ffmpeg',
-      downloadUrl: 'https://evermeet.cx/ffmpeg/getrelease/zip',
-    };
-  }
-
-  if (process.platform === 'linux') {
     if (process.arch === 'x64') {
       return {
-        archiveExt: 'tar.xz',
+        archiveExt: 'zip',
         executableName: 'ffmpeg',
-        downloadUrl: 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz',
+        downloadUrl:
+          'https://ffmpeg.martin-riedl.de/download/macos/amd64/1741001873_7.1.1/ffmpeg.zip',
       };
     }
 
     if (process.arch === 'arm64') {
       return {
-        archiveExt: 'tar.xz',
+        archiveExt: 'zip',
         executableName: 'ffmpeg',
-        downloadUrl: 'https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-arm64-static.tar.xz',
+        downloadUrl:
+          'https://ffmpeg.martin-riedl.de/download/macos/arm64/1741000090_7.1.1/ffmpeg.zip',
+      };
+    }
+
+    throw new Error(`Unsupported macOS architecture: ${process.arch}`);
+  }
+
+  if (process.platform === 'linux') {
+    if (process.arch === 'x64') {
+      return {
+        archiveExt: 'zip',
+        executableName: 'ffmpeg',
+        downloadUrl:
+          'https://ffmpeg.martin-riedl.de/download/linux/amd64/1741000776_7.1.1/ffmpeg.zip',
+      };
+    }
+
+    if (process.arch === 'arm64') {
+      return {
+        archiveExt: 'zip',
+        executableName: 'ffmpeg',
+        downloadUrl:
+          'https://ffmpeg.martin-riedl.de/download/linux/arm64/1740999880_7.1.1/ffmpeg.zip',
       };
     }
 
@@ -383,6 +400,32 @@ function extractZipWithDitto(zipPath, destinationDir) {
   });
 }
 
+function extractZipWithUnzip(zipPath, destinationDir) {
+  return new Promise((resolve, reject) => {
+    fs.mkdirSync(destinationDir, { recursive: true });
+
+    const child = spawn('unzip', ['-o', zipPath, '-d', destinationDir]);
+
+    let stderr = '';
+
+    child.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('error', (err) => {
+      reject(new Error(`Failed to start unzip: ${err.message}`));
+    });
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`unzip extraction failed with code ${code}: ${stderr}`));
+      }
+    });
+  });
+}
+
 function extractTarXzWithSystemTar(archivePath, destinationDir) {
   return new Promise((resolve, reject) => {
     fs.mkdirSync(destinationDir, { recursive: true });
@@ -422,8 +465,8 @@ async function extractFfmpegArchive(archivePath, destinationDir, archiveExt) {
     return;
   }
 
-  if (process.platform === 'linux' && archiveExt === 'tar.xz') {
-    await extractTarXzWithSystemTar(archivePath, destinationDir);
+  if (process.platform === 'linux' && archiveExt === 'zip') {
+    await extractZipWithUnzip(archivePath, destinationDir);
     return;
   }
 
