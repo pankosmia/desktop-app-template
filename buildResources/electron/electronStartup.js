@@ -102,7 +102,7 @@ function getPlatformInfo() {
         archiveExt: '7z',
         executableName: 'ffmpeg.exe',
         downloadUrl:
-          'https://github.com/tordona/ffmpeg-win-arm64/releases/download/latest-autobuild-2026.06.22.0/ffmpeg-master-latest-essentials-shared-win-arm64.7z',
+          'https://github.com/tordona/ffmpeg-win-arm64/releases/latest/download/ffmpeg-master-latest-essentials-shared-win-arm64.7z',
       };
     }
 
