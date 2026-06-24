@@ -83,7 +83,70 @@ getPort()
 app.name = '${APP_NAME}';
 let canClose = true;
 
-// ffmpeg details
+
+// Does user already have ffmpeg installed?
+function getSystemFfmpegCommandName() {
+  return process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
+}
+
+async function getSystemFfmpegCommand() {
+  const command = getSystemFfmpegCommandName();
+
+  try {
+    await verifyFfmpegWorks(command);
+    return command;
+  } catch {
+    return null;
+  }
+}
+
+function verifyFfmpegWorks(ffmpegPathOrCommand) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(ffmpegPathOrCommand, ['-version']);
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (d) => {
+      stdout += d.toString();
+    });
+
+    child.stderr.on('data', (d) => {
+      stderr += d.toString();
+    });
+
+    child.on('error', reject);
+
+    child.on('close', (code) => {
+      if (code === 0 && /ffmpeg version/i.test(stdout || stderr)) {
+        resolve(true);
+      } else {
+        reject(new Error(`FFmpeg verification failed with exit code ${code}`));
+      }
+    });
+  });
+}
+
+async function getAvailableFfmpegPath() {
+  const bundledPath = getBundledFfmpegExecutablePath();
+  if (bundledPath && fs.existsSync(bundledPath)) {
+    try {
+      await verifyFfmpegWorks(bundledPath);
+      return bundledPath;
+    } catch {
+      // ignore broken bundled install
+    }
+  }
+
+const systemCommand = await getSystemFfmpegCommand();
+if (systemCommand) {
+  return systemCommand;
+}
+
+  return null;
+}
+
+// ffmpeg install details
 function getPlatformInfo() {
   if (process.platform === 'win32') {
     if (process.arch === 'x64') {
@@ -154,7 +217,7 @@ function getPlatformInfo() {
   throw new Error(`Unsupported platform: ${process.platform}`);
 }
 
-function getFfmpegExecutablePath() {
+function getBundledFfmpegExecutablePath() {
   const executableName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
 
   if (!fs.existsSync(FFMPEG_DIR)) return null;
@@ -179,13 +242,9 @@ function getFfmpegExecutablePath() {
   return null;
 }
 
-function isFfmpegInstalled() {
-  try {
-    const exePath = getFfmpegExecutablePath();
-    return !!exePath && fs.existsSync(exePath);
-  } catch {
-    return false;
-  }
+async function isFfmpegInstalled() {
+  const ffmpegPath = await getAvailableFfmpegPath();
+  return !!ffmpegPath;
 }
 
 // Helper to get the Firefox executable path (used by generate-pdf)
@@ -257,15 +316,15 @@ async function downloadFirefoxWindows(event) {
   console.log('Download complete, extracting...');
   event.sender.send('download-progress', 100);
 
-// Step 2: Extract the self-extracting 7z archive
-const _7z = require('7zip-min');
+  // Step 2: Extract the self-extracting 7z archive
+  const _7z = require('7zip-min');
 
-await new Promise((resolve, reject) => {
-  _7z.unpack(tempExe, extractDir, (err) => {
-    if (err) reject(new Error(`Firefox extraction failed: ${err.message}`));
-    else resolve();
+  await new Promise((resolve, reject) => {
+    _7z.unpack(tempExe, extractDir, (err) => {
+      if (err) reject(new Error(`Firefox extraction failed: ${err.message}`));
+      else resolve();
+    });
   });
-});
 
   // Step 3: Clean up temp file
   try {
@@ -467,33 +526,6 @@ function ensureExecutablePermissions(filePath) {
   }
 }
 
-function verifyFfmpegWorks(ffmpegPath) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(ffmpegPath, ["-version"]);
-
-    let stdout = "";
-    let stderr = "";
-
-    child.stdout.on("data", (d) => {
-      stdout += d.toString();
-    });
-
-    child.stderr.on("data", (d) => {
-      stderr += d.toString();
-    });
-
-    child.on("error", reject);
-
-    child.on("close", (code) => {
-      if (code === 0 && /ffmpeg version/i.test(stdout || stderr)) {
-        resolve(true);
-      } else {
-        reject(new Error(`FFmpeg verification failed with exit code ${code}`));
-      }
-    });
-  });
-}
-
 async function downloadFfmpeg(event) {
   const { archiveExt, downloadUrl } = getPlatformInfo();
   const tempArchive = path.join(os.tmpdir(), `ffmpeg-${Date.now()}.${archiveExt}`);
@@ -510,7 +542,7 @@ async function downloadFfmpeg(event) {
 
   await extractFfmpegArchive(tempArchive, extractDir, archiveExt);
 
-  const exePath = getFfmpegExecutablePath();
+  const exePath = getBundledFfmpegExecutablePath();
   if (!exePath || !fs.existsSync(exePath)) {
     throw new Error('FFmpeg extraction succeeded but executable was not found.');
   }
@@ -792,7 +824,11 @@ app.whenReady().then(() => {
 
   // Ensure ffmpeg is installed before using
   ipcMain.handle('check-ffmpeg-installed', async () => {
-    return isFfmpegInstalled();
+    return await isFfmpegInstalled();
+  });
+
+  ipcMain.handle('get-ffmpeg-path', async () => {
+    return await getAvailableFfmpegPath();
   });
 
   ipcMain.on('download-ffmpeg', async (event) => {
