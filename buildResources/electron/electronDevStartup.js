@@ -346,54 +346,87 @@ function handleSetCanClose(event, newCanClose) {
   canClose = newCanClose;
 }
 
+// Accorde la permission micro sans prompt OS : l'app est l'hôte de son propre
+// contenu servi sur 127.0.0.1, donc le sélecteur de micro du recorder OBS peut
+// énumérer les périphériques (labels remplis) et enregistrer directement.
+function installAudioCaptureHandlers(ses) {
+    ses.setPermissionRequestHandler((webContents, permission, callback) => {
+        callback(permission === 'media' || permission === 'audioCapture');
+    });
+    ses.setPermissionCheckHandler((webContents, permission) => {
+        return permission === 'media' || permission === 'audioCapture';
+    });
+}
+
 function createWindow() {
   console.log("resourcesDir is " + env.APP_RESOURCES_DIR);
 
-  delay(500).then(() => {
-    // console.log('createWindow() - dev viewer');
-    const win = new BrowserWindow({
-      width: 1024,
-      height: 768,
-      minWidth: 900,
-      minHeight: 600,
-      autoHideMenuBar: false,
-      show: false, // Don't show until ready to maximize
-      icon: path.join(__dirname, "favicon.png"),
-      webPreferences: {
-        preload: path.join(__dirname, "preload.js"),
-        nodeIntegration: false, //default is also false. True leads to console error.
-        contextIsolation: true, //default is also true. What is the impact of changing this to false?
-        enableRemoteModule: false, //default is also false. What is the impact of changing this to true?
-        sandbox: false, // default is also false
-      },
-    });
+  console.log('resourcesDir is ' + env.APP_RESOURCES_DIR);
 
-    win.once("ready-to-show", () => {
-      win.maximize();
-      win.show();
-      setTimeout(() => {
-        InitializeMenu();
-        win.show();
-        win.maximize();
-      }, 300);
-    });
+    delay(500).then(() => {
+        // console.log('createWindow() - dev viewer');
+        const win = new BrowserWindow({
+            width: 1024,
+            height: 768,
+            minWidth: 900,
+            minHeight: 600,
+            autoHideMenuBar: false,
+            show: false,  // Don't show until ready to maximize
+            icon: path.join(__dirname, 'favicon.png'),
+            webPreferences: {
+                preload: path.join(__dirname, 'preload.js'),
+                nodeIntegration: false, //default is also false. True leads to console error.
+                contextIsolation: true, //default is also true. What is the impact of changing this to false?
+                enableRemoteModule: false, //default is also false. What is the impact of changing this to true?
+                sandbox: false, // default is also false
+              }
+        });
 
-    // Show a dialog to the user to confirm the close
-    win.on("close", (event) => {
-      if (!canClose) {
-        event.preventDefault();
-        dialog
-          .showMessageBox(win, {
-            type: "question",
-            title: "Unsaved changes",
-            message:
-              "You have unsaved changes. Are you sure you want to close the application?",
-            buttons: ["Yes", "No"],
-          })
-          .then((result) => {
-            if (result.response === 0) {
-              canClose = true;
-              win.close();
+        installAudioCaptureHandlers(win.webContents.session);
+
+        win.once('ready-to-show', () => {
+            win.maximize();
+            win.show();
+            setTimeout(() => {
+                InitializeMenu();
+                win.show();
+                win.maximize();
+              }, 300);
+        });
+
+        // Show a dialog to the user to confirm the close
+        win.on('close', (event) => {
+            if (!canClose) {
+                event.preventDefault();
+                dialog.showMessageBox(win, {
+                    type: 'question',
+                    title: 'Unsaved changes',
+                    message: 'You have unsaved changes. Are you sure you want to close the application?',
+                    buttons: ['Yes', 'No'],
+                }).then((result) => {
+                    if (result.response === 0) {
+                        canClose = true;
+                        win.close();
+                    }
+                });
+            }
+        });
+
+        // Show a dialog to the user switch pages
+        win.webContents.on('will-navigate', async (event, url) => {
+            if (!canClose) {
+                event.preventDefault();
+                dialog.showMessageBox(win, {
+                    title: 'Unsaved changes',
+                    type: 'question',
+                    message: 'You have unsaved changes. Are you sure you want to leave this page?',
+                    buttons: ['Yes', 'No'],
+                }).then((result) => {
+                    if (result.response === 0) {
+                        canClose = true;
+                        win.loadURL(url);
+                    }
+                });
             }
           });
       }
