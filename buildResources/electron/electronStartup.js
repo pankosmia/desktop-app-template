@@ -140,10 +140,10 @@ async function getAvailableFfmpegPath() {
     }
   }
 
-const systemCommand = await getSystemFfmpegCommand();
-if (systemCommand) {
-  return systemCommand;
-}
+  const systemCommand = await getSystemFfmpegCommand();
+  if (systemCommand) {
+    return systemCommand;
+  }
 
   return null;
 }

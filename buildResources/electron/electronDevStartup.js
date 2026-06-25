@@ -161,10 +161,10 @@ async function getAvailableFfmpegPath() {
     }
   }
 
-const systemCommand = await getSystemFfmpegCommand();
-if (systemCommand) {
-  return systemCommand;
-}
+  const systemCommand = await getSystemFfmpegCommand();
+  if (systemCommand) {
+    return systemCommand;
+  }
 
   return null;
 }
@@ -342,15 +342,15 @@ async function downloadFirefoxWindows(event) {
   console.log("Download complete, extracting...");
   event.sender.send("download-progress", 100);
 
-    // Step 2: Extract the self-extracting 7z archive
-    const _7z = require("7zip-min");
+  // Step 2: Extract the self-extracting 7z archive
+  const _7z = require("7zip-min");
 
-    await new Promise((resolve, reject) => {
-      _7z.unpack(tempExe, extractDir, (err) => {
-        if (err) reject(new Error(`Firefox extraction failed: ${err.message}`));
-        else resolve();
-      });
+  await new Promise((resolve, reject) => {
+    _7z.unpack(tempExe, extractDir, (err) => {
+      if (err) reject(new Error(`Firefox extraction failed: ${err.message}`));
+      else resolve();
     });
+  });
 
   // Step 3: Clean up temp file
   try {
