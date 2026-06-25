@@ -366,7 +366,7 @@ async function downloadFirefoxDefault(event) {
     browser: 'firefox',
     buildId: FIREFOX_BUILD_ID,
     cacheDir: ASSET_CACHE_DIR,
-    onProgress: (downloadedBytes, totalBytes) => {
+    downloadProgressCallback: (downloadedBytes, totalBytes) => {
       if (
         typeof downloadedBytes === 'number' &&
         typeof totalBytes === 'number' &&
