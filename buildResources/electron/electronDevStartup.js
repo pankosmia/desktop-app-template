@@ -706,6 +706,18 @@ function handleSetCanClose(event, newCanClose) {
   canClose = newCanClose;
 }
 
+// Accorde la permission micro sans prompt OS : l'app est l'hôte de son propre
+// contenu servi sur 127.0.0.1, donc le sélecteur de micro du recorder OBS peut
+// énumérer les périphériques (labels remplis) et enregistrer directement.
+function installAudioCaptureHandlers(ses) {
+    ses.setPermissionRequestHandler((webContents, permission, callback) => {
+        callback(permission === 'media' || permission === 'audioCapture');
+    });
+    ses.setPermissionCheckHandler((webContents, permission) => {
+        return permission === 'media' || permission === 'audioCapture';
+    });
+}
+
 function createWindow() {
   console.log("resourcesDir is " + env.APP_RESOURCES_DIR);
 
@@ -727,6 +739,8 @@ function createWindow() {
         sandbox: false, // default is also false
       },
     });
+
+    installAudioCaptureHandlers(win.webContents.session);
 
     win.once("ready-to-show", () => {
       win.maximize();
