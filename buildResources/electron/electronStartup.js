@@ -940,28 +940,47 @@ app.whenReady().then(() => {
     return JSON.parse(JSON.stringify(uploadResult.uuid));
   });
   ipcMain.handle("generate-pdf-final", async (event, uuid) => {
-  const response = await fetch(
-    `http://127.0.0.1:${env.ROCKET_PORT}/api/temp/bytes/${uuid}`,
-    {
-      method: "GET",
+    const response = await fetch(
+      `http://127.0.0.1:${env.ROCKET_PORT}/api/temp/bytes/${uuid}`,
+      {
+        method: "GET",
+      }
+    );
+
+    // Convert response to binary data
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Get Downloads folder
+    const downloadsPath = app.getPath("downloads");
+
+    // Create file name
+    const filePath = path.join(downloadsPath, `document-${uuid}.pdf`);
+
+    // Write file
+    fs.writeFileSync(filePath, buffer);
+
+    return filePath;
+  });
+
+  // Ensure ffmpeg is installed before using
+  ipcMain.handle('check-ffmpeg-installed', async () => {
+    return await isFfmpegInstalled();
+  });
+
+  ipcMain.handle('get-ffmpeg-path', async () => {
+    return await getAvailableFfmpegPath();
+  });
+
+  ipcMain.on('download-ffmpeg', async (event) => {
+    try {
+      await downloadFfmpeg(event);
+      event.sender.send('ffmpeg-download-complete', true);
+    } catch (err) {
+      console.error('FFmpeg download failed:', err);
+      event.sender.send('ffmpeg-download-complete', false, err.message);
     }
-  );
-
-  // Convert response to binary data
-  const arrayBuffer = await response.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
-  // Get Downloads folder
-  const downloadsPath = app.getPath("downloads");
-
-  // Create file name
-  const filePath = path.join(downloadsPath, `document-${uuid}.pdf`);
-
-  // Write file
-  fs.writeFileSync(filePath, buffer);
-
-  return filePath;
-});
+  });
 
   setTimeout(createWindow, 0); // Do not wait for server to start (dev viewer)
 });
