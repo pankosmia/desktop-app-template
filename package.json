@@ -31,6 +31,7 @@
     "puppeteer-core": "^24.43.1"
   },
   "optionalDependencies": {
-    "7zip-bin": "5.2.0"
+    "7zip-bin": "5.2.0",
+    "chromium-bidi": "14.0.0"
   }
 }

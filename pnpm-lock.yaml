@@ -33,6 +33,9 @@ importers:
       7zip-bin:
         specifier: 5.2.0
         version: 5.2.0
+      chromium-bidi:
+        specifier: 14.0.0
+        version: 14.0.0(devtools-protocol@0.0.1608973)
 
 packages:
 
