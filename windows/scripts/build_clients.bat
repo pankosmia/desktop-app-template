@@ -172,13 +172,13 @@ for /l %%a in (1,1,%count%) do (
       call :checkout_branch "CLIENT" "!CLIENT%%a!"
       call :safe_pull "CLIENT" "!CLIENT%%a!"
 
-      call :log -- npm ci...
-      call :run npm ci
-      if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "npm ci"
+      call :log -- pnpm install...
+      call :run pnpm install
+      if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "pnpm install"
 
-      call :log -- npm run build...
-      call :run npm run build
-      if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "npm run build"
+      call :log -- pnpm run build...
+      call :run pnpm run build
+      if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "pnpm run build"
 
       call :log ################################ END Client %%a: !CLIENT%%a! ################################
       call :log
