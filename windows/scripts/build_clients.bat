@@ -181,7 +181,7 @@ for /l %%a in (1,1,%count%) do (
 
       if /I "!CLIENT%%a!"=="core-client-dashboard" (
         call :log -- temporarily adding @mui/icons-material...
-        call :run pnpm add @mui/icons-material
+        call :run pnpm add @mui/icons-material@6.5.0
       ) else if /I "!CLIENT%%a!"=="core-client-i18n-editor" (
         call :log -- temporarily adding notistack...
         call :run pnpm add notistack
