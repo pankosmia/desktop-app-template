@@ -178,6 +178,10 @@ for /l %%a in (1,1,%count%) do (
 
       call :log -- pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile ...
       call :run pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile
+
+      call :log -- temporarily adding missing shared build deps...
+      call :run pnpm add @mui/icons-material notistack --no-save
+
       if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile"
 
       call :log -- pnpm --config.dangerouslyAllowAllBuilds=true run build ...
