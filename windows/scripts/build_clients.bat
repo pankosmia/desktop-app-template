@@ -16,7 +16,7 @@ REM   .\build_clients.bat my-branch qa -d        # tries my-branch → qa → ma
 REM   .\build_clients.bat -f -d dev              # fresh clones (skips pulling), delete logs, branch=dev → qa → main
 
 REM Temporary until migration from npm to pnpm is complete
-set npm_config_only_built_dependencies=esbuild
+set npm_config_only_built_dependencies=esbuild,core-js-pure
 
 set "SCRIPT_DIR=%~dp0"
 set "deleteLogs="
