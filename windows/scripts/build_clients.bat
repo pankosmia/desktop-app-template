@@ -179,8 +179,22 @@ for /l %%a in (1,1,%count%) do (
       call :log -- pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile ...
       call :run pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile
 
-      call :log -- temporarily adding missing shared build deps...
-      call :run pnpm add @mui/icons-material notistack --no-save
+      if /I "!CLIENT%%a!"=="core-client-dashboard" (
+        call :log -- temporarily adding @mui/icons-material...
+        call :run pnpm add @mui/icons-material
+      ) else if /I "!CLIENT%%a!"=="core-client-i18n-editor" (
+        call :log -- temporarily adding notistack...
+        call :run pnpm add notistack
+      ) else if /I "!CLIENT%%a!"=="core-client-settings" (
+        call :log -- temporarily adding notistack...
+        call :run pnpm add notistack
+      ) else if /I "!CLIENT%%a!"=="core-contenthandler_t_core" (
+        call :log -- temporarily adding notistack...
+        call :run pnpm add notistack
+      ) else if /I "!CLIENT%%a!"=="core-client_pdf_publisher" (
+        call :log -- temporarily adding notistack...
+        call :run pnpm add notistack
+      )
 
       if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile"
 
