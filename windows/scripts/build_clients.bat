@@ -15,6 +15,9 @@ REM   .\build_clients.bat my-branch dev          # tries my-branch → dev → q
 REM   .\build_clients.bat my-branch qa -d        # tries my-branch → qa → main, deletes past logs
 REM   .\build_clients.bat -f -d dev              # fresh clones (skips pulling), delete logs, branch=dev → qa → main
 
+REM Temporary until migration from npm to pnpm is complete
+set npm_config_only_built_dependencies=esbuild
+
 set "SCRIPT_DIR=%~dp0"
 set "deleteLogs="
 set "BRANCH="
@@ -172,9 +175,9 @@ for /l %%a in (1,1,%count%) do (
       call :checkout_branch "CLIENT" "!CLIENT%%a!"
       call :safe_pull "CLIENT" "!CLIENT%%a!"
 
-      call :log -- pnpm install --no-frozen-lockfile --config.only-built-dependencies=esbuild...
-      call :run pnpm install --no-frozen-lockfile --config.only-built-dependencies=esbuild
-      if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "pnpm install --no-frozen-lockfile --config.only-built-dependencies=esbuild"
+      call :log -- pnpm install --no-frozen-lockfile ...
+      call :run pnpm install --no-frozen-lockfile
+      if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "pnpm install --no-frozen-lockfile"
 
       call :log -- pnpm run build...
       call :run pnpm run build
