@@ -192,7 +192,8 @@ for /l %%a in (1,1,%count%) do (
         call :log -- temporarily adding notistack...
         call :run pnpm add notistack
       ) else if /I "!CLIENT%%a!"=="core-client_pdf_publisher" (
-        call :log -- temporarily adding notistack...
+        call :log -- temporarily adding @mui/icons-material and notistack...
+        call :run pnpm add @mui/icons-material@6.1.5
         call :run pnpm add notistack
       )
 
