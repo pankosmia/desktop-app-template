@@ -15,9 +15,6 @@ REM   .\build_clients.bat my-branch dev          # tries my-branch → dev → q
 REM   .\build_clients.bat my-branch qa -d        # tries my-branch → qa → main, deletes past logs
 REM   .\build_clients.bat -f -d dev              # fresh clones (skips pulling), delete logs, branch=dev → qa → main
 
-REM Temporary until migration from npm to pnpm is complete
-set npm_config_only_built_dependencies=esbuild,core-js-pure
-
 set "SCRIPT_DIR=%~dp0"
 set "deleteLogs="
 set "BRANCH="
@@ -174,6 +171,12 @@ for /l %%a in (1,1,%count%) do (
       cd !CLIENT%%a!
       call :checkout_branch "CLIENT" "!CLIENT%%a!"
       call :safe_pull "CLIENT" "!CLIENT%%a!"
+
+      if not exist .npmrc (
+        call :log -- writing temporary .npmrc for pnpm build approvals...
+        > .npmrc echo onlyBuiltDependencies[]=esbuild
+        >> .npmrc echo onlyBuiltDependencies[]=core-js-pure
+      )
 
       call :log -- pnpm install --no-frozen-lockfile ...
       call :run pnpm install --no-frozen-lockfile
