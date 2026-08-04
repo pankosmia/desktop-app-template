@@ -172,19 +172,17 @@ for /l %%a in (1,1,%count%) do (
       call :checkout_branch "CLIENT" "!CLIENT%%a!"
       call :safe_pull "CLIENT" "!CLIENT%%a!"
 
-      if not exist .npmrc (
-        call :log -- writing temporary .npmrc for pnpm build approvals...
-        > .npmrc echo onlyBuiltDependencies[]=esbuild
-        >> .npmrc echo onlyBuiltDependencies[]=core-js-pure
-      )
+      REM Temporary until migration from npm to pnpm is complete
+      set CI=true
+      set npm_config_dangerously_allow_all_builds=true
 
-      call :log -- pnpm install --no-frozen-lockfile ...
-      call :run pnpm install --no-frozen-lockfile
-      if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "pnpm install --no-frozen-lockfile"
+      call :log -- pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile ...
+      call :run pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile
+      if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile"
 
-      call :log -- pnpm run build...
-      call :run pnpm run build
-      if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "pnpm run build"
+      call :log -- pnpm --config.dangerouslyAllowAllBuilds=true run build ...
+      call :run pnpm --config.dangerouslyAllowAllBuilds=true run build
+      if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "pnpm --config.dangerouslyAllowAllBuilds=true run build"
 
       call :log ################################ END Client %%a: !CLIENT%%a! ################################
       call :log
