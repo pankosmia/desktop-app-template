@@ -172,9 +172,9 @@ for /l %%a in (1,1,%count%) do (
       call :checkout_branch "CLIENT" "!CLIENT%%a!"
       call :safe_pull "CLIENT" "!CLIENT%%a!"
 
-      call :log -- pnpm install...
-      call :run pnpm install
-      if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "pnpm install"
+      call :log -- pnpm install --no-frozen-lockfile --config.only-built-dependencies=esbuild...
+      call :run pnpm install --no-frozen-lockfile --config.only-built-dependencies=esbuild
+      if errorlevel 1 call :markfail "CLIENT" "!CLIENT%%a!" "pnpm install --no-frozen-lockfile --config.only-built-dependencies=esbuild"
 
       call :log -- pnpm run build...
       call :run pnpm run build
