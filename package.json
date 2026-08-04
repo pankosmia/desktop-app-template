@@ -16,6 +16,11 @@
     "url": "https://github.com/pankosmia/desktop-app-template/issues"
   },
   "homepage": "https://github.com/pankosmia/desktop-app-template#readme",
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=24",
+    "pnpm": "11.20.0"
+  },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.44.2",
     "@puppeteer/browsers": "^2.13.1",
