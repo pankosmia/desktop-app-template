@@ -36,6 +36,9 @@ importers:
       agent-base:
         specifier: 7.1.4
         version: 7.1.4
+      b4a:
+        specifier: 1.0.1
+        version: 1.0.1
       chromium-bidi:
         specifier: 14.0.0
         version: 14.0.0(devtools-protocol@0.0.1608973)
@@ -45,6 +48,15 @@ importers:
       devtools-protocol:
         specifier: 0.0.1608973
         version: 0.0.1608973
+      end-of-stream:
+        specifier: 1.4.5
+        version: 1.4.5
+      events-universal:
+        specifier: 1.0.1
+        version: 1.0.1
+      fast-fifo:
+        specifier: 1.3.2
+        version: 1.3.2
       lru-cache:
         specifier: 7.18.3
         version: 7.18.3
@@ -54,6 +66,9 @@ importers:
       ms:
         specifier: 2.1.3
         version: 2.1.3
+      once:
+        specifier: 1.4.0
+        version: 1.4.0
       progress:
         specifier: 2.0.3
         version: 2.0.3
@@ -63,15 +78,33 @@ importers:
       proxy-from-env:
         specifier: 1.1.0
         version: 1.1.0
+      pump:
+        specifier: 3.0.4
+        version: 3.0.4
       semver:
         specifier: 7.8.5
         version: 7.8.5
+      streamx:
+        specifier: 2.28.0
+        version: 2.28.0
+      tar-fs:
+        specifier: 3.1.3
+        version: 3.1.3
+      tar-stream:
+        specifier: 3.2.0
+        version: 3.2.0
+      text-decoder:
+        specifier: 1.2.7
+        version: 1.2.7
       typed-query-selector:
         specifier: 2.12.2
         version: 2.12.2
       webdriver-bidi-protocol:
         specifier: 0.4.1
         version: 0.4.1
+      wrappy:
+        specifier: 1.0.2
+        version: 1.0.2
       ws:
         specifier: 8.21.2
         version: 8.21.2
@@ -142,6 +175,9 @@ packages:
   atomically@1.7.0:
     resolution: {integrity: sha512-Xcz9l0z7y9yQ9rdDaxlmaI4uJHf/T8g9hOEzJcsEqX2SjCj4J20uK7+ldkDHMbpJDK76wF7xEIgxc/vSlsfw5w==}
     engines: {node: '>=10.12.0'}
+
+  b4a@1.0.1:
+    resolution: {integrity: sha512-FNuY5WpUqRNITgg8o9459kvjVrIUA4w9oO7nptPIBsF+zmrqlDZcMP+B42P3d69EopNEyEdejkXn7aiT1WhM0g==}
 
   b4a@1.8.1:
     resolution: {integrity: sha512-aiqre1Nr0B/6DgE2N5vwTc+2/oQZ4Wh1t4NznYY4E00y8LCt6NqdRv81so00oo27D8MVKTpUa/MwUUtBLXCoDw==}
@@ -766,6 +802,9 @@ snapshots:
       tslib: 2.8.1
 
   atomically@1.7.0: {}
+
+  b4a@1.0.1:
+    optional: true
 
   b4a@1.8.1: {}
 
