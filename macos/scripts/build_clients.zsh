@@ -275,11 +275,37 @@ for ((i=1;i<=count;i++)); do
       checkout_branch "CLIENT" "$client"
       safe_pull "CLIENT" "$client"
 
-      log "> npm ci..."
-      if ! run npm ci; then markfail "CLIENT" "$client" "npm ci"; fi
+      # Temporary until migration from npm to pnpm is complete
+      set CI=true
+      set npm_config_dangerously_allow_all_builds=true
 
-      log "> npm run build..."
-      if ! run npm run build; then markfail "CLIENT" "$client" "npm run build"; fi
+      log "> pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile ..."
+      if ! run pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile; then markfail "CLIENT" "$client" "run pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile"; fi
+
+      if "$client"=="core-client-dashboard"; then
+        log "-- temporarily adding @mui/icons-material..."
+        run pnpm add @mui/icons-material@6.5.0
+      elif "$client"=="core-client-i18n-editor"; then
+        log "-- temporarily adding notistack..."
+        run pnpm add notistack
+      elif "$client"=="core-client-settings"; then
+        log "-- temporarily adding notistack..."
+        run pnpm add notistack
+      elif "$client"=="core-contenthandler_t_core"; then
+        log "-- temporarily adding notistack, and prop-types needed by main..."
+        run pnpm add notistack
+        run pnpm add prop-types
+      elif "$client"=="core-client_pdf_publisher"; then
+        "log -- temporarily adding @mui/icons-material, notistack and proskomma-json-tools..."
+        run pnpm add @mui/icons-material@6.1.5
+        run pnpm add notistack
+        run pnpm add proskomma-json-tools
+      fi
+
+      if [[ $? -ne 0 ]]; then markfail "CLIENT" "$client" "pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile"; fi
+
+      log "run pnpm --config.dangerouslyAllowAllBuilds=true run build ..."
+      if ! run pnpm --config.dangerouslyAllowAllBuilds=true run build; then markfail "CLIENT" "$client" "run pnpm --config.dangerouslyAllowAllBuilds=true run build"; fi
 
       log "################################ END Client $i: $client ################################"
       log
