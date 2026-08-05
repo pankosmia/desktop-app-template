@@ -21,6 +21,12 @@ set "BRANCH="
 set "FALLBACK_TIER="
 set "FRESH_CLONE="
 
+REM Temporary until migration from npm to pnpm is complete
+if /I "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
+  set npm_config_dangerouslyAllowAllBuilds=true
+  set npm_config_dangerously_allow_all_builds=true
+)
+
 :loop
 if "%~1"=="" goto :continue
 if /I "%~1"=="-d" (
