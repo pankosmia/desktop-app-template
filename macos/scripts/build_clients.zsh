@@ -16,6 +16,10 @@
 #   ./build_clients.zsh my-branch qa -d       # tries my-branch → qa → main, deletes past logs
 #   ./build_clients.zsh -f -d dev              # fresh clone (skips pulling), delete logs, branch=dev → qa → main
 
+# Temporary until migration from npm to pnpm is complete
+set npm_config_dangerouslyAllowAllBuilds=true
+set npm_config_dangerously_allow_all_builds=true
+
 source ../../app_config.env
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
