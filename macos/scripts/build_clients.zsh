@@ -17,8 +17,9 @@
 #   ./build_clients.zsh -f -d dev              # fresh clone (skips pulling), delete logs, branch=dev → qa → main
 
 # Temporary until migration from npm to pnpm is complete
-set npm_config_dangerouslyAllowAllBuilds=true
-set npm_config_dangerously_allow_all_builds=true
+export CI=true
+export npm_config_dangerouslyAllowAllBuilds=true
+export npm_config_dangerously_allow_all_builds=true
 
 source ../../app_config.env
 
@@ -280,31 +281,30 @@ for ((i=1;i<=count;i++)); do
       safe_pull "CLIENT" "$client"
 
       # Temporary until migration from npm to pnpm is complete
-      set CI=true
-      set npm_config_dangerously_allow_all_builds=true
-
       log "> pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile ..."
       if ! run pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile; then markfail "CLIENT" "$client" "run pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile"; fi
 
-      if "$client"=="core-client-dashboard"; then
-        log "-- temporarily adding @mui/icons-material..."
-        run pnpm add @mui/icons-material@6.5.0
-      elif "$client"=="core-client-i18n-editor"; then
-        log "-- temporarily adding notistack..."
-        run pnpm add notistack
-      elif "$client"=="core-client-settings"; then
-        log "-- temporarily adding notistack..."
-        run pnpm add notistack
-      elif "$client"=="core-contenthandler_t_core"; then
-        log "-- temporarily adding notistack, and prop-types needed by main..."
-        run pnpm add notistack
-        run pnpm add prop-types
-      elif "$client"=="core-client_pdf_publisher"; then
-        "log -- temporarily adding @mui/icons-material, notistack and proskomma-json-tools..."
-        run pnpm add @mui/icons-material@6.1.5
-        run pnpm add notistack
-        run pnpm add proskomma-json-tools
-      fi
+      case "$client" in
+        core-client-dashboard)
+          log "-- temporarily adding @mui/icons-material..."
+          run pnpm add @mui/icons-material@6.5.0
+          ;;
+        core-client-i18n-editor|core-client-settings)
+          log "-- temporarily adding notistack..."
+          run pnpm add notistack
+          ;;
+        core-contenthandler_t_core)
+          log "-- temporarily adding notistack and prop-types..."
+          run pnpm add notistack
+          run pnpm add prop-types
+          ;;
+        core-client_pdf_publisher)
+          log "-- temporarily adding @mui/icons-material, notistack and proskomma-json-tools..."
+          run pnpm add @mui/icons-material@6.1.5
+          run pnpm add notistack
+          run pnpm add proskomma-json-tools
+          ;;
+      esac
 
       if [[ $? -ne 0 ]]; then markfail "CLIENT" "$client" "pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile"; fi
 
