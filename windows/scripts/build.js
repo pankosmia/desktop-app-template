@@ -3,7 +3,48 @@ const fse = require('fs-extra');
 const fs = require('fs');
 const copyDir = require('copy-dir');
 const crypto = require('crypto');
-require('@dotenvx/dotenvx').config({path: ['../../app_config.env'], quiet: true});
+require('@dotenvx/dotenvx').config({
+  path: ['../../app_config.env'],
+  quiet: true
+});
+
+function formatProductDatetime() {
+  const now = new Date();
+
+  const pad = (n) => String(n).padStart(2, '0');
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  const day = pad(now.getDate());
+  const month = months[now.getMonth()];
+  const year = now.getFullYear();
+  const hours = pad(now.getHours());
+  const minutes = pad(now.getMinutes());
+  const seconds = pad(now.getSeconds());
+
+  const offsetMinutes = -now.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  const offsetHours = pad(Math.floor(Math.abs(offsetMinutes) / 60));
+  const offsetMins = pad(Math.abs(offsetMinutes) % 60);
+
+  return `${day} ${month} ${year} ${hours}:${minutes}:${seconds} UTC${sign}${offsetHours}:${offsetMins}`;
+}
+
+function writeProductJson() {
+  const productPath = path.resolve(__dirname, '../../globalBuildResources/product.json');
+
+  const product = {
+    name: (process.env.APP_NAME || '').replace(/^'|'$/g, ''),
+    short_name: process.env.APP_SHORT_NAME || '',
+    version: process.env.APP_VERSION || '',
+    datetime: formatProductDatetime(),
+    homepage: process.env.HOMEPAGE || '',
+    start_offline: process.env.START_OFFLINE === 'true' ? true : false,
+  };
+
+  fs.writeFileSync(productPath, JSON.stringify(product, null, 2) + '\n', 'utf8');
+
+  return productPath;
+}
 
 // Locations
 const BUILD_DIR = path.resolve('../build');
@@ -151,11 +192,13 @@ if (spec.theme) {
 }
 
 // Product
+const generatedProductPath = writeProductJson();
+
 if (spec.product) {
-    fse.copySync(
-        path.resolve(spec.product),
-        path.join(BUILD_DIR, "lib", "app_resources", "product", "product.json")
-    );
+  fse.copySync(
+    generatedProductPath,
+    path.join(BUILD_DIR, "lib", "app_resources", "product", "product.json")
+  );
 }
 
 // i18n Overrides
@@ -201,4 +244,3 @@ const fixWindowsUtf8 = (srcFilePath, destFilePath) => {
 
 const PAGED_JS = path.resolve(spec['lib'][0]['src'] + '/pdf/paged.polyfill.js');
 fixWindowsUtf8(PAGED_JS, BUILD_DIR + '/lib/' + spec['lib'][0]['targetName'] + '/pdf/paged.polyfill.js')
-

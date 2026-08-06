@@ -161,14 +161,6 @@ if %tzH% LSS 10 set "tzH=0%tzH%"
 if %tzM% LSS 10 set "tzM=0%tzM%"
 set tz=%sign%%tzH%:%tzM%
 
-echo {>%product%
-echo   "name": "%APP_NAME:'=%",>> %product%
-echo   "short_name": "%APP_SHORT_NAME%",>> %product%
-echo   "version": "%APP_VERSION%",>> %product%
-echo   "datetime": "%dd% %mname% %yyyy% %hh%:%min%:%ss% UTC%tz%",>> %product%
-echo   "homepage": "%HOMEPAGE%">> %product%
-echo }>> %product%
-
 echo   ],>> %spec%
 echo   "favIcon": "../../globalBuildResources/favicon.ico",>> %spec%
 echo   "theme": "../../globalBuildResources/theme.json",>> %spec%
