@@ -8,7 +8,6 @@ echo      *   - \windows\buildResources\setup\app_setup.json *
 echo      *   - \macos\buildResources\setup\app_setup.json   *
 echo      *   - \linux\buildResources\setup\app_setup.json   *
 echo      *   - \buildSpec.json                              *
-echo      *   - \globalBuildResources\product.json           *
 echo      *                                                  *
 echo      * \globalBuildResources\i18nPatch.json:            *
 echo      *   - Created if it does not exist, otherwise      *
@@ -171,7 +170,6 @@ echo }>> %spec%
 echo.
 echo \buildSpec.json generated/rebuilt/replaced
 echo \globalBuildResources\i18nPatch.json generated/rebuilt/replaced
-echo \globalBuildResources\product.json generated/rebuilt/replaced
 echo \windows\buildResources\setup\app_setup.json generated/rebuilt/replaced
 echo.
 echo Copying \windows\buildResources\setup\app_setup.json to \linux\buildResources\setup\
