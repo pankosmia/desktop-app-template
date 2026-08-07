@@ -203,7 +203,7 @@ if (spec.theme) {
 const generatedProductPath = writeProductJson();
 
 if (spec.product) {
-  fse.copySync(
+  fs.copySync(
     generatedProductPath,
     path.join(BUILD_DIR, "lib", "app_resources", "product", "product.json")
   );
