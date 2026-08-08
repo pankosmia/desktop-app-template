@@ -145,7 +145,8 @@ for (const libClientSrc of spec['libClients'].map(s => path.resolve(s))) {
     // - storage_id.json
     fs.writeFileSync(
         path.join(clientDestParent, 'storage_id.json'),
-        JSON.stringify({ id: crypto.randomUUID() })
+        JSON.stringify({ id: crypto.randomUUID() }, null, 2),
+        'utf8'
     );
     // - package.json
     fs.copySync(
