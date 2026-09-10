@@ -126,11 +126,6 @@ jobs:
       - name: Install this repo
         run: pnpm install
 
-      # Setup
-      - name: Run app_setup.bat
-        working-directory: .\windows\scripts
-        run: .\app_setup.bat
-
       # Clone resources and clients
       - name: Run clone.bat
         working-directory: .\windows\scripts
