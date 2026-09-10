@@ -55,15 +55,6 @@ if ! [[ $askIfOff =~ ^(-s) ]]; then
   done
 fi
 
-if [ ! -f ../../buildSpec.json ] || [ ! -f ../../globalBuildResources/i18nPatch.json ] || [ ! -f ../../globalBuildResources/product.json ] || [ ! -f ../buildResources/setup/app_setup.json ]; then
-  ./app_setup.zsh
-  echo
-  echo "  +-----------------------------------------------------------------------------+"
-  echo "  | Config files were rebuilt by \`./app_setup.zsh\` as one or more were missing. |"
-  echo "  +-----------------------------------------------------------------------------+"
-  echo
-fi
-
 # set available port environment variable (exported as $ROCKET_PORT )
 source ../buildResources/find_free_port.sh
 echo "Serving on port $ROCKET_PORT..."
