@@ -36,7 +36,6 @@ if ($answer -eq 'Y' -Or $answer -eq '') {
         Remove-Item -Path $TEMP_DIR -Recurse -Force
     }
 
-  # The bundle_zip script will ensure the latest is checked out, the clone is installed, and the app_setup script is run
   echo "`n"
   echo "Bundling Zip..."
   echo "  - updates the build environment for the Electronite package build,"

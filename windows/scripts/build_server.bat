@@ -145,19 +145,6 @@ exit
 
 :server_off
 
-if not exist ..\..\buildSpec.json set "runSetup=1"
-if not exist ..\..\globalBuildResources\i18nPatch.json set "runSetup=1"
-if not exist ..\..\globalBuildResources\product.json set "runSetup=1"
-if not exist ..\buildResources\setup\app_setup.json set "runSetup=1"
-if defined runSetup (
-  cmd /c .\app_setup.bat
-  echo.
-  echo   +-----------------------------------------------------------------------------+
-  echo   ^| Config files were rebuilt by `.\app_setup.bat` as one or more were missing. ^|
-  echo   +-----------------------------------------------------------------------------+
-  echo.
-)
-
 REM Build the rust server of the specified build type
 echo "Building local Release server at /local_server/target/release ..."
 cd ..\..\local_server
