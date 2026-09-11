@@ -105,15 +105,6 @@ if ! [[ $askIfOff =~ ^(-s) ]]; then
   done
 fi
 
-if [ ! -f ../../buildSpec.json ] || [ ! -f ../../globalBuildResources/i18nPatch.json ] || [ ! -f ../../globalBuildResources/product.json ] || [ ! -f ../buildResources/setup/app_setup.json ]; then
-  ./app_setup.zsh
-  echo
-  echo "  +-----------------------------------------------------------------------------+"
-  echo "  | Config files were rebuilt by \`./app_setup.zsh\` as one or more were missing. |"
-  echo "  +-----------------------------------------------------------------------------+"
-  echo
-fi
-
 # Build the rust server (always release)
 echo "Building local Release server at /local_server/target/release ..."
 cd ../../local_server
