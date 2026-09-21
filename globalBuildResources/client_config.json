@@ -30,13 +30,7 @@
       ]
     }
   ],
-  "core-client_pdf_publisher": [
-    {
-      "id": "firefox",
-      "i18n": "firefox",
-      "fields": [{ "value": true, "i18n": "firefox", "id": "firefox" }]
-    }
-  ],
+
   "_global": [
     {
       "id": "internetConfig",
@@ -48,6 +42,11 @@
           "value": true
         }
       ]
+    },
+    {
+      "id": "externalTools",
+      "i18n": "external_tools",
+      "fields": [{ "value": true, "i18n": "firefox", "id": "firefox" }]
     }
   ]
 }
