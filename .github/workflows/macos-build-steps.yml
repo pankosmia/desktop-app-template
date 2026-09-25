@@ -150,15 +150,10 @@ jobs:
       # Grant execute permissions for the shell and bash scripts
       - name: Make scripts executable
         run: |
-          chmod +x ./macos/scripts/app_setup.zsh
           chmod +x ./macos/scripts/clone.zsh
           chmod +x ./macos/scripts/build_clients.zsh
           chmod +x ./macos/scripts/build_server.zsh
           chmod +x ./macos/scripts/bundle_zip.zsh
-
-      - name: Run app_setup.zsh
-        working-directory: ./macos/scripts
-        run: ./app_setup.zsh
 
       - name: Run clone.zsh
         working-directory: ./macos/scripts

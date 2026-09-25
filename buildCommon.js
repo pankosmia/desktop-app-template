@@ -3,6 +3,103 @@ const fs = require('fs-extra');
 const copyDir = require('copy-dir');
 require('@dotenvx/dotenvx').config({ path: ['../../app_config.env'], quiet: true });
 
+// --- app_config.env helpers ---------------------------------------------
+
+// Strip surrounding single quotes (used for APP_NAME with spaces).
+function unquote(v) {
+  return (v || '').replace(/^'|'$/g, '');
+}
+
+// Collect the sequential ASSET{n}/ASSET{n}_PATH/ASSET{n}_NAME trios into lib entries.
+// Stops at the first missing ASSET{n}. Yields { src, targetName } matching buildSpec.
+function collectAssetLibs() {
+  const libs = [];
+  for (let i = 1; ; i++) {
+    const asset = process.env[`ASSET${i}`];
+    if (!asset) break;
+    const assetPath = process.env[`ASSET${i}_PATH`] || '';
+    const assetName = process.env[`ASSET${i}_NAME`] || '';
+    libs.push({
+      src: `../../../${asset}${assetPath}`,
+      targetName: assetName,
+    });
+  }
+  return libs;
+}
+
+// Collect the sequential CLIENT{n} entries. Stops at first missing CLIENT{n}.
+function collectClients() {
+  const clients = [];
+  for (let i = 1; ; i++) {
+    const client = process.env[`CLIENT${i}`];
+    if (!client) break;
+    clients.push(client);
+  }
+  return clients;
+}
+
+// --- generated artifacts ------------------------------------------------
+
+// Build the in-memory spec to also replicate at /buildSpec.json as a visual copy
+function buildSpecFromEnv() {
+  const lib = collectAssetLibs();
+  // Fixed setup lib entry (holds the generated app_setup.json).
+  lib.push({ src: "../buildResources/setup", targetName: "setup" });
+
+  return {
+    app: {
+      name: unquote(process.env.APP_NAME),
+      version: process.env.APP_VERSION || '',
+    },
+    bin: {
+      src: "../../local_server/target/release/local_server",
+    },
+    lib,
+    libClients: collectClients().map(c => `../../../${c}`),
+    favIcon: "../../globalBuildResources/favicon.ico",
+    theme: "../../globalBuildResources/theme.json",
+    product: "../../globalBuildResources/product.json",
+    client_config: "../../globalBuildResources/client_config.json",
+  };
+}
+
+// Generate app_setup.json from the client list, written to the OS setup dir
+// so it is picked up by the "setup" lib entry during the copy step.
+function writeAppSetupJson() {
+  const setupDir = path.resolve('../buildResources/setup');
+  fs.mkdirpSync(setupDir);
+  const appSetup = {
+    clients: collectClients().map(c => ({ path: `%%PANKOSMIADIR%%/${c}` })),
+  };
+  const appSetupPath = path.join(setupDir, 'app_setup.json');
+  fs.writeFileSync(appSetupPath, JSON.stringify(appSetup, null, 2) + '\n', 'utf8');
+  return appSetupPath;
+}
+
+// Ensure i18nPatch.json exists with branding/software/name/en = APP_NAME.
+// If it does not exist, create the minimal file. If it does exist, only set
+// branding.software.name.en, preserving any other keys already present.
+function ensureI18nPatch() {
+  const i18nPatchPath = path.resolve('../../globalBuildResources/i18nPatch.json');
+  const appName = unquote(process.env.APP_NAME);
+
+  let patch;
+  if (fs.existsSync(i18nPatchPath)) {
+    patch = fs.readJsonSync(i18nPatchPath);
+  } else {
+    patch = {};
+  }
+  if (!patch.branding || typeof patch.branding !== 'object') patch.branding = {};
+  if (!patch.branding.software || typeof patch.branding.software !== 'object') patch.branding.software = {};
+  if (!patch.branding.software.name || typeof patch.branding.software.name !== 'object') patch.branding.software.name = {};
+  patch.branding.software.name.en = appName;
+
+  fs.writeFileSync(i18nPatchPath, JSON.stringify(patch, null, 2) + '\n', 'utf8');
+  return i18nPatchPath;
+}
+
+// --- product.json -------------------------------------------------------
+
 function formatProductDatetime() {
   const now = new Date();
   const pad = (n) => String(n).padStart(2, '0');
@@ -19,10 +116,11 @@ function formatProductDatetime() {
   const offsetMins = pad(Math.abs(offsetMinutes) % 60);
   return `${day} ${month} ${year} ${hours}:${minutes}:${seconds} UTC${sign}${offsetHours}:${offsetMins}`;
 }
+
 function writeProductJson() {
   const productPath = path.resolve('../../globalBuildResources/product.json');
   const product = {
-    name: (process.env.APP_NAME || '').replace(/^'|'$/g, ''),
+    name: unquote(process.env.APP_NAME),
     short_name: process.env.APP_SHORT_NAME || '',
     version: process.env.APP_VERSION || '',
     datetime: formatProductDatetime(),
@@ -32,6 +130,8 @@ function writeProductJson() {
   fs.writeFileSync(productPath, JSON.stringify(product, null, 2) + '\n', 'utf8');
   return productPath;
 }
+
+// --- build --------------------------------------------------------------
 
 // Per-OS configuration (cfg) from thin scripts, where "ctx" is a context object and "=> void" returns nothing:
 //   All properties are required, with null as an option where not applicable.
@@ -52,17 +152,27 @@ function build(cfg) {
   if (BUILD_DIR.split(cfg.separator).length < 5) {
     throw new Error(`Deleting build dir, but the path '${BUILD_DIR}' seems dangerously short. Aborting!`);
   }
-  const SPEC_PATH = path.resolve('../../buildSpec.json');
   const OS_BUILD_RESOURCES = path.resolve('../buildResources');
   const REPO_ROOT = path.resolve("../../");
+
+  // Generate artifacts derived from app_config.env BEFORE the build copies anything.
+  //  - app_setup.json goes into ../buildResources/setup so the "setup" lib entry picks it up.
+  //  - i18nPatch.json is created/updated so the i18n patch step below has APP_NAME.
+  writeAppSetupJson();
+  ensureI18nPatch();
+
+  // Spec, formerly loaded from buildSpec.json, now derived from env.
+  const spec = buildSpecFromEnv();
+
+  //  - Emit a visual copy of the spec.
+  const specPath = path.join(REPO_ROOT, 'buildSpec.json');
+  fs.writeFileSync(specPath, JSON.stringify(spec, null, 2) + '\n', 'utf8');
 
   // Delete build dir if it exists
   if (fs.existsSync(BUILD_DIR)) { fs.rmSync(BUILD_DIR, {recursive: true, force: true}); }
   // Make build directory
   fs.mkdirSync(BUILD_DIR);
 
-  // Load spec
-  const spec = fs.readJsonSync(path.resolve(SPEC_PATH));
   const APP_NAME = spec['app']['name'];
   const FILE_APP_NAME = spec['app']['name'].toLowerCase().replace(/ /g, "-");
   const APP_VERSION = process.env.APP_VERSION;
@@ -71,7 +181,7 @@ function build(cfg) {
   // Copy rocket config
   fs.copySync(path.join(REPO_ROOT, "Rocket.toml"), path.join(BUILD_DIR, "Rocket.toml"));
 
-  // Write Scripts -- CLI launchers, and a MacOS post install script. 
+  // Write Scripts -- CLI launchers, and a MacOS post install script.
   cfg.writeScripts({ OS_BUILD_RESOURCES, BUILD_DIR, FILE_APP_NAME, CLI_EXT, APP_NAME });
 
   // Copy port checker for CLI
@@ -162,4 +272,11 @@ function build(cfg) {
   if (cfg.postProcess) { cfg.postProcess({ BUILD_DIR, spec }); }
 }
 
-module.exports = { build, writeProductJson, formatProductDatetime };
+module.exports = {
+  build,
+  writeProductJson,
+  formatProductDatetime,
+  buildSpecFromEnv,
+  writeAppSetupJson,
+  ensureI18nPatch,
+};

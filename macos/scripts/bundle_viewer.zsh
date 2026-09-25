@@ -43,7 +43,6 @@ if [ -d $TEMP_DIR ]; then
     rm -rf $TEMP_DIR
 fi
 
-# The bundle_zip script will ensure the latest is checked out, the clone is installed, and the app_setup script is run
 echo
 echo "Bundling Zip..."
 echo "  - updates the build environment for the Electronite package build,"

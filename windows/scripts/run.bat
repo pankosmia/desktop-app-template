@@ -51,20 +51,6 @@ exit
 
 :server_off
 
-REM Identify if app_setup has already been run, and run it anything is missing.
-if not exist ..\..\buildSpec.json set "runSetup=1"
-if not exist ..\..\globalBuildResources\i18nPatch.json set "runSetup=1"
-if not exist ..\..\globalBuildResources\product.json set "runSetup=1"
-if not exist ..\buildResources\setup\app_setup.json set "runSetup=1"
-if defined runSetup (
-  cmd /c .\app_setup.bat
-  echo.
-  echo   +-----------------------------------------------------------------------------+
-  echo   ^| Config files were rebuilt by `.\app_setup.bat` as one or more were missing. ^|
-  echo   +-----------------------------------------------------------------------------+
-  echo.
-)
-
 REM set available port environment variable (returned as %ROCKET_PORT% )
 call ..\buildResources\find_free_port.bat
 echo Serving on port %ROCKET_PORT%...
