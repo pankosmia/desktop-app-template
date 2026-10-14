@@ -32,15 +32,17 @@ Specify -Dev "Y" when generating a development viewer.
 .PARAMETER FullInstall
     Specify -FullInstall $true for installing Electronite too; -FullInstall $false for updating all but Electronite (e.g., a development environment viewer update)
     - Default is $true
+
+.PARAMETER -p
+    Specify -p for Portable App
 #>
 
 param(
     [Parameter(Mandatory=$true)]
     [string]$arch,
-
     [string]$Dev = "N",
-
-    [bool]$FullInstall = $true
+    [bool]$FullInstall = $true,
+    [switch]$p
 )
 
 # Save the initial working directory
@@ -265,6 +267,76 @@ try {
       # Map internal arch token to output naming
       $env:ARCH = $arch
 
+      Set-Location -Path ".."
+      $outputPath = "..\releases\windows"
+
+      New-Item -ItemType Directory -Force -Path $outputPath | Out-Null
+
+      $packageBaseName = "$($env:FILE_APP_NAME)-$($env:APP_VERSION)-win-$arch"
+
+      if ($p.IsPresent) {
+          Write-Host "Building portable ZIP..."
+
+          # These are the same sources used by install\makeInstallElectronite.iss.
+          $payloadSource = ".\temp\project\payload\app"
+          $iconSource = "..\globalBuildResources\icon.ico"
+
+          # Create a clean directory representing Inno Setup's {app} directory.
+          $portableStage = ".\temp\project\portable-package"
+          $portableZipPath = Join-Path $outputPath "$packageBaseName-portable.zip"
+
+          if (-not (Test-Path $payloadSource)) {
+              Write-Error "Portable payload directory not found: $payloadSource"
+              exit 1
+          }
+
+          if (-not (Test-Path $iconSource)) {
+              Write-Error "Portable icon not found: $iconSource"
+              exit 1
+          }
+
+          Remove-Item -Path $portableStage -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path $portableStage -Force | Out-Null
+
+          # Equivalent to:
+          # Source: "..\temp\project\payload\app\*"; DestDir: "{app}"
+          Copy-Item `
+              -Path (Join-Path $payloadSource "*") `
+              -Destination $portableStage `
+              -Recurse `
+              -Force `
+              -ErrorAction Stop
+
+          # Equivalent to:
+          # Source: "..\..\globalBuildResources\icon.ico"; DestDir: "{app}"
+          Copy-Item `
+              -Path $iconSource `
+              -Destination (Join-Path $portableStage "icon.ico") `
+              -Force `
+              -ErrorAction Stop
+
+          Remove-Item -Path $portableZipPath -Force -ErrorAction SilentlyContinue
+
+          # Archive the contents of {app}, without an extra top-level folder.
+          Compress-Archive `
+              -Path (Join-Path $portableStage "*") `
+              -DestinationPath $portableZipPath `
+              -CompressionLevel Optimal `
+              -Force
+
+          if (-not (Test-Path $portableZipPath)) {
+              Write-Error "Portable ZIP was not created: $portableZipPath"
+              exit 1
+          }
+
+          Write-Host "Portable package created successfully: $portableZipPath"
+          exit 0
+      }
+
+      # Delete existing exe files from releases directory, only if path exists
+      Get-ChildItem -Path $outputPath -Filter "*.exe" -ErrorAction SilentlyContinue |
+          Remove-Item -Force
+
       # Call Inno Setup to create installer
       Write-Host "Building installer..."
 
@@ -274,19 +346,17 @@ try {
           exit 1
       }
 
-      Set-Location -Path ".."
-      $outputPath = "..\releases\windows"
-
-      # Delete existing exe files from releases directory, only if path exists
-      if (Test-Path "$outputPath\*.exe") {
-          Get-ChildItem -Path "$outputPath\*.exe" | Remove-Item -Force
-      }
-
       $setupScript = ".\install\makeInstallElectronite.iss"
 
       Write-Host "Current working directory: $(Get-Location)"
 
-      $process = Start-Process -FilePath $innoSetupPath -ArgumentList "/O`"$outputPath`"", $setupScript -NoNewWindow -Wait -PassThru
+      $process = Start-Process `
+          -FilePath $innoSetupPath `
+          -ArgumentList "/O`"$outputPath`"", $setupScript `
+          -NoNewWindow `
+          -Wait `
+          -PassThru
+
       if ($process.ExitCode -ne 0) {
           Write-Host "Error: Inno Setup compilation failed"
           exit 1

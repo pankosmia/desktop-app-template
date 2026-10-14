@@ -4,8 +4,33 @@
 # with the optional arguments of: .\bundle_viewer.ps1 -ServerOff "Y"
 # or: .\bundle_viewer.ps1 -ServerOff "y"
 
+<#
+.SYNOPSIS
+    Creates Windows installation packages for the application.
+
+.DESCRIPTION
+    This script automates the build process for Windows installers:
+    - Downloads Electron and zip releases for specified architectures
+    - Processes and packages the files
+    - Creates installation packages for each supported architecture
+    - Currently supports x64 (Intel) and arm64 architecture
+
+.NOTES
+    Requires PowerShell and depends on:
+    - makeAllInstallsElectronite.ps1
+    - getElectronRelease.ps1
+    - makeInstallElectronite.ps1
+
+.PARAMETER ServerOff
+    Specify -ServerOff "y" to indicate the server is off, thereby avoiding being asked to confirm it is off.
+
+.PARAMETER -p
+    Specify -p for Portable App
+#>
+
 param(
-    [string]$ServerOff
+    [string]$ServerOff,
+    [switch]$p
 )
 
 if ($ServerOff -eq 'Y') {
@@ -55,7 +80,15 @@ if ($answer -eq 'Y' -Or $answer -eq '') {
   Write-Host "*************************************************************************" -f cyan;
   Write-Host "`n"
 
-  ..\install\makeAllInstallsElectronite.ps1 -IsGHA "N"
+  $installArgs = @{
+      IsGHA = 'N'
+  }
+
+  if ($p.IsPresent) {
+      $installArgs['p'] = $true
+  }
+
+  & ..\install\makeAllInstallsElectronite.ps1 @installArgs
 
 } elseif ($answer -eq 'N') {
     echo "`n"

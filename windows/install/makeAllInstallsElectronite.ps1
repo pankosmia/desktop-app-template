@@ -25,11 +25,15 @@
 .PARAMETER FullInstall
     Specify -FullInstall $true for installing Electronite too; -FullInstall $false for updating all but Electronite (e.g., a development environment viewer update)
     - Default is $true
+
+.PARAMETER -p
+    Specify -p for Portable App
 #>
 param(
     [string]$Dev = "N",
     [string]$IsGHA = "Y",
-    [bool]$FullInstall = $true
+    [bool]$FullInstall = $true,
+    [switch]$p
 )
 
 # get environment variables from app_config.env
@@ -116,11 +120,18 @@ foreach ($ARCH in @("x64", "arm64")) {
         exit 1
     }
 
-    if ($Dev -eq 'Y') {
-      $result = & "$makeInstallElectronitePath" -Dev $Dev -arch $arch -FullInstall $FullInstall
-    } else {
-      $result = & "$makeInstallElectronitePath" -arch $arch -FullInstall $FullInstall
+    $electroniteArgs = @{
+        Dev         = $Dev
+        arch        = $ARCH
+        FullInstall = $FullInstall
     }
+
+    if ($p.IsPresent) {
+        $electroniteArgs.p = $true
+    }
+
+    $result = & $makeInstallElectronitePath @electroniteArgs
+
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Error: makeInstallElectronite.ps1 failed with exit code $LASTEXITCODE"
         exit 1
