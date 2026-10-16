@@ -223,6 +223,17 @@ try {
         (Get-Content "$electronDestPath\electronStartup.js").Replace('${APP_NAME}', $env:APP_NAME) | Set-Content "$electronDestPath\electronStartup.js"
         (Get-Content "$electronDestPath\package.json").Replace('${APP_NAME}', $env:APP_NAME).Replace('${APP_VERSION}', $env:APP_VERSION) | Set-Content "$electronDestPath\package.json"
 
+        if ($p.IsPresent) {
+          # Portable App - Specify working dir virtual path using replace.
+          (Get-Content "$electronDestPath\core\server.js").Replace("spawn(SERVER_EXECUTABLE_PATH, []", "spawn(SERVER_EXECUTABLE_PATH, ['../pankosmia/$env:APP_SHORT_NAME']") | Set-Content "$electronDestPath\core\server.js"
+          
+          # Portable App - Specify virtual electron data path using replace.
+          $findText = "if (START_SERVER) {$([Environment]::NewLine)  app.setName('$env:APP_NAME');$([Environment]::NewLine)} else {"
+          $replaceText = "if (START_SERVER) {$([Environment]::NewLine)  app.setName('$env:APP_NAME');$([Environment]::NewLine)  app.setPath('userData', path.resolve(process.cwd(), '../pankosmia/$env:APP_SHORT_NAME', 'AppData'));$([Environment]::NewLine)} else {"
+          
+          (Get-Content -Raw "$electronDestPath\electronStartup.js").Replace($findText, $replaceText) | Set-Content "$electronDestPath\electronStartup.js"
+        }
+        
         if ($FullInstall) {
             # Copy architecture-specific files
             $archElectronPath = Join-Path $PSScriptRoot "..\$pkgDir\electron.$arch"
