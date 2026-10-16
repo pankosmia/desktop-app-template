@@ -223,6 +223,10 @@ try {
         (Get-Content "$electronDestPath\electronStartup.js").Replace('${APP_NAME}', $env:APP_NAME) | Set-Content "$electronDestPath\electronStartup.js"
         (Get-Content "$electronDestPath\package.json").Replace('${APP_NAME}', $env:APP_NAME).Replace('${APP_VERSION}', $env:APP_VERSION) | Set-Content "$electronDestPath\package.json"
 
+        <# At the time of writing this script is seems:
+          1. The app must first be started with `spawn(SERVER_EXECUTABLE_PATH, []"` in place, then shutdown.
+          2. Then `~/pankosmia/<appshortname>` can be moved next to the directory containing the portable app code.
+          3. And then `spawn(SERVER_EXECUTABLE_PATH, ['../pankosmia/$env:APP_SHORT_NAME']` can be set in `core\server.js`
         if ($p.IsPresent) {
           # Portable App - Specify working dir virtual path using replace.
           (Get-Content "$electronDestPath\core\server.js").Replace("spawn(SERVER_EXECUTABLE_PATH, []", "spawn(SERVER_EXECUTABLE_PATH, ['../pankosmia/$env:APP_SHORT_NAME']") | Set-Content "$electronDestPath\core\server.js"
@@ -230,9 +234,9 @@ try {
           # Portable App - Specify virtual electron data path using replace.
           $findText = "if (START_SERVER) {$([Environment]::NewLine)  app.setName('$env:APP_NAME');$([Environment]::NewLine)} else {"
           $replaceText = "if (START_SERVER) {$([Environment]::NewLine)  app.setName('$env:APP_NAME');$([Environment]::NewLine)  app.setPath('userData', path.resolve(process.cwd(), '../pankosmia/$env:APP_SHORT_NAME', 'AppData'));$([Environment]::NewLine)} else {"
-          
           (Get-Content -Raw "$electronDestPath\electronStartup.js").Replace($findText, $replaceText) | Set-Content "$electronDestPath\electronStartup.js"
         }
+        #>
         
         if ($FullInstall) {
             # Copy architecture-specific files
@@ -255,21 +259,27 @@ try {
     }
 
     if ($Dev -ne 'Y') {
-        # Copy README
-        $readmeSrc = "..\build\README.txt"
-        $readmeDest = "$payloadPath"
-        if (Test-Path $readmeSrc) {
-            New-Item -ItemType Directory -Force -Path $readmeDest | Out-Null
-            Copy-Item -Path $readmeSrc -Destination "$readmeDest\README.txt" -Force
-        }
+      # Copy README
+      $readmeSrc = "..\build\README.txt"
+      $readmeDest = "$payloadPath"
+      if (Test-Path $readmeSrc) {
+          New-Item -ItemType Directory -Force -Path $readmeDest | Out-Null
+          Copy-Item -Path $readmeSrc -Destination "$readmeDest\README.txt" -Force
+      }
 
-        # Copy bin and lib directories from build directory
-        if (Test-Path ".\bin") {
-            Copy-Item -Path ".\bin" -Destination $payloadPath -Recurse -Force
-        }
-        if (Test-Path ".\lib") {
-            Copy-Item -Path ".\lib" -Destination $payloadPath -Recurse -Force
-        }
+      # Copy bin and lib directories from build directory
+      if (Test-Path ".\bin") {
+          Copy-Item -Path ".\bin" -Destination $payloadPath -Recurse -Force
+      }
+      if (Test-Path ".\lib") {
+          Copy-Item -Path ".\lib" -Destination $payloadPath -Recurse -Force
+      }
+
+      # Portable app uses a virtual path for repo_dir
+      if ($p.IsPresent) {
+        $user_settings = Join-Path $payloadPath "lib\templates\user_settings.json"
+        (Get-Content $user_settings).Replace('"repo_dir": "%%HOMEDIR%%/pankosmia_repos",', '"repo_dir": "..\pankosmia_repos",') | Set-Content $user_settings
+      }
 
       # Create and copy scripts if needed
       $scriptsPath = "$projectPath\scripts"
@@ -292,8 +302,10 @@ try {
           $payloadSource = ".\temp\project\payload\app"
           $iconSource = "..\globalBuildResources\icon.ico"
 
-          # Create a clean directory representing Inno Setup's {app} directory.
+          # Stage the portable app under a top-level folder named after the app.
           $portableStage = ".\temp\project\portable-package"
+          $portableAppDirName = $env:APP_NAME
+          $portableAppStage = Join-Path $portableStage $portableAppDirName
           $portableZipPath = Join-Path $outputPath "$packageBaseName-portable.zip"
 
           if (-not (Test-Path $payloadSource)) {
@@ -307,13 +319,13 @@ try {
           }
 
           Remove-Item -Path $portableStage -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Path $portableStage -Force | Out-Null
+          New-Item -ItemType Directory -Path $portableAppStage -Force | Out-Null
 
           # Equivalent to:
           # Source: "..\temp\project\payload\app\*"; DestDir: "{app}"
           Copy-Item `
               -Path (Join-Path $payloadSource "*") `
-              -Destination $portableStage `
+              -Destination $portableAppStage `
               -Recurse `
               -Force `
               -ErrorAction Stop
@@ -322,15 +334,41 @@ try {
           # Source: "..\..\globalBuildResources\icon.ico"; DestDir: "{app}"
           Copy-Item `
               -Path $iconSource `
-              -Destination (Join-Path $portableStage "icon.ico") `
+              -Destination (Join-Path $portableAppStage "icon.ico") `
+              -Force `
+              -ErrorAction Stop
+          
+          # Copy a configured run-once helper to the ZIP root.
+          Write-Host "Current working directory: $(Get-Location)"
+          $runOnceSource = ".\buildResourcesPortable\runOnce.ps1"
+          $runOnceDestination = Join-Path $portableStage "runOnce.ps1"
+
+          if (-not (Test-Path $runOnceSource)) {
+              Write-Error "Portable run-once script not found: $runOnceSource"
+              exit 1
+          }
+
+          Copy-Item `
+              -Path $runOnceSource `
+              -Destination $runOnceDestination `
               -Force `
               -ErrorAction Stop
 
+          # Replace placeholders only in the staged ZIP copy.
+          $runOnceContent = Get-Content -Path $runOnceDestination -Raw
+          $runOnceContent = $runOnceContent.Replace('%%APP_NAME%%', $env:APP_NAME)
+          $runOnceContent = $runOnceContent.Replace('%%APP_SHORT_NAME%%', $env:APP_SHORT_NAME)
+
+          Set-Content `
+              -Path $runOnceDestination `
+              -Value $runOnceContent `
+              -NoNewline
+
           Remove-Item -Path $portableZipPath -Force -ErrorAction SilentlyContinue
 
-          # Archive the contents of {app}, without an extra top-level folder.
+          # Archive a single top-level directory named after the application.
           Compress-Archive `
-              -Path (Join-Path $portableStage "*") `
+              -Path $portableAppStage, $runOnceDestination `
               -DestinationPath $portableZipPath `
               -CompressionLevel Optimal `
               -Force
