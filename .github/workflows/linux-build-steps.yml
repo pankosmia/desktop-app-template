@@ -99,16 +99,11 @@ jobs:
       # Grant execute permissions for the shell and bash scripts
       - name: Make scripts executable
         run: |
-          chmod +x ./linux/scripts/app_setup.bsh
           chmod +x ./linux/scripts/clone.bsh
           chmod +x ./linux/scripts/build_clients.bsh
           chmod +x ./linux/scripts/build_server.bsh
           chmod +x ./linux/scripts/bundle_tgz.bsh
           chmod +x ./linux/scripts/bundle_viewer.bsh
-
-      - name: Run app_setup.bsh
-        working-directory: ./linux/scripts
-        run: ./app_setup.bsh
 
       - name: Run clone.bsh
         working-directory: ./linux/scripts
