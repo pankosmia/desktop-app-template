@@ -16,7 +16,7 @@ on:
           - all of main
           - all of qa
           - all of dev
-        default: all of main
+        default: all of dev
       branch_name_exception:
         description: 'Branch name exception (optional):'
         required: false
