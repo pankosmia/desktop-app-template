@@ -117,7 +117,7 @@ function startServer(port) {
     return serverProcess;
   }
 
-  console.log('resourcesDir is ' + env.APP_RESOURCES_DIR);
+  // console.log('resourcesDir is ' + env.APP_RESOURCES_DIR);
   // console.log('startServer() - workingDir is ' + APP_ROOT_DIR);
   // console.log('startServer() - env is ', env);
 
