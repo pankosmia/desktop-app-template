@@ -112,16 +112,14 @@ try {
 
     New-Item -ItemType Directory -Force -Path $payloadPath | Out-Null
 
-    # Copy Rocket.toml, appLauncherElectron.bat, and find_free_port.bat
+    # Copy Rocket.toml and appLauncherElectron.bat
     $rocketConfig = "..\..\Rocket.toml"
     $startupSrc = "..\buildResources\appLauncherElectron.bat"
-    $portCheckerSrc = "..\buildResources\find_free_port.bat"
     $startupDest = "$payloadPath"
     if (Test-Path $startupSrc) {
         New-Item -ItemType Directory -Force -Path $startupDest | Out-Null
         Copy-Item -Path $rocketConfig -Destination "$startupDest\Rocket.toml" -Force
         Copy-Item -Path $startupSrc -Destination "$startupDest\appLauncherElectron.bat" -Force
-        Copy-Item -Path $portCheckerSrc -Destination "$startupDest\find_free_port.bat" -Force
     }
 
     # Copy electron files
@@ -220,8 +218,13 @@ try {
         Write-Host "Successfully copied node_modules dependencies"
 
         # Replace all occurrences of ${APP_NAME} and ${APP_VERSION} in startup script
-        (Get-Content "$electronDestPath\electronStartup.js").Replace('${APP_NAME}', $env:APP_NAME) | Set-Content "$electronDestPath\electronStartup.js"
-        (Get-Content "$electronDestPath\package.json").Replace('${APP_NAME}', $env:APP_NAME).Replace('${APP_VERSION}', $env:APP_VERSION) | Set-Content "$electronDestPath\package.json"
+        $esPath = "$electronDestPath\electronStartup.js"
+        $esText = [System.IO.File]::ReadAllText($esPath).Replace('${APP_NAME}', $env:APP_NAME)
+        [System.IO.File]::WriteAllText($esPath, $esText, [System.Text.UTF8Encoding]::new($false))
+
+        $pkgPath = "$electronDestPath\package.json"
+        $pkgText = [System.IO.File]::ReadAllText($pkgPath).Replace('${APP_NAME}', $env:APP_NAME).Replace('${APP_VERSION}', $env:APP_VERSION)
+        [System.IO.File]::WriteAllText($pkgPath, $pkgText, [System.Text.UTF8Encoding]::new($false))
 
         <# At the time of writing this script is seems:
           1. The app must first be started with `spawn(SERVER_EXECUTABLE_PATH, []"` in place, then shutdown.
@@ -277,8 +280,9 @@ try {
 
       # Portable app uses a virtual path for repo_dir
       if ($p.IsPresent) {
-        $user_settings = Join-Path $payloadPath "lib\templates\user_settings.json"
-        (Get-Content $user_settings).Replace('"repo_dir": "%%HOMEDIR%%/pankosmia_repos",', '"repo_dir": "..\pankosmia_repos",') | Set-Content $user_settings
+          $user_settings = Join-Path $payloadPath "lib\templates\user_settings.json"
+          $usText = [System.IO.File]::ReadAllText($user_settings).Replace('"repo_dir": "%%HOMEDIR%%/pankosmia_repos",', '"repo_dir": "..\pankosmia_repos",')
+          [System.IO.File]::WriteAllText($user_settings, $usText, [System.Text.UTF8Encoding]::new($false))
       }
 
       # Create and copy scripts if needed
@@ -338,37 +342,51 @@ try {
               -Force `
               -ErrorAction Stop
           
-          # Copy a configured run-once helper to the ZIP root.
+          # Copy configured helper files to the ZIP root.
           Write-Host "Current working directory: $(Get-Location)"
-          $runOnceSource = ".\buildResourcesPortable\runOnce.ps1"
-          $runOnceDestination = Join-Path $portableStage "runOnce.ps1"
 
-          if (-not (Test-Path $runOnceSource)) {
-              Write-Error "Portable run-once script not found: $runOnceSource"
-              exit 1
+          $helpersSource = ".\buildResourcesPortable"
+          $initializeDestination = Join-Path $portableStage "Initialize-PortableApp.ps1"
+          $startAppBatDestination = Join-Path $portableStage "start-$($env:APP_SHORT_NAME).bat"
+          $startAppVbsDestination = Join-Path $portableStage "start-$($env:APP_SHORT_NAME).vbs"
+
+          $helperFiles = @(
+              "Initialize-PortableApp.ps1",
+              "start-app.bat",
+              "start-app.vbs"
+          )
+
+          foreach ($fileName in $helperFiles) {
+              $source = Join-Path $helpersSource $fileName
+
+              $destinationFileName = switch ($fileName) {
+                  'start-app.bat' { "start-$env:APP_SHORT_NAME.bat" }
+                  'start-app.vbs' { "start-$env:APP_SHORT_NAME.vbs" }
+                  default         { $fileName }
+              }
+
+              $destination = Join-Path $portableStage $destinationFileName
+
+              if (-not (Test-Path $source)) {
+                  Write-Error "Portable helper files not found: $source"
+                  exit 1
+              }
+
+              Copy-Item -Path $source -Destination $destination -Force -ErrorAction Stop
+
+              # Replace placeholders only in the staged ZIP copy.
+              $content = Get-Content -Path $destination -Raw
+              $content = $content.Replace('%%APP_NAME%%', $env:APP_NAME)
+              $content = $content.Replace('%%APP_SHORT_NAME%%', $env:APP_SHORT_NAME)
+
+              Set-Content -Path $destination -Value $content -NoNewline
           }
-
-          Copy-Item `
-              -Path $runOnceSource `
-              -Destination $runOnceDestination `
-              -Force `
-              -ErrorAction Stop
-
-          # Replace placeholders only in the staged ZIP copy.
-          $runOnceContent = Get-Content -Path $runOnceDestination -Raw
-          $runOnceContent = $runOnceContent.Replace('%%APP_NAME%%', $env:APP_NAME)
-          $runOnceContent = $runOnceContent.Replace('%%APP_SHORT_NAME%%', $env:APP_SHORT_NAME)
-
-          Set-Content `
-              -Path $runOnceDestination `
-              -Value $runOnceContent `
-              -NoNewline
 
           Remove-Item -Path $portableZipPath -Force -ErrorAction SilentlyContinue
 
           # Archive a single top-level directory named after the application.
           Compress-Archive `
-              -Path $portableAppStage, $runOnceDestination `
+              -Path $portableAppStage, $initializeDestination, $startAppBatDestination, $startAppVbsDestination `
               -DestinationPath $portableZipPath `
               -CompressionLevel Optimal `
               -Force
