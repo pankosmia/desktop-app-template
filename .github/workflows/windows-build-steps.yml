@@ -184,7 +184,7 @@ jobs:
         id: get-portable-app-name
         run: |
           echo "Zip for portable app name:"
-          $ZIP_NAME = Get-ChildItem -Path ".\releases\windows\*-portable.zip" -Name
+          $ZIP_PORTABLE_NAME = Get-ChildItem -Path ".\releases\windows\*-portable.zip" -Name
           echo "zip-name=$ZIP_PORTABLE_NAME" >> $env:GITHUB_OUTPUT
           echo "ZIP_NAME=$ZIP_PORTABLE_NAME" >> $env:GITHUB_ENV
 
@@ -202,9 +202,9 @@ jobs:
         id: get-portable-app-pre-init-name
         run: |
           echo "Zip for portable app pre-initialized name:"
-          $ZIP_NAME = Get-ChildItem -Path ".\releases\windows\*-portable-pre-initialized.zip" -Name
+          $ZIP_PORTABLE_PRE_INIT_NAME = Get-ChildItem -Path ".\releases\windows\*-portable-pre-initialized.zip" -Name
           echo "zip-name=$ZIP_PORTABLE_PRE_INIT_NAME" >> $env:GITHUB_OUTPUT
-          echo "ZIP_NAME=$ZIP_PORTABLE__PRE_INIT_NAME" >> $env:GITHUB_ENV
+          echo "ZIP_NAME=$ZIP_PORTABLE_PRE_INIT_NAME" >> $env:GITHUB_ENV
 
       # Upload zip for portable artifacts
       - name: Upload zip for portable pre-initialized artifact
