@@ -175,9 +175,9 @@ jobs:
           retention-days: 90
 
       # Portable App - Bundle viewer without asking if the server is off and indicate GHA -p and -pi
-      - name: Run bundle_server.ps1 -ServerOff "Y" -IsGHA "Y" -p -pi
+      - name: Run bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p -pi
         working-directory: .\windows\scripts
-        run: .\bundle_server.ps1 -ServerOff "Y" -IsGHA "Y" -p -pi
+        run: .\bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p -pi
 
       # Get names for portable artifact
       - name: Get name for portable app artifact
