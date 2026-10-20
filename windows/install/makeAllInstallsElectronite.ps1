@@ -21,7 +21,7 @@
 .PARAMETER IsGHA
     Specify -IsGHA "N" when run locally to avoid a failed attempt to list github actions environment variables.
     IsGHA "N" also means that .exe will be built
-    - Default is "Y"
+    - Default is "Y" (Careful as default is Y on `bundle_viewer.ps1`.)
 
 .PARAMETER FullInstall
     Specify -FullInstall $true for installing Electronite too; -FullInstall $false for updating all but Electronite (e.g., a development environment viewer update)
@@ -129,7 +129,6 @@ foreach ($ARCH in @("x64", "arm64")) {
         Dev         = $Dev
         arch        = $ARCH
         FullInstall = $FullInstall
-        IsGHA       = $IsGHA
     }
 
     if ($p.IsPresent) {

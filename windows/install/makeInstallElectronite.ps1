@@ -29,11 +29,6 @@ Target architecture for the installer (e.g., x64, arm64, x86)
 Specify -Dev "Y" when generating a development viewer.
 - Default is "N"
 
-.PARAMETER IsGHA
-    Specify -IsGHA "N" when run locally to avoid a failed attempt to list github actions environment variables.
-    IsGHA "N" also means that .exe will be built
-    - Default is "Y"
-
 .PARAMETER FullInstall
     Specify -FullInstall $true for installing Electronite too; -FullInstall $false for updating all but Electronite (e.g., a development environment viewer update)
     - Default is $true
@@ -49,7 +44,6 @@ param(
     [Parameter(Mandatory=$true)]
     [string]$arch,
     [string]$Dev = "N",
-    [string]$IsGHA = "Y",
     [bool]$FullInstall = $true,
     [switch]$p,
     [switch]$pi
@@ -113,7 +107,9 @@ try {
     }
 
     # Clean up and create project directories -- Needed for local bundles; Not required in GHA but also doesn't hurt anything.
-    $projectPath = "..\$pkgDir\project"
+
+    # Use full path b/c working dir diff between PS and .NET/process, e.g. ReadAllText()  
+    $projectPath = Join-Path (Get-Location).Path "..\$pkgDir\project" 
     $payloadPath = Join-Path $projectPath "payload\app"
 
     if ($FullInstall -or $Dev -ne 'Y') {
@@ -227,6 +223,8 @@ try {
 
         Write-Host "Successfully copied node_modules dependencies"
 
+        # $electronDestPath is full path b/c working dir diff between PS and .NET/process, e.g. ReadAllText() 
+
         # Replace all occurrences of ${APP_NAME} and ${APP_VERSION} in startup script
         $esPath = "$electronDestPath\electronStartup.js"
         $esText = [System.IO.File]::ReadAllText($esPath).Replace('${APP_NAME}', $env:APP_NAME)
@@ -302,7 +300,8 @@ try {
             $iconSource = "..\globalBuildResources\icon.ico"
 
             # Stage the portable app under a top-level folder named after the app.
-            $portableStage = Join-Path (Get-Location).Path 'temp\project\portable-package' # Full path is needed later
+            # Use full path b/c working dir diff between PS and .NET/process, e.g. ReadAllText()
+            $portableStage = Join-Path (Get-Location).Path 'temp\project\portable-package'
             $portableAppDirName = $env:APP_NAME
             $portableAppStage = Join-Path $portableStage $portableAppDirName
             $portableZipPath = Join-Path $outputPath "$packageBaseName-portable.zip"
@@ -343,7 +342,7 @@ try {
             $startAppBatDestination = Join-Path $portableStage "start-$($env:APP_SHORT_NAME).bat"
             $startPreInitializedAppBatDestination = Join-Path $portableStage "start-pre-initialized-$($env:APP_SHORT_NAME).bat" # used in -pi only later
             $readmeDestination = Join-Path $portableStage "README.txt"
-            $readmePreInitializedDestination = Join-Path $portableStage "README-pre-installed.md"
+            $readmePreInitializedDestination = Join-Path $portableStage "README-pre-installed.md" # used in -pi only later
 
             $helperFiles = @(
                 "Initialize-PortableApp.ps1",
@@ -429,13 +428,7 @@ try {
               [System.IO.File]::WriteAllText($Path, $updated, [System.Text.UTF8Encoding]::new($false))
           }
 
-          <#
-            Below are the 2 places where the full path of $portableStage is needed because we need $serverFile and $startupFile to be full path.
-            This comes into play when the path is used in $raw in the function above.
-            At this point .NET and PowerShell have different working directories.
-            `(Get-Location).Path` is PowerShell's location (which has been changed in the script a couple of times above)
-            `[Environment]::CurrentDirectory` is .NET/process working directory, used by ReadAllText() for relative strings.
-          #>
+          # $portableStage is full path b/c working dir diff between PS and .NET/process, e.g. ReadAllText() 
 
           # $serverFile  = Join-Path $electronDestPath 'core\server.js'
           $serverFile = Join-Path $portableStage "$env:APP_NAME\electron\core\server.js"
@@ -470,39 +463,37 @@ try {
           Write-Host "Portable pre-initialized aip package created successfully: $portablePreInitializedZipPath"
         }
 
-        if ($IsGHA -eq 'N') {
-            # Delete existing exe files from releases directory, only if path exists
-            Get-ChildItem -Path $outputPath -Filter "*.exe" -ErrorAction SilentlyContinue |
-                Remove-Item -Force
+        # Delete existing exe files from releases directory, only if path exists
+        Get-ChildItem -Path $outputPath -Filter "*.exe" -ErrorAction SilentlyContinue |
+            Remove-Item -Force
 
-            # Call Inno Setup to create installer
-            Write-Host "Building installer..."
+        # Call Inno Setup to create installer
+        Write-Host "Building installer..."
 
-            $innoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-            if (-not (Test-Path $innoSetupPath)) {
-                Write-Host "Error: Inno Setup not found at $innoSetupPath"
-                exit 1
-            }
-
-            $setupScript = ".\install\makeInstallElectronite.iss"
-
-            Write-Host "Current working directory: $(Get-Location)"
-
-            $process = Start-Process `
-                -FilePath $innoSetupPath `
-                -ArgumentList "/O`"$outputPath`"", $setupScript `
-                -NoNewWindow `
-                -Wait `
-                -PassThru
-
-            if ($process.ExitCode -ne 0) {
-                Write-Host "Error: Inno Setup compilation failed"
-                exit 1
-            }
-
-            Write-Host "Installation package created successfully"
-            exit 0
+        $innoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+        if (-not (Test-Path $innoSetupPath)) {
+            Write-Host "Error: Inno Setup not found at $innoSetupPath"
+            exit 1
         }
+
+        $setupScript = ".\install\makeInstallElectronite.iss"
+
+        Write-Host "Current working directory: $(Get-Location)"
+
+        $process = Start-Process `
+            -FilePath $innoSetupPath `
+            -ArgumentList "/O`"$outputPath`"", $setupScript `
+            -NoNewWindow `
+            -Wait `
+            -PassThru
+
+        if ($process.ExitCode -ne 0) {
+            Write-Host "Error: Inno Setup compilation failed"
+            exit 1
+        }
+
+        Write-Host "Installation package created successfully"
+        exit 0
     }
 }
 
