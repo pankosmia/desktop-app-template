@@ -174,6 +174,35 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      # Get workspace location and repo name
+      - name: Show workspace and repo name
+        run: |
+          echo "github.event.repository.name: ${{ github.event.repository.name }}"
+          echo "github.workspace: ${{ github.workspace }}"
+
+      # Build electronite
+      - name: Run makeAllInstallsElectronite.ps1
+        working-directory: ./windows/install
+        run: ./makeAllInstallsElectronite.ps1
+
+      # Get names for electronite exe artifacts
+      - name: Get names for electronite exe artifact
+        id: get-electronite-exe-name
+        run: |
+          echo "Electronite exe for terminal name:"
+          $EXE_NAME = Get-ChildItem -Path ".\releases\windows\*.exe" -Name
+          echo "electronite-exe-name=$EXE_NAME" >> $env:GITHUB_OUTPUT
+          echo "ELECTRONITE_EXE_NAME=$EXE_NAME" >> $env:GITHUB_ENV
+
+      # Upload electronite exe artifact
+      - name: Upload electronite exe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ELECTRONITE_EXE_NAME }}
+          path: .\releases\windows\${{ env.ELECTRONITE_EXE_NAME }}
+          if-no-files-found: error
+          retention-days: 90
+
       # Portable App - Bundle viewer without asking if the server is off and indicate GHA -p and -pi
       - name: Run bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p -pi
         working-directory: .\windows\scripts
@@ -212,34 +241,5 @@ jobs:
         with:
           name: ${{ env.ZIP_PORTABLE_PRE_INIT_NAME }}
           path: .\releases\windows\${{ env.ZIP_PORTABLE_PRE_INIT_NAME }}
-          if-no-files-found: error
-          retention-days: 90
-
-      # Get workspace location and repo name
-      - name: Show workspace and repo name
-        run: |
-          echo "github.event.repository.name: ${{ github.event.repository.name }}"
-          echo "github.workspace: ${{ github.workspace }}"
-
-      # Build electronite
-      - name: Run makeAllInstallsElectronite.ps1
-        working-directory: ./windows/install
-        run: ./makeAllInstallsElectronite.ps1
-
-      # Get names for electronite exe artifacts
-      - name: Get names for electronite exe artifact
-        id: get-electronite-exe-name
-        run: |
-          echo "Electronite exe for terminal name:"
-          $EXE_NAME = Get-ChildItem -Path ".\releases\windows\*.exe" -Name
-          echo "electronite-exe-name=$EXE_NAME" >> $env:GITHUB_OUTPUT
-          echo "ELECTRONITE_EXE_NAME=$EXE_NAME" >> $env:GITHUB_ENV
-
-      # Upload electronite exe artifact
-      - name: Upload electronite exe artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ELECTRONITE_EXE_NAME }}
-          path: .\releases\windows\${{ env.ELECTRONITE_EXE_NAME }}
           if-no-files-found: error
           retention-days: 90
