@@ -66,9 +66,6 @@ if ! [[ $isGHA =~ ^(-g) ]]; then
   # echo "pnpm install"
   # pnpm install
   cd linux/scripts
-  echo
-  echo "Running app_setup to ensure version number consistency between buildSpec.json and this build bundle:"
-  ./app_setup.bsh
 fi
 
 source ../../app_config.env
