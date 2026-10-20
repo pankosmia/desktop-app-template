@@ -20,6 +20,7 @@
 
 .PARAMETER IsGHA
     Specify -IsGHA "N" when run locally to avoid a failed attempt to list github actions environment variables.
+    IsGHA "N" also means that .exe will be built
     - Default is "Y"
 
 .PARAMETER FullInstall
@@ -28,12 +29,16 @@
 
 .PARAMETER -p
     Specify -p for Portable App
+
+.PARAMETER -pi
+    Specify -pi for Portable App Pre-initialized (also runs -p even if not specified)
 #>
 param(
     [string]$Dev = "N",
     [string]$IsGHA = "Y",
     [bool]$FullInstall = $true,
-    [switch]$p
+    [switch]$p,
+    [switch]$pi
 )
 
 # get environment variables from app_config.env
@@ -120,17 +125,22 @@ foreach ($ARCH in @("x64", "arm64")) {
         exit 1
     }
 
-    $electroniteArgs = @{
+    $installArgs = @{
         Dev         = $Dev
         arch        = $ARCH
         FullInstall = $FullInstall
+        IsGHA       = $IsGHA
     }
 
     if ($p.IsPresent) {
-        $electroniteArgs.p = $true
+        $installArgs.p = $true
     }
 
-    $result = & $makeInstallElectronitePath @electroniteArgs
+    if ($pi.IsPresent) {
+        $installArgs.pi = $true
+    }
+
+    $result = & $makeInstallElectronitePath @installArgs
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Error: makeInstallElectronite.ps1 failed with exit code $LASTEXITCODE"

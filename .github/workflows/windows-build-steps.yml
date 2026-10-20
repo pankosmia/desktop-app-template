@@ -174,6 +174,47 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      # Portable App - Bundle viewer without asking if the server is off and indicate GHA -p and -pi
+      - name: Run bundle_server.ps1 -ServerOff "Y" -IsGHA "Y" -p -pi
+        working-directory: .\windows\scripts
+        run: .\bundle_server.ps1 -ServerOff "Y" -IsGHA "Y" -p -pi
+
+      # Get names for portable artifact
+      - name: Get name for portable app artifact
+        id: get-portable-app-name
+        run: |
+          echo "Zip for portable app name:"
+          $ZIP_NAME = Get-ChildItem -Path ".\releases\windows\*-portable.zip" -Name
+          echo "zip-name=$ZIP_PORTABLE_NAME" >> $env:GITHUB_OUTPUT
+          echo "ZIP_NAME=$ZIP_PORTABLE_NAME" >> $env:GITHUB_ENV
+
+      # Upload zip for portable artifacts
+      - name: Upload zip for portable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_PORTABLE_NAME }}
+          path: .\releases\windows\${{ env.ZIP_PORTABLE_NAME }}
+          if-no-files-found: error
+          retention-days: 90
+
+      # Get names for portable pre-initialized artifact
+      - name: Get name for portable pre-initialized app artifact
+        id: get-portable-app-pre-init-name
+        run: |
+          echo "Zip for portable app pre-initialized name:"
+          $ZIP_NAME = Get-ChildItem -Path ".\releases\windows\*-portable-pre-initialized.zip" -Name
+          echo "zip-name=$ZIP_PORTABLE_PRE_INIT_NAME" >> $env:GITHUB_OUTPUT
+          echo "ZIP_NAME=$ZIP_PORTABLE__PRE_INIT_NAME" >> $env:GITHUB_ENV
+
+      # Upload zip for portable artifacts
+      - name: Upload zip for portable pre-initialized artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_PORTABLE_PRE_INIT_NAME }}
+          path: .\releases\windows\${{ env.ZIP_PORTABLE_PRE_INIT_NAME }}
+          if-no-files-found: error
+          retention-days: 90
+
       # Get workspace location and repo name
       - name: Show workspace and repo name
         run: |

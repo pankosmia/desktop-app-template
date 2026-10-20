@@ -29,20 +29,30 @@ Target architecture for the installer (e.g., x64, arm64, x86)
 Specify -Dev "Y" when generating a development viewer.
 - Default is "N"
 
+.PARAMETER IsGHA
+    Specify -IsGHA "N" when run locally to avoid a failed attempt to list github actions environment variables.
+    IsGHA "N" also means that .exe will be built
+    - Default is "Y"
+
 .PARAMETER FullInstall
     Specify -FullInstall $true for installing Electronite too; -FullInstall $false for updating all but Electronite (e.g., a development environment viewer update)
     - Default is $true
 
 .PARAMETER -p
     Specify -p for Portable App
+
+.PARAMETER -pi
+    Specify -pi for Portable App Pre-initialized (also runs -p even if not specified)
 #>
 
 param(
     [Parameter(Mandatory=$true)]
     [string]$arch,
     [string]$Dev = "N",
+    [string]$IsGHA = "Y",
     [bool]$FullInstall = $true,
-    [switch]$p
+    [switch]$p,
+    [switch]$pi
 )
 
 # Save the initial working directory
@@ -225,21 +235,6 @@ try {
         $pkgPath = "$electronDestPath\package.json"
         $pkgText = [System.IO.File]::ReadAllText($pkgPath).Replace('${APP_NAME}', $env:APP_NAME).Replace('${APP_VERSION}', $env:APP_VERSION)
         [System.IO.File]::WriteAllText($pkgPath, $pkgText, [System.Text.UTF8Encoding]::new($false))
-
-        <# At the time of writing this script is seems:
-          1. The app must first be started with `spawn(SERVER_EXECUTABLE_PATH, []"` in place, then shutdown.
-          2. Then `~/pankosmia/<appshortname>` can be moved next to the directory containing the portable app code.
-          3. And then `spawn(SERVER_EXECUTABLE_PATH, ['../pankosmia/$env:APP_SHORT_NAME']` can be set in `core\server.js`
-        if ($p.IsPresent) {
-          # Portable App - Specify working dir virtual path using replace.
-          (Get-Content "$electronDestPath\core\server.js").Replace("spawn(SERVER_EXECUTABLE_PATH, []", "spawn(SERVER_EXECUTABLE_PATH, ['../pankosmia/$env:APP_SHORT_NAME']") | Set-Content "$electronDestPath\core\server.js"
-          
-          # Portable App - Specify virtual electron data path using replace.
-          $findText = "if (START_SERVER) {$([Environment]::NewLine)  app.setName('$env:APP_NAME');$([Environment]::NewLine)} else {"
-          $replaceText = "if (START_SERVER) {$([Environment]::NewLine)  app.setName('$env:APP_NAME');$([Environment]::NewLine)  app.setPath('userData', path.resolve(process.cwd(), '../pankosmia/$env:APP_SHORT_NAME', 'AppData'));$([Environment]::NewLine)} else {"
-          (Get-Content -Raw "$electronDestPath\electronStartup.js").Replace($findText, $replaceText) | Set-Content "$electronDestPath\electronStartup.js"
-        }
-        #>
         
         if ($FullInstall) {
             # Copy architecture-specific files
@@ -262,175 +257,252 @@ try {
     }
 
     if ($Dev -ne 'Y') {
-      # Copy README
-      $readmeSrc = "..\build\README.txt"
-      $readmeDest = "$payloadPath"
-      if (Test-Path $readmeSrc) {
-          New-Item -ItemType Directory -Force -Path $readmeDest | Out-Null
-          Copy-Item -Path $readmeSrc -Destination "$readmeDest\README.txt" -Force
-      }
+        # Copy README
+        $readmeSrc = "..\build\README.txt"
+        $readmeDest = "$payloadPath"
+        if (Test-Path $readmeSrc) {
+            New-Item -ItemType Directory -Force -Path $readmeDest | Out-Null
+            Copy-Item -Path $readmeSrc -Destination "$readmeDest\README.txt" -Force
+        }
 
-      # Copy bin and lib directories from build directory
-      if (Test-Path ".\bin") {
-          Copy-Item -Path ".\bin" -Destination $payloadPath -Recurse -Force
-      }
-      if (Test-Path ".\lib") {
-          Copy-Item -Path ".\lib" -Destination $payloadPath -Recurse -Force
-      }
+        # Copy bin and lib directories from build directory
+        if (Test-Path ".\bin") {
+            Copy-Item -Path ".\bin" -Destination $payloadPath -Recurse -Force
+        }
+        if (Test-Path ".\lib") {
+            Copy-Item -Path ".\lib" -Destination $payloadPath -Recurse -Force
+        }
 
-      # Portable app uses a virtual path for repo_dir
-      if ($p.IsPresent) {
-          $user_settings = Join-Path $payloadPath "lib\templates\user_settings.json"
-          $usText = [System.IO.File]::ReadAllText($user_settings).Replace('"repo_dir": "%%HOMEDIR%%/pankosmia_repos",', '"repo_dir": "..\pankosmia_repos",')
-          [System.IO.File]::WriteAllText($user_settings, $usText, [System.Text.UTF8Encoding]::new($false))
-      }
+        # Portable app uses a virtual path for repo_dir
+        if ($p.IsPresent -or $pi.IsPresent) {
+            $user_settings = Join-Path $payloadPath "lib\templates\user_settings.json"
+            $usText = [System.IO.File]::ReadAllText($user_settings).Replace('"repo_dir": "%%HOMEDIR%%/pankosmia_repos",', '"repo_dir": "..\pankosmia_repos",')
+            [System.IO.File]::WriteAllText($user_settings, $usText, [System.Text.UTF8Encoding]::new($false))
+        }
 
-      # Create and copy scripts if needed
-      $scriptsPath = "$projectPath\scripts"
-      New-Item -ItemType Directory -Force -Path $scriptsPath | Out-Null
+        # Create and copy scripts if needed
+        $scriptsPath = "$projectPath\scripts"
+        New-Item -ItemType Directory -Force -Path $scriptsPath | Out-Null
 
-      # Map internal arch token to output naming
-      $env:ARCH = $arch
+        # Map internal arch token to output naming
+        $env:ARCH = $arch
 
-      Set-Location -Path ".."
-      $outputPath = "..\releases\windows"
+        Set-Location -Path ".."
+        $outputPath = "..\releases\windows"
 
-      New-Item -ItemType Directory -Force -Path $outputPath | Out-Null
+        New-Item -ItemType Directory -Force -Path $outputPath | Out-Null
 
-      $packageBaseName = "$($env:FILE_APP_NAME)-$($env:APP_VERSION)-win-$arch"
+        $packageBaseName = "$($env:FILE_APP_NAME)-$($env:APP_VERSION)-win-$arch"
 
-      if ($p.IsPresent) {
-          Write-Host "Building portable ZIP..."
+        if ($p.IsPresent -or $pi.IsPresent) {
+            Write-Host "Building portable ZIP..."
 
-          # These are the same sources used by install\makeInstallElectronite.iss.
-          $payloadSource = ".\temp\project\payload\app"
-          $iconSource = "..\globalBuildResources\icon.ico"
+            # These are the same sources used by install\makeInstallElectronite.iss.
+            $payloadSource = ".\temp\project\payload\app"
+            $iconSource = "..\globalBuildResources\icon.ico"
 
-          # Stage the portable app under a top-level folder named after the app.
-          $portableStage = ".\temp\project\portable-package"
-          $portableAppDirName = $env:APP_NAME
-          $portableAppStage = Join-Path $portableStage $portableAppDirName
-          $portableZipPath = Join-Path $outputPath "$packageBaseName-portable.zip"
+            # Stage the portable app under a top-level folder named after the app.
+            $portableStage = Join-Path (Get-Location).Path 'temp\project\portable-package' # Full path is needed later
+            $portableAppDirName = $env:APP_NAME
+            $portableAppStage = Join-Path $portableStage $portableAppDirName
+            $portableZipPath = Join-Path $outputPath "$packageBaseName-portable.zip"
 
-          if (-not (Test-Path $payloadSource)) {
-              Write-Error "Portable payload directory not found: $payloadSource"
-              exit 1
-          }
+            if (-not (Test-Path $payloadSource)) {
+                Write-Error "Portable payload directory not found: $payloadSource"
+                exit 1
+            }
 
-          if (-not (Test-Path $iconSource)) {
-              Write-Error "Portable icon not found: $iconSource"
-              exit 1
-          }
+            if (-not (Test-Path $iconSource)) {
+                Write-Error "Portable icon not found: $iconSource"
+                exit 1
+            }
 
-          Remove-Item -Path $portableStage -Recurse -Force -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Path $portableAppStage -Force | Out-Null
+            Remove-Item -Path $portableStage -Recurse -Force -ErrorAction SilentlyContinue
+            New-Item -ItemType Directory -Path $portableAppStage -Force | Out-Null
 
-          # Equivalent to:
-          # Source: "..\temp\project\payload\app\*"; DestDir: "{app}"
-          Copy-Item `
-              -Path (Join-Path $payloadSource "*") `
-              -Destination $portableAppStage `
-              -Recurse `
-              -Force `
-              -ErrorAction Stop
+            # Equivalent to:
+            # Source: "..\temp\project\payload\app\*"; DestDir: "{app}"
+            Copy-Item `
+                -Path (Join-Path $payloadSource "*") `
+                -Destination $portableAppStage `
+                -Recurse `
+                -Force `
+                -ErrorAction Stop
 
-          # Equivalent to:
-          # Source: "..\..\globalBuildResources\icon.ico"; DestDir: "{app}"
-          Copy-Item `
-              -Path $iconSource `
-              -Destination (Join-Path $portableAppStage "icon.ico") `
-              -Force `
-              -ErrorAction Stop
-          
-          # Copy configured helper files to the ZIP root.
-          Write-Host "Current working directory: $(Get-Location)"
+            # Equivalent to:
+            # Source: "..\..\globalBuildResources\icon.ico"; DestDir: "{app}"
+            Copy-Item `
+                -Path $iconSource `
+                -Destination (Join-Path $portableAppStage "icon.ico") `
+                -Force `
+                -ErrorAction Stop
+            
+            # Copy configured helper files to the ZIP root.
+            $helpersSource = ".\buildResourcesPortable"
+            $initializeDestination = Join-Path $portableStage "Initialize-PortableApp.ps1"
+            $startAppBatDestination = Join-Path $portableStage "start-$($env:APP_SHORT_NAME).bat"
+            $startPreInitializedAppBatDestination = Join-Path $portableStage "start-pre-initialized-$($env:APP_SHORT_NAME).bat" # used in -pi only later
+            $readmeDestination = Join-Path $portableStage "README.txt"
+            $readmePreInitializedDestination = Join-Path $portableStage "README-pre-installed.md"
 
-          $helpersSource = ".\buildResourcesPortable"
-          $initializeDestination = Join-Path $portableStage "Initialize-PortableApp.ps1"
-          $startAppBatDestination = Join-Path $portableStage "start-$($env:APP_SHORT_NAME).bat"
-          $startAppVbsDestination = Join-Path $portableStage "start-$($env:APP_SHORT_NAME).vbs"
+            $helperFiles = @(
+                "Initialize-PortableApp.ps1",
+                "start-app.bat",
+                "start-pre-initialized-app.bat",
+                "README.txt",
+                "README-pre-installed.md"
+            )
 
-          $helperFiles = @(
-              "Initialize-PortableApp.ps1",
-              "start-app.bat",
-              "start-app.vbs"
-          )
+            foreach ($fileName in $helperFiles) {
+                $source = Join-Path $helpersSource $fileName
 
-          foreach ($fileName in $helperFiles) {
-              $source = Join-Path $helpersSource $fileName
+                $destinationFileName = switch ($fileName) {
+                    'start-app.bat' { "start-$env:APP_SHORT_NAME.bat" }
+                    'start-pre-initialized-app.bat' { "start-pre-initialized-$env:APP_SHORT_NAME.bat" }
+                    default         { $fileName }
+                }
 
-              $destinationFileName = switch ($fileName) {
-                  'start-app.bat' { "start-$env:APP_SHORT_NAME.bat" }
-                  'start-app.vbs' { "start-$env:APP_SHORT_NAME.vbs" }
-                  default         { $fileName }
+                $destination = Join-Path $portableStage $destinationFileName
+
+                if (-not (Test-Path $source)) {
+                    Write-Error "Portable helper files not found: $source"
+                    exit 1
+                }
+
+                Copy-Item -Path $source -Destination $destination -Force -ErrorAction Stop
+
+                # Replace placeholders only in the staged ZIP copy.
+                $content = Get-Content -Path $destination -Raw
+                $content = $content.Replace('%%APP_NAME%%', $env:APP_NAME)
+                $content = $content.Replace('%%APP_SHORT_NAME%%', $env:APP_SHORT_NAME)
+
+                Set-Content -Path $destination -Value $content -NoNewline
+            }
+
+            Remove-Item -Path $portableZipPath -Force -ErrorAction SilentlyContinue
+
+            # Archive a single top-level directory named after the application.
+            Compress-Archive `
+                -Path $portableAppStage, $initializeDestination, $startAppBatDestination, $readmeDestination `
+                -DestinationPath $portableZipPath `
+                -CompressionLevel Optimal `
+                -Force
+
+            if (-not (Test-Path $portableZipPath)) {
+                Write-Error "Portable ZIP was not created: $portableZipPath"
+                exit 1
+            }
+
+            Write-Host "Portable package created successfully: $portableZipPath"
+        }
+
+        if ($pi.IsPresent) {
+        
+          Write-Host "Running Portable pre-initialized zip build..."
+
+          # Remove-Item -Path $initializeDestination -Force -ErrorAction SilentlyContinue
+          # Remove-Item -Path $readmeDestination -Force -ErrorAction SilentlyContinue
+
+          $portablePreInitializedZipPath = Join-Path $outputPath "$packageBaseName-portable-pre-initialized.zip"
+          Remove-Item -Path $portablePreInitializedZipPath -Force -ErrorAction SilentlyContinue
+
+          function Update-FileText {
+              param(
+                  [Parameter(Mandatory)] [string] $Path,
+                  [Parameter(Mandatory)] [string] $Find,     # uses `n newlines
+                  [Parameter(Mandatory)] [string] $Replace   # uses `n newlines
+              )
+
+              $raw  = [System.IO.File]::ReadAllText($Path)
+              $norm = $raw -replace "`r`n", "`n" -replace "`r", "`n"
+
+              if ($norm.Contains($Replace)) {
+                  Write-Host "$Path was not updated by this run; '$Replace' already present."
+                  exit 1
               }
-
-              $destination = Join-Path $portableStage $destinationFileName
-
-              if (-not (Test-Path $source)) {
-                  Write-Error "Portable helper files not found: $source"
+              if (-not $norm.Contains($Find)) {
+                  Write-Host "Expected original text was not found in $Path ; no change made."
                   exit 1
               }
 
-              Copy-Item -Path $source -Destination $destination -Force -ErrorAction Stop
-
-              # Replace placeholders only in the staged ZIP copy.
-              $content = Get-Content -Path $destination -Raw
-              $content = $content.Replace('%%APP_NAME%%', $env:APP_NAME)
-              $content = $content.Replace('%%APP_SHORT_NAME%%', $env:APP_SHORT_NAME)
-
-              Set-Content -Path $destination -Value $content -NoNewline
+              $updated = $norm.Replace($Find, $Replace)
+              [System.IO.File]::WriteAllText($Path, $updated, [System.Text.UTF8Encoding]::new($false))
           }
 
-          Remove-Item -Path $portableZipPath -Force -ErrorAction SilentlyContinue
+          <#
+            Below are the 2 places where the full path of $portableStage is needed because we need $serverFile and $startupFile to be full path.
+            This comes into play when the path is used in $raw in the function above.
+            At this point .NET and PowerShell have different working directories.
+            `(Get-Location).Path` is PowerShell's location (which has been changed in the script a couple of times above)
+            `[Environment]::CurrentDirectory` is .NET/process working directory, used by ReadAllText() for relative strings.
+          #>
+
+          # $serverFile  = Join-Path $electronDestPath 'core\server.js'
+          $serverFile = Join-Path $portableStage "$env:APP_NAME\electron\core\server.js"
+          
+          # $startupFile = Join-Path $electronDestPath 'electronStartup.js'
+          $startupFile = Join-Path $portableStage "$env:APP_NAME\electron\electronStartup.js"
+
+          # --- server.js ---
+          $serverFind    = 'spawn(SERVER_EXECUTABLE_PATH, []'
+          $serverReplace = "spawn(SERVER_EXECUTABLE_PATH, [`'../pankosmia/$env:APP_SHORT_NAME`']"
+          Update-FileText -Path $serverFile -Find $serverFind -Replace $serverReplace
+
+          # --- electronStartup.js ---
+          $startupFind    = "if (START_SERVER) {`n  app.setName('$env:APP_NAME');`n} else {"
+          $startupReplace = "if (START_SERVER) {`n  app.setName('$env:APP_NAME');`n  app.setPath('userData', path.resolve(process.cwd(), './pankosmia/$env:APP_SHORT_NAME', 'AppData'));`n} else {"
+          Update-FileText -Path $startupFile -Find $startupFind -Replace $startupReplace
+
+          Remove-Item -Path $portablePreInitializedZipPath -Force -ErrorAction SilentlyContinue
 
           # Archive a single top-level directory named after the application.
           Compress-Archive `
-              -Path $portableAppStage, $initializeDestination, $startAppBatDestination, $startAppVbsDestination `
-              -DestinationPath $portableZipPath `
+              -Path $portableAppStage, $startPreInitializedAppBatDestination, $readmePreInitializedDestination `
+              -DestinationPath $portablePreInitializedZipPath `
               -CompressionLevel Optimal `
               -Force
 
-          if (-not (Test-Path $portableZipPath)) {
-              Write-Error "Portable ZIP was not created: $portableZipPath"
+          if (-not (Test-Path $portablePreInitializedZipPath)) {
+              Write-Error "Portable pre-initialized zip package was not created: $portablePreInitializedZipPath"
               exit 1
           }
 
-          Write-Host "Portable package created successfully: $portableZipPath"
-          exit 0
-      }
+          Write-Host "Portable pre-initialized aip package created successfully: $portablePreInitializedZipPath"
+        }
 
-      # Delete existing exe files from releases directory, only if path exists
-      Get-ChildItem -Path $outputPath -Filter "*.exe" -ErrorAction SilentlyContinue |
-          Remove-Item -Force
+        if ($IsGHA -eq 'N') {
+            # Delete existing exe files from releases directory, only if path exists
+            Get-ChildItem -Path $outputPath -Filter "*.exe" -ErrorAction SilentlyContinue |
+                Remove-Item -Force
 
-      # Call Inno Setup to create installer
-      Write-Host "Building installer..."
+            # Call Inno Setup to create installer
+            Write-Host "Building installer..."
 
-      $innoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-      if (-not (Test-Path $innoSetupPath)) {
-          Write-Host "Error: Inno Setup not found at $innoSetupPath"
-          exit 1
-      }
+            $innoSetupPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+            if (-not (Test-Path $innoSetupPath)) {
+                Write-Host "Error: Inno Setup not found at $innoSetupPath"
+                exit 1
+            }
 
-      $setupScript = ".\install\makeInstallElectronite.iss"
+            $setupScript = ".\install\makeInstallElectronite.iss"
 
-      Write-Host "Current working directory: $(Get-Location)"
+            Write-Host "Current working directory: $(Get-Location)"
 
-      $process = Start-Process `
-          -FilePath $innoSetupPath `
-          -ArgumentList "/O`"$outputPath`"", $setupScript `
-          -NoNewWindow `
-          -Wait `
-          -PassThru
+            $process = Start-Process `
+                -FilePath $innoSetupPath `
+                -ArgumentList "/O`"$outputPath`"", $setupScript `
+                -NoNewWindow `
+                -Wait `
+                -PassThru
 
-      if ($process.ExitCode -ne 0) {
-          Write-Host "Error: Inno Setup compilation failed"
-          exit 1
-      }
+            if ($process.ExitCode -ne 0) {
+                Write-Host "Error: Inno Setup compilation failed"
+                exit 1
+            }
 
-      Write-Host "Installation package created successfully"
-      exit 0
+            Write-Host "Installation package created successfully"
+            exit 0
+        }
     }
 }
 

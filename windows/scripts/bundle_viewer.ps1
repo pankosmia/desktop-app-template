@@ -1,7 +1,7 @@
 # This script uses the APP_VERSION environment variable as defined in app_config.env
 
 # Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\bundle_viewer.ps1
-# with the optional arguments of: .\bundle_viewer.ps1 -ServerOff "Y"
+# with the optional arguments of: .\bundle_viewer.ps1 -ServerOff "y"
 # or: .\bundle_viewer.ps1 -ServerOff "y"
 
 <#
@@ -24,20 +24,30 @@
 .PARAMETER ServerOff
     Specify -ServerOff "y" to indicate the server is off, thereby avoiding being asked to confirm it is off.
 
+.PARAMETER IsGHA
+    Specify -IsGHA "Y" when run from GitHub Actions.
+      - That keeps bundle_zip.ps from being run as our GHA scripts requests it separately
+      - That keeps `app_setup.bat`, `pnpm install` and 'node build.js` from being re-run as they have already run in earlier steps in windows-build-steps.yml
+
 .PARAMETER -p
     Specify -p for Portable App
+
+.PARAMETER -pi
+    Specify -pi for Portable App Pre-initialized (also runs -p even if not specified)
 #>
 
 param(
     [string]$ServerOff,
-    [switch]$p
+    [string]$IsGHA,
+    [switch]$p,
+    [switch]$pi
 )
 
-if ($ServerOff -eq 'Y') {
+if ($ServerOff -eq 'Y' -or $ServerOff -eq 'y') {
   $answer = $ServerOff
 } else {
   echo "`n"
-  $answer = Read-Host "     Is the server off? [Y/n]: "
+  $answer = Read-Host "     Is the server off? [Y/n]"
 }
 
 if ($answer -eq 'Y' -Or $answer -eq '') {
@@ -61,12 +71,14 @@ if ($answer -eq 'Y' -Or $answer -eq '') {
         Remove-Item -Path $TEMP_DIR -Recurse -Force
     }
 
-  # The bundle_zip script will ensure the latest is checked out, the clone is installed, and the app_setup script is run
-  echo "`n"
-  echo "Bundling Zip..."
-  echo "  - updates the build environment for the Electronite package build,"
-  echo "  - and creates a zip bundle that parallels the Electronite package."
-  .\bundle_zip.ps1 -ServerOff "Y"
+  if ($IsGHA -ne 'Y') {
+    # The bundle_zip script will ensure the latest is checked out, the clone is installed, and the app_setup script is run
+    echo "`n"
+    echo "Bundling Zip..."
+    echo "  - updates the build environment for the Electronite package build,"
+    echo "  - and creates a zip bundle that parallels the Electronite package."
+    .\bundle_zip.ps1 -ServerOff "Y"
+  }
 
   echo "`n"
   echo "Version is $APP_VERSION"
@@ -86,6 +98,10 @@ if ($answer -eq 'Y' -Or $answer -eq '') {
 
   if ($p.IsPresent) {
       $installArgs['p'] = $true
+  }
+
+  if ($pi.IsPresent) {
+      $installArgs['pi'] = $true
   }
 
   & ..\install\makeAllInstallsElectronite.ps1 @installArgs

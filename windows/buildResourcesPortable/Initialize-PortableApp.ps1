@@ -8,6 +8,32 @@ Then start that app again, and the portable app will be running.
 
 $root = $PSScriptRoot
 
+function Wait-ForUnlock {
+    param(
+        [string]$Path,
+        [int]$TimeoutSeconds = 30,
+        [int]$PollMs = 500
+    )
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    while ((Get-Date) -lt $deadline) {
+        $locked = $false
+        # Check the known lock-prone files under the roaming dir
+        Get-ChildItem -LiteralPath $Path -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
+            try {
+                $fs = [System.IO.File]::Open($_.FullName, 'Open', 'ReadWrite', 'None')
+                $fs.Close()
+                $fs.Dispose()
+            }
+            catch {
+                $locked = $true
+            }
+        }
+        if (-not $locked) { return $true }
+        Start-Sleep -Milliseconds $PollMs
+    }
+    return $false
+}
+
 function Update-FileText {
     param(
         [Parameter(Mandatory)] [string] $Path,
@@ -20,16 +46,16 @@ function Update-FileText {
 
     if ($norm.Contains($Replace)) {
         Write-Host "$Path was not updated by this run; '$Replace' already present."
-        return $true    # end-state satisfied (case 2)
+        return $true    # end-state satisfied
     }
     if (-not $norm.Contains($Find)) {
         Write-Host "Expected original text was not found in $Path ; no change made."
-        return $false   # case 3 — blocks deletion
+        return $false   # end-state not satisfied
     }
 
     $updated = $norm.Replace($Find, $Replace)
     [System.IO.File]::WriteAllText($Path, $updated, [System.Text.UTF8Encoding]::new($false))
-    return $true        # end-state satisfied (case 1)
+    return $true        # end-state satisfied
 }
 
 try {
@@ -59,6 +85,11 @@ try {
     # Remove old Roaming AppData
     $dir = Join-Path $env:APPDATA "%%APP_NAME%%"
     if (Test-Path -LiteralPath $dir) {
+        if (-not (Wait-ForUnlock -Path $dir -TimeoutSeconds 30)) {
+            Write-Host 'Previous app instance still has files open. Please exit this window (and the app if it is open in another windows), wait a few seconds, then restart again.'
+            cmd /c pause
+            exit 1
+        }
         Remove-Item -LiteralPath $dir -Recurse -Force
     }
     else {
@@ -76,7 +107,7 @@ try {
 
     # --- electronStartup.js ---
     $startupFind    = "if (START_SERVER) {`n  app.setName('%%APP_NAME%%');`n} else {"
-    $startupReplace = "if (START_SERVER) {`n  app.setName('%%APP_NAME%%');`n  app.setPath('userData', path.resolve(process.cwd(), '../pankosmia/%%APP_SHORT_NAME%%', 'AppData'));`n} else {"
+    $startupReplace = "if (START_SERVER) {`n  app.setName('%%APP_NAME%%');`n  app.setPath('userData', path.resolve(process.cwd(), './pankosmia/%%APP_SHORT_NAME%%', 'AppData'));`n} else {"
     $okStartup = Update-FileText -Path $startupFile -Find $startupFind -Replace $startupReplace
 
     # ---- Gate: delete only if all four end-states hold ----
@@ -84,8 +115,25 @@ try {
     $okRoamingGone = -not (Test-Path -LiteralPath $dir)
 
     if ($okDestination -and $okRoamingGone -and $okServer -and $okStartup) {
-        Write-Host 'Done. All conditions satisfied; removing setup script.'
+        Write-Host 'Done. All conditions satisfied; removing setup script and README.txt...'
         Remove-Item -LiteralPath $PSCommandPath -Force
+        $readmePath = Join-Path $root  "README.txt"
+        try {
+            if (Test-Path -LiteralPath $readmePath) {
+                Remove-Item -LiteralPath $readmePath -Force -ErrorAction Stop
+                $sleep = 3
+            }
+        }
+        catch {
+            Write-Host ''
+            Write-Host "Note: README.txt could not be deleted because it is in use (likely open in another window)."
+            Write-Host "Setup is complete. You may delete README.txt yourself after closing it:"
+            Write-Host "    $readmePath"
+            cmd /c pause
+            $sleep = 0
+        }
+
+        Start-Sleep -Seconds $sleep
     }
     else {
         Write-Host ''
