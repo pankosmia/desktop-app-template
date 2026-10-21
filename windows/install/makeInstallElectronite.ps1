@@ -342,14 +342,14 @@ try {
             $startAppBatDestination = Join-Path $portableStage "start-$($env:APP_SHORT_NAME).bat"
             $startPreInitializedAppBatDestination = Join-Path $portableStage "start-pre-init-to-debug-$($env:APP_SHORT_NAME).bat" # used in -pi only later
             $readmeDestination = Join-Path $portableStage "README.txt"
-            $readmePreInitializedDestination = Join-Path $portableStage "README-pre-installed.md" # used in -pi only later
+            $readmePreInitializedDestination = Join-Path $portableStage "README-pre-init-to-debug.md" # used in -pi only later
 
             $helperFiles = @(
                 "Initialize-PortableApp.ps1",
                 "start-app.bat",
                 "start-pre-init-to-debug-app.bat",
                 "README.txt",
-                "README-pre-installed.md"
+                "README-pre-init-to-debug.md"
             )
 
             foreach ($fileName in $helperFiles) {
