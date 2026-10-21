@@ -20,16 +20,25 @@
 
 .PARAMETER IsGHA
     Specify -IsGHA "N" when run locally to avoid a failed attempt to list github actions environment variables.
-    - Default is "Y"
+    IsGHA "N" also means that .exe will be built
+    - Default is "Y" (Careful as default is Y on `bundle_viewer.ps1`.)
 
 .PARAMETER FullInstall
     Specify -FullInstall $true for installing Electronite too; -FullInstall $false for updating all but Electronite (e.g., a development environment viewer update)
     - Default is $true
+
+.PARAMETER -p
+    Specify -p for Portable App
+
+.PARAMETER -pi
+    Specify -pi for Portable App pre-init-to-debug (also runs -p even if that was not specified)
 #>
 param(
     [string]$Dev = "N",
     [string]$IsGHA = "Y",
-    [bool]$FullInstall = $true
+    [bool]$FullInstall = $true,
+    [switch]$p,
+    [switch]$pi
 )
 
 # get environment variables from app_config.env
@@ -116,11 +125,22 @@ foreach ($ARCH in @("x64", "arm64")) {
         exit 1
     }
 
-    if ($Dev -eq 'Y') {
-      $result = & "$makeInstallElectronitePath" -Dev $Dev -arch $arch -FullInstall $FullInstall
-    } else {
-      $result = & "$makeInstallElectronitePath" -arch $arch -FullInstall $FullInstall
+    $installArgs = @{
+        Dev         = $Dev
+        arch        = $ARCH
+        FullInstall = $FullInstall
     }
+
+    if ($p.IsPresent) {
+        $installArgs.p = $true
+    }
+
+    if ($pi.IsPresent) {
+        $installArgs.pi = $true
+    }
+
+    $result = & $makeInstallElectronitePath @installArgs
+
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Error: makeInstallElectronite.ps1 failed with exit code $LASTEXITCODE"
         exit 1

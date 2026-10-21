@@ -28,11 +28,17 @@ on:
         default: ''
     outputs:
       zip-name:
-        description: "Name of the generated ZIP file"
+        description: "Name of the generated CLI ZIP file"
         value: ${{ jobs.build.outputs.zip-name }}
       electronite-exe-name:
         description: "Name of the generated Electronite installer EXE file"
         value: ${{ jobs.build.outputs.electronite-exe-name }}
+      zip-portable-name:
+        description: "Name of the generated Portable ZIP file"
+        value: ${{ jobs.build.outputs.zip-portable-name }}
+      zip-portable-init-name:
+        description: "Name of the generated Portable ZIP file"
+        value: ${{ jobs.build.outputs.zip-portable-init-name }}
 
 jobs:
   build:
@@ -40,6 +46,8 @@ jobs:
     outputs:
       zip-name: ${{ steps.get-zip-name.outputs.zip-name }}
       electronite-exe-name: ${{ steps.get-electronite-exe-name.outputs.electronite-exe-name }}
+      zip-portable-name: ${{ steps.get-zip-name.outputs.zip-portable-name }}
+      zip-portable-init-name: ${{ steps.get-zip-name.outputs.zip-portable-init-name }}
 
     # Set process.env.CI to false to prevent treating warnings as errors
     env:
@@ -131,6 +139,7 @@ jobs:
           $appShortName = $appShortNameLine -replace ".*=(.*)", '$1'
           echo "APP_SHORT_NAME=$appShortName" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "APP_SHORT_NAME=$appShortName"
+
       # Install the repository
       - name: Install this repo
         run: pnpm install
@@ -198,8 +207,8 @@ jobs:
 
       # Build electronite
       - name: Run makeAllInstallsElectronite.ps1
-        working-directory: ./windows/install
-        run: ./makeAllInstallsElectronite.ps1
+        working-directory: .\windows\install
+        run: .\makeAllInstallsElectronite.ps1
 
       # Get names for electronite exe artifacts
       - name: Get names for electronite exe artifact
@@ -216,5 +225,46 @@ jobs:
         with:
           name: ${{ env.ELECTRONITE_EXE_NAME }}
           path: .\releases\windows\${{ env.ELECTRONITE_EXE_NAME }}
+          if-no-files-found: error
+          retention-days: 90
+
+      # Portable App - Bundle viewer without asking if the server is off and indicate GHA -p and -pi
+      - name: Run bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p -pi
+        working-directory: .\windows\scripts
+        run: .\bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p -pi
+
+      # Get names for portable artifact
+      - name: Get name for portable app artifact
+        id: get-portable-app-name
+        run: |
+          echo "Zip for portable app name:"
+          $ZIP_PORTABLE_NAME = Get-ChildItem -Path ".\releases\windows\*-portable.zip" -Name
+          echo "zip-portable-name=$ZIP_PORTABLE_NAME" >> $env:GITHUB_OUTPUT
+          echo "ZIP_PORTABLE_NAME=$ZIP_PORTABLE_NAME" >> $env:GITHUB_ENV
+
+      # Upload zip for portable artifacts
+      - name: Upload zip for portable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_PORTABLE_NAME }}
+          path: .\releases\windows\${{ env.ZIP_PORTABLE_NAME }}
+          if-no-files-found: error
+          retention-days: 90
+
+      # Get names for portable pre-init-to-debug artifact
+      - name: Get name for portable pre-init-to-debug app artifact
+        id: get-portable-app-pre-init-name
+        run: |
+          echo "Zip for portable app pre-init-to-debug name:"
+          $ZIP_PORTABLE_PRE_INIT_NAME = Get-ChildItem -Path ".\releases\windows\*-portable-pre-init-to-debug.zip" -Name
+          echo "zip-portable-pre-init-name=$ZIP_PORTABLE_PRE_INIT_NAME" >> $env:GITHUB_OUTPUT
+          echo "ZIP_PORTABLE_PRE_INIT_NAME=$ZIP_PORTABLE_PRE_INIT_NAME" >> $env:GITHUB_ENV
+
+      # Upload zip for portable artifacts
+      - name: Upload zip for portable pre-init-to-debug artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_PORTABLE_PRE_INIT_NAME }}
+          path: .\releases\windows\${{ env.ZIP_PORTABLE_PRE_INIT_NAME }}
           if-no-files-found: error
           retention-days: 90
