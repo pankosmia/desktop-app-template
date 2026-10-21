@@ -26,8 +26,8 @@
 
 .PARAMETER IsGHA
     Specify -IsGHA "Y" when run from GitHub Actions.
-      - That keeps bundle_zip.ps from being run as our GHA scripts requests it separately
-      - That keeps `app_setup.bat`, `pnpm install` and 'node build.js` from being re-run as they have already run in earlier steps in windows-build-steps.yml
+      - keeps bundle_zip.ps1 from being run as our GHA scripts requests it separately
+      - keeps `app_setup.bat`, `pnpm install` and 'node build.js` from being re-run as they have already run in earlier steps in windows-build-steps.yml
     - Default is "N"  (Careful as default is Y on `makeAllInstallsEletronite.ps1`.)
 
 .PARAMETER -p

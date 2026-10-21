@@ -357,7 +357,7 @@ try {
 
                 $destinationFileName = switch ($fileName) {
                     'start-app.bat' { "start-$env:APP_SHORT_NAME.bat" }
-                    'start-pre-init-to-debug.bat' { "start-pre-init-to-debug-$env:APP_SHORT_NAME.bat" }
+                    'start-pre-init-to-debug-app.bat' { "start-pre-init-to-debug-$env:APP_SHORT_NAME.bat" }
                     default         { $fileName }
                 }
 
