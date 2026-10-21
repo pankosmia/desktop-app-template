@@ -378,6 +378,10 @@ try {
                 Set-Content -Path $destination -Value $content -NoNewline
             }
 
+          # Remove the win desktop app readme that is not applicable to the portable app.
+          $readmeToDel = Join-Path $portableAppStage "README.txt"
+          Remove-Item -Path $readmeToDel -Force -ErrorAction SilentlyContinue
+
             Remove-Item -Path $portableZipPath -Force -ErrorAction SilentlyContinue
 
             # Archive a single top-level directory named after the application.
@@ -398,9 +402,6 @@ try {
         if ($pi.IsPresent) {
         
           Write-Host "Running Portable pre-init-to-debug zip build..."
-
-          # Remove-Item -Path $initializeDestination -Force -ErrorAction SilentlyContinue
-          # Remove-Item -Path $readmeDestination -Force -ErrorAction SilentlyContinue
 
           $portablePreInitializedZipPath = Join-Path $outputPath "$packageBaseName-portable-pre-init-to-debug.zip"
           Remove-Item -Path $portablePreInitializedZipPath -Force -ErrorAction SilentlyContinue
