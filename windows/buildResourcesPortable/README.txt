@@ -1,7 +1,8 @@
 %%APP_NAME%% Instructions
 
-1. If ~/pankosmia/%%APP_SHORT_NAME%% already exists, then delete it.
-  - This will ensure a new one matching this version (e.g., i18n) is written on start.
+1. If ~/pankosmia/%%APP_SHORT_NAME%% already exists, then delete it, otherwise we will prompt for this to be done first.
+  - This will ensure the portable app repo_dir points to the portable app.
+  - And it will ensure all else matches this version (e.g., i18n).
 
 2. In the portable app root, which is the same location where you found this file that you are reading now, double click `start-%%APP_SHORT_NAME%%.bat` in Windows Explorer or run it from a terminal.
   - This will recreate ~/pankosmia/%%APP_SHORT_NAME%% consistent with this version, as the server currently seems to insist on initially creating it in `~`.

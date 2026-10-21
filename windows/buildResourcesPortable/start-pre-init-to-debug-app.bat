@@ -9,7 +9,7 @@ if exist "%USERPROFILE%\pankosmia\%%APP_SHORT_NAME%%" (
     echo.
     echo Please delete the following folder, then run this script again:
     echo     "%USERPROFILE%\pankosmia\%%APP_SHORT_NAME%%"
-    echo     ("~\\pankosmia\%%APP_SHORT_NAME%%"^)
+    echo     ("~\pankosmia\%%APP_SHORT_NAME%%"^)
     echo.
     popd
     pause
