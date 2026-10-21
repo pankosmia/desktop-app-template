@@ -37,7 +37,7 @@ Specify -Dev "Y" when generating a development viewer.
     Specify -p for Portable App
 
 .PARAMETER -pi
-    Specify -pi for Portable App Pre-initialized (also runs -p even if not specified)
+    Specify -pi for Portable App pre-init-to-debug (also runs -p even if that was not specified)
 #>
 
 param(
@@ -340,14 +340,14 @@ try {
             $helpersSource = ".\buildResourcesPortable"
             $initializeDestination = Join-Path $portableStage "Initialize-PortableApp.ps1"
             $startAppBatDestination = Join-Path $portableStage "start-$($env:APP_SHORT_NAME).bat"
-            $startPreInitializedAppBatDestination = Join-Path $portableStage "start-pre-initialized-$($env:APP_SHORT_NAME).bat" # used in -pi only later
+            $startPreInitializedAppBatDestination = Join-Path $portableStage "start-pre-init-to-debug-$($env:APP_SHORT_NAME).bat" # used in -pi only later
             $readmeDestination = Join-Path $portableStage "README.txt"
             $readmePreInitializedDestination = Join-Path $portableStage "README-pre-installed.md" # used in -pi only later
 
             $helperFiles = @(
                 "Initialize-PortableApp.ps1",
                 "start-app.bat",
-                "start-pre-initialized-app.bat",
+                "start-pre-init-to-debug-app.bat",
                 "README.txt",
                 "README-pre-installed.md"
             )
@@ -357,7 +357,7 @@ try {
 
                 $destinationFileName = switch ($fileName) {
                     'start-app.bat' { "start-$env:APP_SHORT_NAME.bat" }
-                    'start-pre-initialized-app.bat' { "start-pre-initialized-$env:APP_SHORT_NAME.bat" }
+                    'start-pre-init-to-debug.bat' { "start-pre-init-to-debug-$env:APP_SHORT_NAME.bat" }
                     default         { $fileName }
                 }
 
@@ -397,12 +397,12 @@ try {
 
         if ($pi.IsPresent) {
         
-          Write-Host "Running Portable pre-initialized zip build..."
+          Write-Host "Running Portable pre-init-to-debug zip build..."
 
           # Remove-Item -Path $initializeDestination -Force -ErrorAction SilentlyContinue
           # Remove-Item -Path $readmeDestination -Force -ErrorAction SilentlyContinue
 
-          $portablePreInitializedZipPath = Join-Path $outputPath "$packageBaseName-portable-pre-initialized.zip"
+          $portablePreInitializedZipPath = Join-Path $outputPath "$packageBaseName-portable-pre-init-to-debug.zip"
           Remove-Item -Path $portablePreInitializedZipPath -Force -ErrorAction SilentlyContinue
 
           function Update-FileText {
@@ -456,11 +456,11 @@ try {
               -Force
 
           if (-not (Test-Path $portablePreInitializedZipPath)) {
-              Write-Error "Portable pre-initialized zip package was not created: $portablePreInitializedZipPath"
+              Write-Error "Portable pre-init-to-debug zip package was not created: $portablePreInitializedZipPath"
               exit 1
           }
 
-          Write-Host "Portable pre-initialized aip package created successfully: $portablePreInitializedZipPath"
+          Write-Host "Portable pre-init-to-debug zip package created successfully: $portablePreInitializedZipPath"
         }
 
         # Delete existing exe files from releases directory, only if path exists

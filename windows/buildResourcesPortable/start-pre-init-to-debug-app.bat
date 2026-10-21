@@ -4,11 +4,12 @@ pushd "%~dp0"
 REM --- Guard: the demo requires a clean state ---
 if exist "%USERPROFILE%\pankosmia\%%APP_SHORT_NAME%%" (
     echo.
-    echo The folder "%USERPROFILE%\pankosmia\%%APP_SHORT_NAME%%" exists.
+    echo The folder "%USERPROFILE%\pankosmia\%%APP_SHORT_NAME%%" exists ("~\\pankosmia\%%APP_SHORT_NAME%%"^).
     echo For this demonstration it must NOT exist.
     echo.
     echo Please delete the following folder, then run this script again:
     echo     "%USERPROFILE%\pankosmia\%%APP_SHORT_NAME%%"
+    echo     ("~\\pankosmia\%%APP_SHORT_NAME%%"^)
     echo.
     popd
     pause

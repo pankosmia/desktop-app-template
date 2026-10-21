@@ -34,7 +34,7 @@
     Specify -p for Portable App
 
 .PARAMETER -pi
-    Specify -pi for Portable App Pre-initialized (also runs -p even if not specified)
+    Specify -pi for Portable App pre-init-to-debug (also runs -p even if not specified)
 #>
 
 param(
