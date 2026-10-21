@@ -8,6 +8,33 @@ Then start that app again, and the portable app will be running.
 
 $root = $PSScriptRoot
 
+$workingSource = Join-Path $HOME "pankosmia\%%APP_SHORT_NAME%%"
+$destination   = Join-Path $root "pankosmia\%%APP_SHORT_NAME%%"
+$homeSettings  = Join-Path $workingSource "user_settings.json"
+
+# The portable app hasn't had its first launch yet. Refuse.
+if (-not (Test-Path -LiteralPath $workingSource) -and -not (Test-Path -LiteralPath $destination)) {
+    Write-Host 'This setup helper should is not meant to be run directly.'
+    Write-Host 'Run start-%%APP_SHORT_NAME%%.bat instead. See README.txt.'
+    cmd /c pause
+    exit 1
+}
+
+# This would also mean the portable app hasn't yet had its first launch yet. Refuse.
+if ((Test-Path -LiteralPath $workingSource) -and -not (Test-Path -LiteralPath $destination)) {
+    if (Test-Path -LiteralPath $homeSettings) {
+        $settingsText = [System.IO.File]::ReadAllText($homeSettings)
+        $portableMarker = '"repo_dir": "..\\pankosmia_repos",'
+        if (-not $settingsText.Contains($portableMarker)) {
+            Write-Host 'This setup helper is not meant to be run directly.'
+            Write-Host "Delete $workingSource , also referred to as: ~\pankosmia\%%APP_SHORT_NAME%%."
+            Write-Host 'Then run start-%%APP_SHORT_NAME%%.bat instead. See README.txt.'
+            cmd /c pause
+            exit 1
+        }
+    }
+}
+
 function Wait-ForUnlock {
     param(
         [string]$Path,
@@ -61,9 +88,7 @@ function Update-FileText {
 try {
     Write-Host 'Running one-time portable app setup...'
 
-    # Move working directory from home (~) to portable app
-    $workingSource = Join-Path $HOME "pankosmia\%%APP_SHORT_NAME%%"
-    $destination   = Join-Path $root  "pankosmia\%%APP_SHORT_NAME%%"
+    # Move working directory from home (~) to portable app  (already defined at the top)
 
     if ((Test-Path -LiteralPath $workingSource) -and -not (Test-Path -LiteralPath $destination)) {
         $destParent = Split-Path -Parent $destination

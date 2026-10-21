@@ -7,9 +7,9 @@ if exist "%USERPROFILE%\pankosmia\%%APP_SHORT_NAME%%" (
     echo The folder "%USERPROFILE%\pankosmia\%%APP_SHORT_NAME%%" exists ("~\\pankosmia\%%APP_SHORT_NAME%%"^).
     echo For this demonstration it must NOT exist.
     echo.
-    echo Please delete the following folder, then run this script again:
+    echo Delete the following folder, then run this script again:
     echo     "%USERPROFILE%\pankosmia\%%APP_SHORT_NAME%%"
-    echo     ("~\pankosmia\%%APP_SHORT_NAME%%"^)
+    echo     also referred to as: "~\pankosmia\%%APP_SHORT_NAME%%"
     echo.
     popd
     pause
