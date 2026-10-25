@@ -35,9 +35,6 @@ Specify -Dev "Y" when generating a development viewer.
 
 .PARAMETER -p
     Specify -p for Portable App
-
-.PARAMETER -pi
-    Specify -pi for Portable App pre-init-to-debug (also runs -p even if that was not specified)
 #>
 
 param(
@@ -272,7 +269,7 @@ try {
         }
 
         # Portable app uses a virtual path for repo_dir
-        if ($p.IsPresent -or $pi.IsPresent) {
+        if ($p.IsPresent) {
             $user_settings = Join-Path $payloadPath "lib\templates\user_settings.json"
             $usText = [System.IO.File]::ReadAllText($user_settings).Replace('"repo_dir": "%%HOMEDIR%%/pankosmia_repos",', '"repo_dir": "..\pankosmia_repos",')
             [System.IO.File]::WriteAllText($user_settings, $usText, [System.Text.UTF8Encoding]::new($false))
@@ -292,7 +289,7 @@ try {
 
         $packageBaseName = "$($env:FILE_APP_NAME)-$($env:APP_VERSION)-win-$arch"
 
-        if ($p.IsPresent -or $pi.IsPresent) {
+        if ($p.IsPresent) {
             Write-Host "Building portable ZIP..."
 
             # These are the same sources used by install\makeInstallElectronite.iss.
@@ -338,18 +335,10 @@ try {
             
             # Copy configured helper files to the ZIP root.
             $helpersSource = ".\buildResourcesPortable"
-            $initializeDestination = Join-Path $portableStage "Initialize-PortableApp.ps1"
             $startAppBatDestination = Join-Path $portableStage "start-$($env:APP_SHORT_NAME).bat"
-            $startPreInitializedAppBatDestination = Join-Path $portableStage "start-pre-init-to-debug-$($env:APP_SHORT_NAME).bat" # used in -pi only later
-            $readmeDestination = Join-Path $portableStage "README.txt"
-            $readmePreInitializedDestination = Join-Path $portableStage "README-pre-init-to-debug.md" # used in -pi only later
 
             $helperFiles = @(
-                "Initialize-PortableApp.ps1",
-                "start-app.bat",
-                "start-pre-init-to-debug-app.bat",
-                "README.txt",
-                "README-pre-init-to-debug.md"
+                "start-app.bat"
             )
 
             foreach ($fileName in $helperFiles) {
@@ -357,7 +346,6 @@ try {
 
                 $destinationFileName = switch ($fileName) {
                     'start-app.bat' { "start-$env:APP_SHORT_NAME.bat" }
-                    'start-pre-init-to-debug-app.bat' { "start-pre-init-to-debug-$env:APP_SHORT_NAME.bat" }
                     default         { $fileName }
                 }
 
@@ -378,15 +366,56 @@ try {
                 Set-Content -Path $destination -Value $content -NoNewline
             }
 
-          # Remove the win desktop app readme that is not applicable to the portable app.
-          $readmeToDel = Join-Path $portableAppStage "README.txt"
-          Remove-Item -Path $readmeToDel -Force -ErrorAction SilentlyContinue
+            # Remove the win desktop app readme that is not applicable to the portable app.
+            $readmeToDel = Join-Path $portableAppStage "README.txt"
+            Remove-Item -Path $readmeToDel -Force -ErrorAction SilentlyContinue
+
+            function Update-FileText {
+                param(
+                    [Parameter(Mandatory)] [string] $Path,
+                    [Parameter(Mandatory)] [string] $Find,     # uses `n newlines
+                    [Parameter(Mandatory)] [string] $Replace   # uses `n newlines
+                )
+
+                $raw  = [System.IO.File]::ReadAllText($Path)
+                $norm = $raw -replace "`r`n", "`n" -replace "`r", "`n"
+
+                if ($norm.Contains($Replace)) {
+                    Write-Host "$Path was not updated by this run; '$Replace' already present."
+                    exit 1
+                }
+                if (-not $norm.Contains($Find)) {
+                    Write-Host "Expected original text was not found in $Path ; no change made."
+                    exit 1
+                }
+
+                $updated = $norm.Replace($Find, $Replace)
+                [System.IO.File]::WriteAllText($Path, $updated, [System.Text.UTF8Encoding]::new($false))
+            }
+
+            # $portableStage is full path b/c working dir diff between PS and .NET/process, e.g. ReadAllText() 
+
+            # $serverFile  = Join-Path $electronDestPath 'core\server.js'
+            $serverFile = Join-Path $portableStage "$env:APP_NAME\electron\core\server.js"
+            
+            # $startupFile = Join-Path $electronDestPath 'electronStartup.js'
+            $startupFile = Join-Path $portableStage "$env:APP_NAME\electron\electronStartup.js"
+
+            # --- server.js ---
+            $serverFind    = 'spawn(SERVER_EXECUTABLE_PATH, []'
+            $serverReplace = "spawn(SERVER_EXECUTABLE_PATH, [`'../pankosmia/$env:APP_SHORT_NAME`']"
+            Update-FileText -Path $serverFile -Find $serverFind -Replace $serverReplace
+
+            # --- electronStartup.js ---
+            $startupFind    = "if (START_SERVER) {`n  app.setName('$env:APP_NAME');`n} else {"
+            $startupReplace = "if (START_SERVER) {`n  app.setName('$env:APP_NAME');`n  app.setPath('userData', path.resolve(process.cwd(), './pankosmia/AppData', '$env:APP_SHORT_NAME'));`n} else {"
+            Update-FileText -Path $startupFile -Find $startupFind -Replace $startupReplace
 
             Remove-Item -Path $portableZipPath -Force -ErrorAction SilentlyContinue
 
             # Archive a single top-level directory named after the application.
             Compress-Archive `
-                -Path $portableAppStage, $initializeDestination, $startAppBatDestination, $readmeDestination `
+                -Path $portableAppStage, $startAppBatDestination `
                 -DestinationPath $portableZipPath `
                 -CompressionLevel Optimal `
                 -Force
@@ -397,71 +426,6 @@ try {
             }
 
             Write-Host "Portable package created successfully: $portableZipPath"
-        }
-
-        if ($pi.IsPresent) {
-        
-          Write-Host "Running Portable pre-init-to-debug zip build..."
-
-          $portablePreInitializedZipPath = Join-Path $outputPath "$packageBaseName-portable-pre-init-to-debug.zip"
-          Remove-Item -Path $portablePreInitializedZipPath -Force -ErrorAction SilentlyContinue
-
-          function Update-FileText {
-              param(
-                  [Parameter(Mandatory)] [string] $Path,
-                  [Parameter(Mandatory)] [string] $Find,     # uses `n newlines
-                  [Parameter(Mandatory)] [string] $Replace   # uses `n newlines
-              )
-
-              $raw  = [System.IO.File]::ReadAllText($Path)
-              $norm = $raw -replace "`r`n", "`n" -replace "`r", "`n"
-
-              if ($norm.Contains($Replace)) {
-                  Write-Host "$Path was not updated by this run; '$Replace' already present."
-                  exit 1
-              }
-              if (-not $norm.Contains($Find)) {
-                  Write-Host "Expected original text was not found in $Path ; no change made."
-                  exit 1
-              }
-
-              $updated = $norm.Replace($Find, $Replace)
-              [System.IO.File]::WriteAllText($Path, $updated, [System.Text.UTF8Encoding]::new($false))
-          }
-
-          # $portableStage is full path b/c working dir diff between PS and .NET/process, e.g. ReadAllText() 
-
-          # $serverFile  = Join-Path $electronDestPath 'core\server.js'
-          $serverFile = Join-Path $portableStage "$env:APP_NAME\electron\core\server.js"
-          
-          # $startupFile = Join-Path $electronDestPath 'electronStartup.js'
-          $startupFile = Join-Path $portableStage "$env:APP_NAME\electron\electronStartup.js"
-
-          # --- server.js ---
-          $serverFind    = 'spawn(SERVER_EXECUTABLE_PATH, []'
-          $serverReplace = "spawn(SERVER_EXECUTABLE_PATH, [`'../pankosmia/$env:APP_SHORT_NAME`']"
-          Update-FileText -Path $serverFile -Find $serverFind -Replace $serverReplace
-
-          # --- electronStartup.js ---
-          $startupFind    = "if (START_SERVER) {`n  app.setName('$env:APP_NAME');`n} else {"
-          $startupReplace = "if (START_SERVER) {`n  app.setName('$env:APP_NAME');`n  app.setPath('userData', path.resolve(process.cwd(), './pankosmia/$env:APP_SHORT_NAME', 'AppData'));`n} else {"
-          Update-FileText -Path $startupFile -Find $startupFind -Replace $startupReplace
-
-          Remove-Item -Path $portablePreInitializedZipPath -Force -ErrorAction SilentlyContinue
-
-          # Archive a single top-level directory named after the application.
-          Compress-Archive `
-              -Path $portableAppStage, $startPreInitializedAppBatDestination, $readmePreInitializedDestination `
-              -DestinationPath $portablePreInitializedZipPath `
-              -CompressionLevel Optimal `
-              -Force
-
-          if (-not (Test-Path $portablePreInitializedZipPath)) {
-              Write-Error "Portable pre-init-to-debug zip package was not created: $portablePreInitializedZipPath"
-              exit 1
-          }
-
-          Write-Host "Portable pre-init-to-debug zip package created successfully: $portablePreInitializedZipPath"
         }
 
         # Delete existing exe files from releases directory, only if path exists

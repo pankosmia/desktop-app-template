@@ -32,9 +32,6 @@ on:
       zip-portable-name:
         description: "Name of the generated Portable ZIP file"
         value: ${{ jobs.build.outputs.zip-portable-name }}
-      zip-portable-init-name:
-        description: "Name of the generated Portable ZIP file"
-        value: ${{ jobs.build.outputs.zip-portable-init-name }}
 
 jobs:
   build:
@@ -43,7 +40,6 @@ jobs:
       zip-name: ${{ steps.get-zip-name.outputs.zip-name }}
       electronite-exe-name: ${{ steps.get-electronite-exe-name.outputs.electronite-exe-name }}
       zip-portable-name: ${{ steps.get-zip-name.outputs.zip-portable-name }}
-      zip-portable-init-name: ${{ steps.get-zip-name.outputs.zip-portable-init-name }}
 
     # Set process.env.CI to false to prevent treating warnings as errors
     env:
@@ -212,10 +208,10 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      # Portable App - Bundle viewer without asking if the server is off and indicate GHA -p and -pi
-      - name: Run bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p -pi
+      # Portable App - Bundle viewer without asking if the server is off and indicate GHA -p
+      - name: Run bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p
         working-directory: .\windows\scripts
-        run: .\bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p -pi
+        run: .\bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p
 
       # Get names for portable artifact
       - name: Get name for portable app artifact
@@ -232,23 +228,5 @@ jobs:
         with:
           name: ${{ env.ZIP_PORTABLE_NAME }}
           path: .\releases\windows\${{ env.ZIP_PORTABLE_NAME }}
-          if-no-files-found: error
-          retention-days: 90
-
-      # Get names for portable pre-init-to-debug artifact
-      - name: Get name for portable pre-init-to-debug app artifact
-        id: get-portable-app-pre-init-name
-        run: |
-          echo "Zip for portable app pre-init-to-debug name:"
-          $ZIP_PORTABLE_PRE_INIT_NAME = Get-ChildItem -Path ".\releases\windows\*-portable-pre-init-to-debug.zip" -Name
-          echo "zip-portable-pre-init-name=$ZIP_PORTABLE_PRE_INIT_NAME" >> $env:GITHUB_OUTPUT
-          echo "ZIP_PORTABLE_PRE_INIT_NAME=$ZIP_PORTABLE_PRE_INIT_NAME" >> $env:GITHUB_ENV
-
-      # Upload zip for portable artifacts
-      - name: Upload zip for portable pre-init-to-debug artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ZIP_PORTABLE_PRE_INIT_NAME }}
-          path: .\releases\windows\${{ env.ZIP_PORTABLE_PRE_INIT_NAME }}
           if-no-files-found: error
           retention-days: 90

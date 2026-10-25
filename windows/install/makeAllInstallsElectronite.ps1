@@ -29,16 +29,12 @@
 
 .PARAMETER -p
     Specify -p for Portable App
-
-.PARAMETER -pi
-    Specify -pi for Portable App pre-init-to-debug (also runs -p even if that was not specified)
 #>
 param(
     [string]$Dev = "N",
     [string]$IsGHA = "Y",
     [bool]$FullInstall = $true,
-    [switch]$p,
-    [switch]$pi
+    [switch]$p
 )
 
 # get environment variables from app_config.env
@@ -133,10 +129,6 @@ foreach ($ARCH in @("x64", "arm64")) {
 
     if ($p.IsPresent) {
         $installArgs.p = $true
-    }
-
-    if ($pi.IsPresent) {
-        $installArgs.pi = $true
     }
 
     $result = & $makeInstallElectronitePath @installArgs

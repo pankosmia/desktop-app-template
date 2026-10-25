@@ -32,16 +32,12 @@
 
 .PARAMETER -p
     Specify -p for Portable App
-
-.PARAMETER -pi
-    Specify -pi for Portable App pre-init-to-debug (also runs -p even if not specified)
 #>
 
 param(
     [string]$ServerOff,
     [string]$IsGHA = "N",
-    [switch]$p,
-    [switch]$pi
+    [switch]$p
 )
 
 if ($ServerOff -eq 'Y' -or $ServerOff -eq 'y') {
@@ -99,10 +95,6 @@ if ($answer -eq 'Y' -Or $answer -eq '') {
 
   if ($p.IsPresent) {
       $installArgs['p'] = $true
-  }
-
-  if ($pi.IsPresent) {
-      $installArgs['pi'] = $true
   }
 
   & ..\install\makeAllInstallsElectronite.ps1 @installArgs
