@@ -336,9 +336,11 @@ try {
             # Copy configured helper files to the ZIP root.
             $helpersSource = ".\buildResourcesPortable"
             $startAppBatDestination = Join-Path $portableStage "start-$($env:APP_SHORT_NAME).bat"
+            $readMeDestination = Join-Path $portableStage "README.txt"
 
             $helperFiles = @(
-                "start-app.bat"
+                "start-app.bat",
+                "README.txt"
             )
 
             foreach ($fileName in $helperFiles) {
@@ -362,6 +364,7 @@ try {
                 $content = Get-Content -Path $destination -Raw
                 $content = $content.Replace('%%APP_NAME%%', $env:APP_NAME)
                 $content = $content.Replace('%%APP_SHORT_NAME%%', $env:APP_SHORT_NAME)
+                $content = $content.Replace('%%ARCH%%', $env:ARCH)
 
                 Set-Content -Path $destination -Value $content -NoNewline
             }
@@ -415,7 +418,7 @@ try {
 
             # Archive a single top-level directory named after the application.
             Compress-Archive `
-                -Path $portableAppStage, $startAppBatDestination `
+                -Path $portableAppStage, $startAppBatDestination, $readMeDestination `
                 -DestinationPath $portableZipPath `
                 -CompressionLevel Optimal `
                 -Force
