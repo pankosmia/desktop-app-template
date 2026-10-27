@@ -39,7 +39,7 @@ jobs:
     outputs:
       zip-name: ${{ steps.get-zip-name.outputs.zip-name }}
       electronite-exe-name: ${{ steps.get-electronite-exe-name.outputs.electronite-exe-name }}
-      zip-portable-name: ${{ steps.get-zip-name.outputs.zip-portable-name }}
+      zip-portable-name: ${{ steps.get-zip-portable-name.outputs.zip-portable-name }}
 
     # Set process.env.CI to false to prevent treating warnings as errors
     env:
@@ -215,7 +215,7 @@ jobs:
 
       # Get names for portable artifact
       - name: Get name for portable app artifact
-        id: get-portable-app-name
+        id: get-zip-portable-name
         run: |
           echo "Zip for portable app name:"
           $ZIP_PORTABLE_NAME = Get-ChildItem -Path ".\releases\windows\*-portable.zip" -Name
