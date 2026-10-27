@@ -13,7 +13,7 @@ cd "$APP_DIR" || exit 1
 # Load configuration
 source "$SETTINGS_FILE"
 
-echo "Launching %%APP_NAME%%..."
+echo "Launching %%APP_NAME%% in another window..."
 
 # Start Electron as a background process.
 setsid nohup "$APP_DIR/viewer/electron" \
