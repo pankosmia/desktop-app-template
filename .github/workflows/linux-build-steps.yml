@@ -155,7 +155,7 @@ jobs:
           echo "tgz for cli name:"
           ls -als ./releases/linux/*-cli.tgz
           cd ./releases/linux
-          TGZ_NAME=$(ls *.tgz | head -n 1)
+          TGZ_NAME=$(ls *-cli.tgz | head -n 1)
           echo "tgz-name=$TGZ_NAME" >> $GITHUB_OUTPUT
           echo "TGZ_NAME=$TGZ_NAME" >> $GITHUB_ENV
           cd ../..
@@ -177,7 +177,7 @@ jobs:
           echo "tgz for portable app name:"
           ls -als ./releases/linux/*-portable.tgz
           cd ./releases/linux
-          TGZ_PORTABLE_NAME=$(ls *.tgz | head -n 1)
+          TGZ_PORTABLE_NAME=$(ls *-portable.tgz | head -n 1)
           echo "tgz-portable-name=$TGZ_PORTABLE_NAME" >> $GITHUB_OUTPUT
           echo "TGZ_PORTABLE_NAME=$TGZ_PORTABLE_NAME" >> $GITHUB_ENV
           cd ../..
