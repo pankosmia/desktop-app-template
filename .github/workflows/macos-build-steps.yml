@@ -209,30 +209,11 @@ jobs:
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
           cd ../..
 
-      - name: Get zip portable names
-        id: get-zip-portable-name
-        run: |
-          echo "Zip portable name:"
-          ls -als ./releases/macos/*-portable.zip
-          cd ./releases/macos
-          ZIP_NAME=$(ls *-portable.zip | head -n 1)
-          echo "zip-portable-name=$ZIP_PORTABLE_NAME" >> $GITHUB_OUTPUT
-          echo "ZIP_PORTABLE_NAME=$ZIP_PORTABLE_NAME" >> $GITHUB_ENV
-          cd ../..
-
       - name: Upload zip cli artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ZIP_NAME }}
           path: ./releases/macos/${{ env.ZIP_NAME }}
-          if-no-files-found: error
-          retention-days: 90
-
-      - name: Upload zip portable artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ZIP_PORTABLE_NAME }}
-          path: ./releases/macos/${{ env.ZIP_PORTABLE_NAME }}
           if-no-files-found: error
           retention-days: 90
 
@@ -251,10 +232,10 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      # build electronite installs (-f = full install)
+      # build electronite installs (-f = full install; -p = include portable)
       - name: Run makeAllInstallsElectronite.sh
         working-directory: ./macos/install
-        run: ./makeAllInstallsElectronite.sh -f
+        run: ./makeAllInstallsElectronite.sh -f -p
 
       - name: Get Electronite Installer names
         id: get-electronite-names
@@ -294,11 +275,30 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      - name: Get zip portable names
+        id: get-zip-portable-name
+        run: |
+          echo "Zip portable name:"
+          ls -als ./releases/macos/*-portable.zip
+          cd ./releases/macos
+          ZIP_NAME=$(ls *-portable.zip | head -n 1)
+          echo "zip-portable-name=$ZIP_PORTABLE_NAME" >> $GITHUB_OUTPUT
+          echo "ZIP_PORTABLE_NAME=$ZIP_PORTABLE_NAME" >> $GITHUB_ENV
+          cd ../..
+
       - name: Upload electronite x64 artifacts
         if: env.ELECTRONITE_PKG_NAME_INTEL != ''
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ELECTRONITE_PKG_NAME_INTEL }}
           path: ./releases/macos/${{ env.ELECTRONITE_PKG_NAME_INTEL }}
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload zip portable artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_PORTABLE_NAME }}
+          path: ./releases/macos/${{ env.ZIP_PORTABLE_NAME }}
           if-no-files-found: error
           retention-days: 90
