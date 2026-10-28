@@ -224,8 +224,8 @@ jobs:
           ls -als ./releases/macos/*-portable.zip
           cd ./releases/macos
           ZIP_NAME=$(ls *-portable.zip | head -n 1)
-          echo "zip-portable-name=$ZIP_NAME" >> $GITHUB_OUTPUT
-          echo "ZIP_PORTABLE_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          echo "zip-portable-name=$ZIP_PORTABLE_NAME" >> $GITHUB_OUTPUT
+          echo "ZIP_PORTABLE_NAME=$ZIP_PORTABLE_NAME" >> $GITHUB_ENV
           cd ../..
 
       - name: Upload zip portable artifacts
