@@ -209,14 +209,6 @@ jobs:
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
           cd ../..
 
-      - name: Upload zip cli artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ZIP_NAME }}
-          path: ./releases/macos/${{ env.ZIP_NAME }}
-          if-no-files-found: error
-          retention-days: 90
-
       - name: Get zip portable names
         id: get-zip-portable-name
         run: |
@@ -227,6 +219,14 @@ jobs:
           echo "zip-portable-name=$ZIP_PORTABLE_NAME" >> $GITHUB_OUTPUT
           echo "ZIP_PORTABLE_NAME=$ZIP_PORTABLE_NAME" >> $GITHUB_ENV
           cd ../..
+
+      - name: Upload zip cli artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_NAME }}
+          path: ./releases/macos/${{ env.ZIP_NAME }}
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Upload zip portable artifacts
         uses: actions/upload-artifact@v4
