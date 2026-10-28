@@ -281,7 +281,7 @@ jobs:
           echo "Zip portable name:"
           ls -als ./releases/macos/*-portable.zip
           cd ./releases/macos
-          ZIP_NAME=$(ls *-portable.zip | head -n 1)
+          ZIP_PORTABLE_NAME=$(ls *-portable.zip | head -n 1)
           echo "zip-portable-name=$ZIP_PORTABLE_NAME" >> $GITHUB_OUTPUT
           echo "ZIP_PORTABLE_NAME=$ZIP_PORTABLE_NAME" >> $GITHUB_ENV
           cd ../..
