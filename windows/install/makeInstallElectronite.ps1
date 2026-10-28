@@ -335,11 +335,11 @@ try {
             
             # Copy configured helper files to the ZIP root.
             $helpersSource = ".\buildResourcesPortable"
-            $startAppBatDestination = Join-Path $portableStage "start-$($env:APP_SHORT_NAME).bat"
+            $startAppBatDestination = Join-Path $portableStage "$($env:APP_NAME).bat"
             $readMeDestination = Join-Path $portableStage "README.txt"
 
             $helperFiles = @(
-                "start-app.bat",
+                "App Name.bat",
                 "README.txt"
             )
 
@@ -347,7 +347,7 @@ try {
                 $source = Join-Path $helpersSource $fileName
 
                 $destinationFileName = switch ($fileName) {
-                    'start-app.bat' { "start-$env:APP_SHORT_NAME.bat" }
+                    'App Name.bat' { "$env:APP_NAME.bat" }
                     default         { $fileName }
                 }
 
