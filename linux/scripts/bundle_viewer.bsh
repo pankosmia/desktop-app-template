@@ -198,11 +198,11 @@ if [ "$portable" = true ]; then
     sed -i 's#"repo_dir": "%%HOMEDIR%%/pankosmia_repos",#"repo_dir": "../pankosmia_repos",#' "$USER_SETTINGS"
 
     # Copy configured helper files to the TGZ root.
-    START_APP_SH_DESTINATION="$PORTABLE_STAGE/start-$APP_SHORT_NAME.sh"
+    START_APP_SH_DESTINATION="$PORTABLE_STAGE/$APP_NAME.sh"
     README_DESTINATION="$PORTABLE_STAGE/README.txt"
 
     HELPER_FILES=(
-        "start-app.sh"
+        "App Name.sh"
         "README.txt"
     )
 
@@ -210,7 +210,7 @@ if [ "$portable" = true ]; then
         source_file="$HELPERS_SOURCE/$fileName"
 
         case "$fileName" in
-            "start-app.sh") destinationFileName="start-$APP_SHORT_NAME.sh" ;;
+            "App Name.sh") destinationFileName="$APP_NAME.sh" ;;
             *)              destinationFileName="$fileName" ;;
         esac
 
@@ -274,7 +274,7 @@ if [ "$portable" = true ]; then
     tar -czf "$PORTABLE_TGZ_PATH" \
         -C "$PORTABLE_STAGE" \
         "$APP_NAME" \
-        "start-$APP_SHORT_NAME.sh" \
+        "$APP_NAME.sh" \
         "README.txt"
 
     if [ ! -f "$PORTABLE_TGZ_PATH" ]; then
