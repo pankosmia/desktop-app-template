@@ -293,7 +293,7 @@ if [ "$devRun" != "-d" ]; then
     PAYLOAD_DIR="./$pkgDir/project/payload"
     BUILT_APP="${PAYLOAD_DIR}/${APP_NAME}.app"
 
-    HELPERS_SOURCE="./buildResources/../buildResourcesPortable"
+    HELPERS_SOURCE="./buildResourcesPortable"
 
     OUTPUT_PATH="../releases/macos"
     mkdir -p "$OUTPUT_PATH"
@@ -389,7 +389,8 @@ if [ "$devRun" != "-d" ]; then
 
     # Create the archive whose top-level entries are the .app bundle and README.
     rm -f "$PORTABLE_ZIP_PATH"
-    ( cd "$PORTABLE_STAGE" && zip -r -y -q "../../../../${OUTPUT_PATH#../}/$(basename "$PORTABLE_ZIP_PATH")" "${APP_NAME}.app" "README.txt" )
+    ditto -c -k --sequesterRsrc --keepParent "$PORTABLE_STAGE/${APP_NAME}.app" "$PORTABLE_ZIP_PATH"
+    zip -j "$PORTABLE_ZIP_PATH" "$PORTABLE_STAGE/README.txt"
 
     if [ ! -f "$PORTABLE_ZIP_PATH" ]; then
         echo "Error: Portable ZIP was not created: $PORTABLE_ZIP_PATH"
