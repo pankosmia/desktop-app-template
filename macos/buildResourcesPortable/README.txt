@@ -5,6 +5,7 @@ Place all contents of this directory and any subdirectories on any exFAT-formatt
 
 Run by double-clicking %%APP_NAME%% in a file browser.
 
+Alternative run from a terminal with `./start.sh`.
 ______________________________________________________
 
 If you get a message saying "Not Opened", then:

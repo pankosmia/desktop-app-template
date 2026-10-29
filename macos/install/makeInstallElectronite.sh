@@ -342,6 +342,19 @@ if [ "$devRun" != "-d" ]; then
     sed -i.bak "s/%%ARCH%%/$ARCH/g" "$README_DESTINATION"
     rm -f "${README_DESTINATION}.bak"
 
+    # --- start.sh helper at the ZIP root ---
+    SH_START_SOURCE="${HELPERS_SOURCE}/start.sh"
+    SH_START_DESTINATION="${PORTABLE_STAGE}/start.sh"
+    if [ ! -f "$SH_START_SOURCE" ]; then
+        echo "Error: Portable helper file not found: $SH_START_SOURCE"
+        exit 1
+    fi
+    cp "$SH_START_SOURCE" "$SH_START_DESTINATION"
+    # Replace placeholders only in the staged ZIP copy.
+    sed -i.bak "s/%%APP_NAME%%/$APP_NAME/g" "$SH_START_DESTINATION"
+    sed -i.bak "s/%%FILE_APP_NAME%%/$FILE_APP_NAME/g" "$SH_START_DESTINATION"
+    rm -f "${SH_START_DESTINATION}.bak"
+    
     SERVER_FILE="${PORTABLE_APP_STAGE}/Contents/electron/core/server.js"
     STARTUP_FILE="${PORTABLE_APP_STAGE}/Contents/electron/electronStartup.js"
 
@@ -390,7 +403,7 @@ if [ "$devRun" != "-d" ]; then
     # Create the archive whose top-level entries are the .app bundle and README.
     rm -f "$PORTABLE_ZIP_PATH"
     ditto -c -k --sequesterRsrc --keepParent "$PORTABLE_STAGE/${APP_NAME}.app" "$PORTABLE_ZIP_PATH"
-    zip -j "$PORTABLE_ZIP_PATH" "$PORTABLE_STAGE/README.txt"
+    zip -j "$PORTABLE_ZIP_PATH" "$README_DESTINATION" "$SH_START_DESTINATION"
 
     if [ ! -f "$PORTABLE_ZIP_PATH" ]; then
         echo "Error: Portable ZIP was not created: $PORTABLE_ZIP_PATH"
