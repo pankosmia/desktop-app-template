@@ -10,8 +10,9 @@ on:
       branches:
         required: true
         type: string
-      log_level:
-        required: true
+      branch_name_exception:
+        description: 'Branch name exception (optional):'
+        required: false
         type: string
       timestamp:
         description: 'Build-order timestamp computed once in the setup job'
@@ -24,11 +25,14 @@ on:
         default: ''
     outputs:
       zip-name:
-        description: "Name of the generated ZIP file"
+        description: "Name of the generated CLI ZIP file"
         value: ${{ jobs.build.outputs.zip-name }}
       electronite-exe-name:
         description: "Name of the generated Electronite installer EXE file"
         value: ${{ jobs.build.outputs.electronite-exe-name }}
+      zip-portable-name:
+        description: "Name of the generated Portable ZIP file"
+        value: ${{ jobs.build.outputs.zip-portable-name }}
 
 jobs:
   build:
@@ -36,21 +40,22 @@ jobs:
     outputs:
       zip-name: ${{ steps.get-zip-name.outputs.zip-name }}
       electronite-exe-name: ${{ steps.get-electronite-exe-name.outputs.electronite-exe-name }}
+      zip-portable-name: ${{ steps.get-zip-portable-name.outputs.zip-portable-name }}
 
     # Set process.env.CI to false to prevent treating warnings as errors
     env:
       CI: false
       BRANCHES: ${{ inputs.branches }}
-      LOG_LEVEL: ${{ inputs.log_level }}
+      BRANCH_NAME_EXCEPTION: ${{ inputs.branch_name_exception }}
 
     steps:
       # Show branches
       - name: Show BRANCHES
-        run: echo "BRANCHES = $env:BRANCHES"
-
-      # Show log level
-      - name: Show LOG LEVEL
-        run: echo "LOG_LEVEL = $env:LOG_LEVEL"
+        run: |
+          echo "BRANCHES = $env:BRANCHES"
+          if ($env:BRANCH_NAME_EXCEPTION) {
+            echo "Branch name exception is $env:BRANCH_NAME_EXCEPTION"
+          }
 
       # Turn off re-runs
       - name: No re-runs please
@@ -75,16 +80,16 @@ jobs:
 
       # Checkout the repository
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       # Specify pnpm version
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.20.0
 
       # Specify node.js version
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24.11.0'
           # cache: pnpm
@@ -122,6 +127,7 @@ jobs:
           $appShortName = $appShortNameLine -replace ".*=(.*)", '$1'
           echo "APP_SHORT_NAME=$appShortName" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "APP_SHORT_NAME=$appShortName"
+
       # Install the repository
       - name: Install this repo
         run: pnpm install
@@ -136,15 +142,22 @@ jobs:
         shell: pwsh
         run: node -p "process.arch"
 
-      # Install and build clients
+      # Install and build clients with a branch name exception
+      - name: Build ${{ inputs.branches }} clients except where ${{ inputs.branch_name_exception }} exists
+        if: ${{ inputs.branch_name_exception != '' }}
+        working-directory: .\windows\scripts
+        run: .\build_clients.bat -f "$env:BRANCH_NAME_EXCEPTION" "$env:BRANCHES"
+
+      # Install and build clients without a branch name exception
       - name: Build ${{ inputs.branches }} clients
+        if: ${{ inputs.branch_name_exception == '' }}
         working-directory: .\windows\scripts
         run: .\build_clients.bat -f "$env:BRANCHES"
 
       # Build RELEASE server and assemble build environment without asking if the server is off
       - name: Run ${{ inputs.branches }} RELEASE server and assemble build environment without asking if the server is off
         working-directory: .\windows\scripts
-        run: .\build_server.bat -s "$env:BRANCHES" "$env:LOG_LEVEL"
+        run: .\build_server.bat -s "$env:BRANCHES"
 
       # Bundle zip without asking if the server is off and indicate GHA
       - name: Run bundle_zip.ps1 -ServerOff "Y" -IsGHA "Y"
@@ -162,10 +175,11 @@ jobs:
 
       # Upload zip for cli artifacts
       - name: Upload zip for cli artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ZIP_NAME }}
           path: .\releases\windows\${{ env.ZIP_NAME }}
+          archive: false
           if-no-files-found: error
           retention-days: 90
 
@@ -177,8 +191,8 @@ jobs:
 
       # Build electronite
       - name: Run makeAllInstallsElectronite.ps1
-        working-directory: ./windows/install
-        run: ./makeAllInstallsElectronite.ps1
+        working-directory: .\windows\install
+        run: .\makeAllInstallsElectronite.ps1
 
       # Get names for electronite exe artifacts
       - name: Get names for electronite exe artifact
@@ -191,9 +205,34 @@ jobs:
 
       # Upload electronite exe artifact
       - name: Upload electronite exe artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ELECTRONITE_EXE_NAME }}
           path: .\releases\windows\${{ env.ELECTRONITE_EXE_NAME }}
+          archive: false
+          if-no-files-found: error
+          retention-days: 90
+
+      # Portable App - Bundle viewer without asking if the server is off and indicate GHA -p
+      - name: Run bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p
+        working-directory: .\windows\scripts
+        run: .\bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p
+
+      # Get names for portable artifact
+      - name: Get name for portable app artifact
+        id: get-zip-portable-name
+        run: |
+          echo "Zip for portable app name:"
+          $ZIP_PORTABLE_NAME = Get-ChildItem -Path ".\releases\windows\*-portable.zip" -Name
+          echo "zip-portable-name=$ZIP_PORTABLE_NAME" >> $env:GITHUB_OUTPUT
+          echo "ZIP_PORTABLE_NAME=$ZIP_PORTABLE_NAME" >> $env:GITHUB_ENV
+
+      # Upload zip for portable artifacts
+      - name: Upload zip for portable artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.ZIP_PORTABLE_NAME }}
+          path: .\releases\windows\${{ env.ZIP_PORTABLE_NAME }}
+          archive: false
           if-no-files-found: error
           retention-days: 90

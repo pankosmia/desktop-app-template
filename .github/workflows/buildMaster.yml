@@ -9,16 +9,20 @@ on:
   workflow_dispatch:
     inputs:
       branches:
-        description: 'Branches'
+        description: 'Branches:'
         required: true
         type: choice
         options:
           - all of main
           - all of qa
           - all of dev
-        default: all of main
+        default: all of dev
+      branch_name_exception:
+        description: 'Branch name exception (optional):'
+        required: false
+        default: ""
       os:
-        description: 'OS'
+        description: 'OS:'
         required: true
         type: choice
         options:
@@ -27,27 +31,17 @@ on:
           - linux
           - macos
         default: all
-      log_level:
-        description: 'Log level'
-        required: true
-        type: choice
-        options:
-          - critical
-          - normal
-          - debug
-          - 'off'
-        default: critical
       artifact_suffix:
-        description: 'Artifact name identifier (optional)'
+        description: 'Artifact name identifier (optional):'
         required: false
         default: ""
 
 # set run name from input so the run appears with that name (no API call needed)
 run-name: >-
   Master Build
+   ${{ inputs.branch_name_exception != '' && format('- {0}', inputs.branch_name_exception) || '' }}
   - ${{ inputs.branches }}
   - ${{ inputs.os == 'all' && 'all OSes' || inputs.os }}
-  - log=${{ inputs.log_level }}
 
 jobs:
   setup:
@@ -68,8 +62,10 @@ jobs:
         run: echo "timestamp=$(date -u +'%Y%m%d-%H%M%S')" >> "$GITHUB_OUTPUT"
       - run: |
           echo "Branches is ${{ inputs.branches }}"
+          if [ -n "${{ inputs.branch_name_exception }}" ]; then
+            echo "Branch name exception is ${{ inputs.branch_name_exception }}"
+          fi
           echo "OS is ${{ inputs.os }}"
-          echo "Log level is ${{ inputs.log_level }}"
 
   build-macos-x64:
     needs: setup
@@ -79,8 +75,8 @@ jobs:
     with:
       runner: macos-15-intel
       delay_seconds: 1
-      log_level: ${{ inputs.log_level }}
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
+      branch_name_exception: ${{ inputs.branch_name_exception }}
       timestamp:       ${{ needs.setup.outputs.timestamp }}
       artifact_suffix: ${{ needs.setup.outputs.artifact_suffix }}
 
@@ -90,10 +86,10 @@ jobs:
     if: ${{ inputs.os == 'all' || inputs.os == 'macos' }}
     uses: ./.github/workflows/macos-build-steps.yml
     with:
-      runner: macos-14
+      runner: macos-15
       delay_seconds: 600
-      log_level: ${{ inputs.log_level }}
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
+      branch_name_exception: ${{ inputs.branch_name_exception }}
       timestamp:       ${{ needs.setup.outputs.timestamp }}
       artifact_suffix: ${{ needs.setup.outputs.artifact_suffix }}
 
@@ -104,8 +100,8 @@ jobs:
     uses: ./.github/workflows/windows-build-steps.yml
     with:
       runner: windows-2025
-      log_level: ${{ inputs.log_level }}
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
+      branch_name_exception: ${{ inputs.branch_name_exception }}
       timestamp:       ${{ needs.setup.outputs.timestamp }}
       artifact_suffix: ${{ needs.setup.outputs.artifact_suffix }}
 
@@ -116,8 +112,8 @@ jobs:
     uses: ./.github/workflows/windows-build-steps.yml
     with:
       runner: windows-11-arm
-      log_level: ${{ inputs.log_level }}
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
+      branch_name_exception: ${{ inputs.branch_name_exception }}
       timestamp:       ${{ needs.setup.outputs.timestamp }}
       artifact_suffix: ${{ needs.setup.outputs.artifact_suffix }}
 
@@ -128,8 +124,8 @@ jobs:
     uses: ./.github/workflows/linux-build-steps.yml
     with:
       runner: ubuntu-22.04
-      log_level: ${{ inputs.log_level }}
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
+      branch_name_exception: ${{ inputs.branch_name_exception }}
       timestamp:       ${{ needs.setup.outputs.timestamp }}
       artifact_suffix: ${{ needs.setup.outputs.artifact_suffix }}
 
@@ -140,8 +136,8 @@ jobs:
     uses: ./.github/workflows/linux-build-steps.yml
     with:
       runner: ubuntu-22.04-arm
-      log_level: ${{ inputs.log_level }}
       branches: ${{ inputs.branches == 'all of main' && 'main' || inputs.branches == 'all of qa' && 'qa' || 'dev' }}
+      branch_name_exception: ${{ inputs.branch_name_exception }}
       timestamp:       ${{ needs.setup.outputs.timestamp }}
       artifact_suffix: ${{ needs.setup.outputs.artifact_suffix }}
 

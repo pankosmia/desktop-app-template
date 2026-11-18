@@ -30,8 +30,9 @@
       ]
     }
   ],
-    "_global":[
-     {
+
+  "_global": [
+    {
       "id": "internetConfig",
       "i18n": "Config Internet",
       "fields": [
@@ -41,6 +42,11 @@
           "value": true
         }
       ]
+    },
+    {
+      "id": "externalTools",
+      "i18n": "external_tools",
+      "fields": [{ "value": true, "i18n": "firefox", "id": "firefox" }]
     }
   ]
 }
