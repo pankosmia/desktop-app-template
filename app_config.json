@@ -1,0 +1,93 @@
+{
+  "tiers": {
+    "order": ["dev", "qa", "main"],
+    "default": "dev"
+  },
+  "app": {
+    "name": [
+      { "value": "Pankosmia Desktop App Template", "branches": ["dev", "qa", "main"] }
+    ],
+    "short_name": [
+      { "value": "template", "branches": ["dev", "qa", "main"] }
+    ],
+    "version": [
+      { "value": "0.6.0-dev",       "branches": ["dev"] },
+      { "value": "0.5.0-rc2-test1", "branches": ["qa", "main"] }
+    ],
+    "homepage": [
+      { "value": "dashboard", "branches": ["dev", "qa", "main"] }
+    ],
+    "start_offline": [
+      { "value": true, "branches": ["dev", "qa", "main"] }
+    ],
+    "flavor_roles": [
+      {
+        "value": {
+          "x-translationplan": []
+        },
+        "branches": ["dev", "qa", "main"]
+      }
+    ]
+  },
+  "assets": [
+    { "repo": "resource-core", "path": "/runtime_resources", "name": "app_resources", "branches": ["dev", "qa", "main"] },
+    { "repo": "resource-core", "path": "/templates",         "name": "templates",     "branches": ["dev", "qa", "main"] },
+    { "repo": "webfonts-core", "path": "/",                  "name": "webfonts",      "branches": ["dev", "qa", "main"] }
+  ],
+  "clients": [
+    { "repo": "core-client-dashboard",                "branches": ["dev", "qa", "main"] },
+    { "repo": "core-client-content",                  "branches": ["dev", "qa", "main"] },
+    { "repo": "core-client-i18n-editor",              "branches": ["dev", "qa", "main"] },
+    { "repo": "core-client-remote-repos",             "branches": ["dev", "qa", "main"] },
+    { "repo": "core-client-settings",                 "branches": ["dev", "qa", "main"] },
+    { "repo": "core-client-workspace",                "branches": ["dev", "qa", "main"] },
+    { "repo": "core-contenthandler_text_translation", "branches": ["dev", "qa", "main"] },
+    { "repo": "core-contenthandler_bcv",              "branches": ["dev", "qa", "main"] },
+    { "repo": "core-contenthandler_version_manager",  "branches": ["dev", "qa", "main"] },
+    { "repo": "core-contenthandler-generic",          "branches": ["dev", "qa", "main"] },
+    { "repo": "core-client_pdf_publisher",            "branches": ["dev", "qa", "main"] },
+    { "repo": "core-contenthandler_translation_plan", "branches": ["dev", "qa", "main"] }
+  ],
+"resources": {
+  "setup_lib": [
+    { "value": "../buildResources/setup", "branches": ["dev", "qa", "main"] }
+  ],
+  "fav_icon": [
+    { "value": "../../globalBuildResources/favicon.ico", "branches": ["dev", "qa", "main"] }
+  ],
+  "app_icon": [
+    { "value": "../../globalBuildResources/icon.ico", "branches": ["dev", "qa", "main"] }
+  ],
+  "theme": [
+    { "value": "../../globalBuildResources/theme.json", "branches": ["dev", "qa", "main"] }
+  ],
+  "client_config": [
+    { "value": "../../globalBuildResources/client_config.json", "branches": ["dev", "qa", "main"] }
+  ],
+  "i18n_overrides": [
+    { "value": "../../globalBuildResources/i18n-overrides.json", "branches": ["dev", "qa", "main"] }
+  ],
+  "i18n_patch": [
+    { "value": "../../globalBuildResources/i18nPatch.json", "branches": ["dev", "qa", "main"] }
+  ],
+  "product_resources": [
+    { "value": "../../globalBuildResources/product_resources", "branches": ["dev", "qa", "main"] }
+  ],
+  "rocket_config": [
+    { "value": "../../Rocket.toml", "branches": ["dev", "qa", "main"] }
+  ],
+  "product": [
+    { "value": "../../globalBuildResources/product.json", "branches": ["dev", "qa", "main"] }
+  ]
+},
+  "server": {
+    "crate": "pankosmia_web",
+    "crate_version": [
+      { "value": "0.21.2",  "branches": ["dev", "qa"] },
+      { "value": "0.18.10", "branches": ["main"] }
+    ],
+    "bin": [
+      { "value": "../../local_server/target/release/local_server", "branches": ["dev", "qa", "main"] }
+    ]
+  }
+}
