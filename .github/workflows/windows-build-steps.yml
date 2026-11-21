@@ -97,35 +97,41 @@ jobs:
       # Add suffix to version
       - name: Run gha_ver_suffix.bat
         working-directory: .\windows\install
-        run: .\gha_ver_suffix.bat "${{ inputs.artifact_suffix != '' && format('{0}-{1}', inputs.artifact_suffix, inputs.timestamp) || inputs.timestamp }}"
+        run: .\gha_ver_suffix.bat "${{ inputs.artifact_suffix != '' && format('{0}-{1}', inputs.artifact_suffix, inputs.timestamp) || inputs.timestamp }}" "${{ inputs.branches }}"
 
-      # Set APP_VERSION from app_config.env
-      - name: Extract APP_VERSION from app_config.env
+      # Set APP_TIER and APP_VERSION from app_config.json
+      - name: Extract APP_VERSION from app_config.json
         id: get_app_version
         run: |
-          $envFile = ".\app_config.env"
-          $versionLine = Get-Content $envFile | Where-Object { $_ -match '^APP_VERSION\s*=' }
-          $version = $versionLine -replace ".*=(.*)", '$1'
-          $version = $version.Trim("'").Trim('"')   # Remove quotes if present
+          $cfg  = Get-Content .\app_config.json -Raw | ConvertFrom-Json
+          $tier = $env:BRANCHES
+          $m = @($cfg.app.version | Where-Object { $_.branches -contains $tier })
+          if ($m.Count -ne 1) { throw "app.version must have exactly one entry for tier '$tier', found $($m.Count)" }
+          $version = $m[0].value
+          echo "APP_TIER=$tier"       | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "APP_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "APP_TIER=$tier"
           echo "APP_VERSION=$version"
 
-      # Set APP_NAME and APP_SHORT_NAME from app_config.env, and define FILE_APP_NAME
-      - name: Extract APP_NAME from app_config.env
+      # Set APP_NAME and APP_SHORT_NAME from app_config.json, and define FILE_APP_NAME
+      - name: Extract APP_NAME from app_config.json
         id: get_app_name
         run: |
-          $envFile = ".\app_config.env"
-          $appNameLine = Get-Content $envFile | Where-Object { $_ -match '^APP_NAME\s*=' }
-          $appName = $appNameLine -replace ".*=(.*)", '$1'
-          $appName = $appName.Trim("'").Trim('"')   # Remove quotes if present
-          echo "APP_NAME=$appName" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "APP_NAME=$appName"
-          $fileAppName = $appName.ToLower().Replace(" ","-").Replace("'","")   # Use lower case app name in filename and replace spaces with dashes (-) and remove single apostrophes (')
-          echo "FILE_APP_NAME=$fileAppName" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "FILE_APP_NAME=$fileAppName"
-          $appShortNameLine = Get-Content $envFile | Where-Object { $_ -match '^APP_SHORT_NAME\s*=' }
-          $appShortName = $appShortNameLine -replace ".*=(.*)", '$1'
+          $cfg  = Get-Content .\app_config.json -Raw | ConvertFrom-Json
+          $tier = $env:BRANCHES
+          function Resolve-Tiered($entries, $label) {
+            $m = @($entries | Where-Object { $_.branches -contains $tier })
+            if ($m.Count -ne 1) { throw "$label must have exactly one entry for tier '$tier', found $($m.Count)" }
+            $m[0].value
+          }
+          $appName      = Resolve-Tiered $cfg.app.name 'app.name'
+          $appShortName = Resolve-Tiered $cfg.app.short_name 'app.short_name'
+          $fileAppName  = $appName.ToLower().Replace(" ", "-")
+          echo "APP_NAME=$appName"           | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "FILE_APP_NAME=$fileAppName"  | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "APP_SHORT_NAME=$appShortName" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "APP_NAME=$appName"
+          echo "FILE_APP_NAME=$fileAppName"
           echo "APP_SHORT_NAME=$appShortName"
 
       # Install the repository

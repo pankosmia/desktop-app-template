@@ -1,8 +1,8 @@
-# This script uses the APP_VERSION environment variable as defined in app_config.env
+# This script uses app.version from app_config.json for the selected tier.
 
 # Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\bundle_viewer.ps1
 # with the optional arguments of: .\bundle_viewer.ps1 -ServerOff "y"
-# or: .\bundle_viewer.ps1 -ServerOff "y"
+# and: .\bundle_viewer.ps1 -Tier dev|qa|main
 
 <#
 .SYNOPSIS
@@ -30,6 +30,9 @@
       - keeps `app_setup.bat`, `pnpm install` and 'node build.js` from being re-run as they have already run in earlier steps in windows-build-steps.yml
     - Default is "N"  (Careful as default is Y on `makeAllInstallsEletronite.ps1`.)
 
+.PARAMETER Tier
+    dev, qa, or main. Defaults to APP_TIER, then BRANCHES, then tiers.default in app_config.json.
+
 .PARAMETER -p
     Specify -p for Portable App
 #>
@@ -37,6 +40,7 @@
 param(
     [string]$ServerOff,
     [string]$IsGHA = "N",
+    [string]$Tier,
     [switch]$p
 )
 
@@ -52,14 +56,23 @@ if ($answer -eq 'Y' -Or $answer -eq '') {
     echo "Continuing..."
     echo "`n"
 
-  get-content ..\..\app_config.env | foreach {
-    $name, $value = $_.split('=')
-    if ([string]::IsNullOrWhiteSpace($name) -or $name.Contains('#')) {
-      # skip empty or comment line in ENV file
-      return
-    }
-    Set-Variable -Name $name -Value $value
+  # Load app_config.json and resolve values for the selected tier
+  $cfg = Get-Content ..\..\app_config.json -Raw | ConvertFrom-Json
+
+  if (-not $Tier) { $Tier = $env:APP_TIER }
+  if (-not $Tier) { $Tier = $env:BRANCHES }
+  if (-not $Tier) { $Tier = $cfg.tiers.default }
+  $Tier = $Tier.ToLower()
+  if ($cfg.tiers.order -notcontains $Tier) {
+    throw "Unknown tier '$Tier'. Expected one of: $($cfg.tiers.order -join ', ')"
   }
+
+  $m = @($cfg.app.version | Where-Object { $_.branches -contains $Tier })
+  if ($m.Count -ne 1) { throw "app.version must have exactly one entry for tier '$Tier', found $($m.Count)" }
+  $APP_VERSION = $m[0].value
+
+  # Make the tier visible to child scripts
+  $env:APP_TIER = $Tier
 
   $TEMP_DIR = "..\temp"
     if (Test-Path $TEMP_DIR) {
@@ -74,10 +87,11 @@ if ($answer -eq 'Y' -Or $answer -eq '') {
     echo "Bundling Zip..."
     echo "  - updates the build environment for the Electronite package build,"
     echo "  - and creates a zip bundle that parallels the Electronite package."
-    .\bundle_zip.ps1 -ServerOff "Y"
+    .\bundle_zip.ps1 -ServerOff "Y" -Tier $Tier
   }
 
   echo "`n"
+  echo "Tier is $Tier"
   echo "Version is $APP_VERSION"
   echo "`n"
 
@@ -106,5 +120,5 @@ if ($answer -eq 'Y' -Or $answer -eq '') {
 } else {
     echo "`n"
     echo """$answer"" is not a valid response. Please type y or 'Enter' to continue or 'n' to quit."
-    .\bundle_viewer.ps1
+    .\bundle_viewer.ps1 -IsGHA $IsGHA -Tier $Tier -p:$p
 }
