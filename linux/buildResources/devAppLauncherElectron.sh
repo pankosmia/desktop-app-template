@@ -9,7 +9,6 @@ echo
 # Setting variables
 BASE_DIR=.
 APP_DIR=$BASE_DIR
-SETTINGS_FILE=$BASE_DIR/app_config.env
 export APP_RESOURCES_DIR="$APP_DIR/lib/"
 
 # Run everything from the app dir
@@ -24,5 +23,4 @@ printf 'Starting with: %s\n' "$START_CMD"
 echo
 
 # Start the client, which will start the server
-source $SETTINGS_FILE
 $START_CMD
