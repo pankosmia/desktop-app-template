@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Synopsis:
-#   getElectronRelease.bsh - Downloads and extracts Electron app package for specified architecture
+#   getElectronRelease.sh - Downloads and extracts Electron app package for specified architecture
 #
 # Description:
 #   This script downloads an Electron app package from a provided URL and extracts it

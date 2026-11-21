@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Synopsis:
-#   makeAllInstallsElectronite.bsh
+#   makeAllInstallsElectronite.sh
 #
 # Description:
 #   This script automates the build process for the application on linux,
@@ -34,7 +34,7 @@ done
 # This script uses the APP_NAME environment variables as defined in app_config.env
 source "../../app_config.env"
 
-EMSG="environment variable is not set in makeAllInstallsElectronite.bsh."
+EMSG="environment variable is not set in makeAllInstallsElectronite.sh."
 
 # Confirm the APP_NAME environment variables is set
 if [ -z "$APP_NAME" ]; then
@@ -48,7 +48,7 @@ if [ -z "$APP_SHORT_NAME" ]; then
     exit 1
 fi
 
-# Use lower case app name in filename -- zsh: ${APP_NAME:l}  -- bsh: ${APP_NAME,,} -- sh: $(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]')
+# Use lower case app name in filename -- zsh: ${APP_NAME:l}  -- sh: ${APP_NAME,,} -- sh: $(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]')
 FILE_APP_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]')
 # Replace spaces with a dash (-) in filename
 FILE_APP_NAME=${FILE_APP_NAME// /-}
@@ -96,7 +96,7 @@ for ARCH in "x64" "arm64"; do
 
     cd ../install || exit 1  # required on local builds runs; no harm in gha
     if [ "$fullInstall" = true ]; then
-        ./getElectronRelease.bsh "$downloadElectronUrl" "$ARCH" "$devRun"
+        ./getElectronRelease.sh "$downloadElectronUrl" "$ARCH" "$devRun"
 
         if [ $? -ne 0 ]; then
             echo "Error: Failed to get Electron release files at $downloadElectronUrl"
@@ -115,16 +115,16 @@ for ARCH in "x64" "arm64"; do
     if [ "$fullInstall" = true ]; then
         echo
         echo "     *****************************************"
-        echo "     * Running makeInstallElectronite.bsh... *"
+        echo "     * Running makeInstallElectronite.sh...  *"
         echo "     * Wait for the prompt.                  *"
         echo "     *****************************************"
         echo
     fi
 
     if [ "$fullInstall" = true ]; then
-        ./makeInstallElectronite.bsh "$ARCH" "$devRun" -f
+        ./makeInstallElectronite.sh "$ARCH" "$devRun" -f
     else
-        ./makeInstallElectronite.bsh "$ARCH" "$devRun"
+        ./makeInstallElectronite.sh "$ARCH" "$devRun"
     fi
 
     if ! [[ $devRun =~ ^(-d) ]]; then

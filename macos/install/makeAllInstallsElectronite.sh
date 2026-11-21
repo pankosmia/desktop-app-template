@@ -50,7 +50,7 @@ if [ -z "$APP_SHORT_NAME" ]; then
     exit 1
 fi
 
-# Use lower case app name in filename -- zsh: ${APP_NAME:l}  -- bsh: ${APP_NAME,,} -- sh: $(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]')
+# Use lower case app name in filename -- zsh: ${APP_NAME:l}  -- sh: ${APP_NAME,,} -- sh: $(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]')
 FILE_APP_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]')
 # Replace spaces with a dash (-) in filename
 FILE_APP_NAME=${FILE_APP_NAME// /-}

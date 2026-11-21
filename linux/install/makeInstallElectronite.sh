@@ -31,7 +31,7 @@
 # Output:
 #   Creates installer package at: ../releases/linux/<app-name>_installer_<arch>_<version>.pkg
 
-EMSG="environment variable is not set in makeInstallElectronite.bsh."
+EMSG="environment variable is not set in makeInstallElectronite.sh."
 if [ -z "$APP_NAME" ]; then
     echo "Error: APP_NAME $EMSG"
     exit 1
