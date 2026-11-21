@@ -37,7 +37,6 @@
   "clients": [
     { "repo": "core-client-dashboard",                "branches": ["dev", "qa", "main"] },
     { "repo": "core-client-content",                  "branches": ["dev", "qa", "main"] },
-    { "repo": "core-client-i18n-editor",              "branches": ["dev", "qa", "main"] },
     { "repo": "core-client-remote-repos",             "branches": ["dev", "qa", "main"] },
     { "repo": "core-client-settings",                 "branches": ["dev", "qa", "main"] },
     { "repo": "core-client-workspace",                "branches": ["dev", "qa", "main"] },
