@@ -10,7 +10,7 @@ REM     The second non-flag argument is the tier: dev, qa, or main
 REM       (default: the branch itself if it is a tier name, otherwise tiers.default)
 REM     The tier selects which assets/clients are built, and the checkout fallback chain.
 
-REM Examples:
+REM Examples where tiers.order is ["dev", "qa", "main"]
 REM   .\build_clients.bat                        # dev  -> tries dev -> qa -> main
 REM   .\build_clients.bat qa                     # tries qa -> main
 REM   .\build_clients.bat main                   # tries main

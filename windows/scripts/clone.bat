@@ -5,7 +5,6 @@ REM   -s         Use ssh instead of https
 REM   devRepos   Clone only the repos used by the dev tier  (likewise qaRepos, mainRepos)
 REM   (none)     Clone every asset and client repo listed in app_config.json
 REM Cloning does NOT select dev/qa/main branches. Each repo is left on its default branch.
-REM Run .\build_clients.bat [dev|qa|main] to check out the branches for a tier.
 
 echo.
 setlocal
@@ -42,12 +41,12 @@ if errorlevel 1 (
   exit /b 1
 )
 
-if defined TIER (
-  echo Cloning repos used by the %TIER% tier.
-  echo Note: cloning does not check out %TIER% branches. Repos stay on their default branch.
-) else (
-  echo Cloning every repo listed in app_config.json.
-)
+REM Default tier is <tiers.default>; must still be in tiers.order
+for /f "usebackq delims=" %%T in (`jq -r ".tiers.default" "%CONFIG%"`) do set "DEFAULT_TIER=%%T"
+if not defined tier set "tier=%DEFAULT_TIER%"
+
+echo Cloning repos used by the %TIER% tier.
+echo Note: cloning does not check out %TIER% branches. Repos stay on their default branch.
 echo.
 
 REM Clone into the parent of this repo
@@ -79,4 +78,8 @@ if not exist "%~2" (
 )
 echo "################################ END %~1: %~2 ################################"
 echo.
+echo Cloned repos used by the %TIER% tier where applicable.
+echo Note: cloning does not check out %TIER% branches. Repos stay on their default branch.
+echo.
+
 exit /b 0

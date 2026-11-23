@@ -1,8 +1,7 @@
 # This script uses app.version from app_config.json for the selected tier.
 
-# Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\bundle_viewer.ps1
-# with the optional arguments of: .\bundle_viewer.ps1 -ServerOff "y"
-# and: .\bundle_viewer.ps1 -Tier dev|qa|main
+# Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\bundle_viewer.ps1 -Tier dev|qa|main
+# with the optional argument of: .\bundle_viewer.ps1 -Tier <tier> -ServerOff "y"
 
 <#
 .SYNOPSIS
@@ -31,7 +30,8 @@
     - Default is "N"  (Careful as default is Y on `makeAllInstallsEletronite.ps1`.)
 
 .PARAMETER Tier
-    dev, qa, or main. Defaults to APP_TIER, then BRANCHES, then tiers.default in app_config.json.
+    Required. Builds all of the given tier from app_config.json: dev, qa, or main.
+    - Must be listed in tiers.order. No default, no fallback.
 
 .PARAMETER -p
     Specify -p for Portable App
@@ -44,81 +44,111 @@ param(
     [switch]$p
 )
 
-if ($ServerOff -eq 'Y' -or $ServerOff -eq 'y') {
-  $answer = $ServerOff
-} else {
-  echo "`n"
-  $answer = Read-Host "     Is the server off? [Y/n]"
+# Returns the value of the single entry whose branches include the tier.
+function Get-TierValue {
+    param($Entries, [string]$Key, [string]$TierName)
+    $match = @($Entries | Where-Object { $_.branches -contains $TierName })
+    if ($match.Count -ne 1) {
+        throw "$Key must have exactly one entry for tier '$TierName' in app_config.json (found $($match.Count))."
+    }
+    return $match[0].value
 }
 
-if ($answer -eq 'Y' -Or $answer -eq '') {
+# All relative paths below assume windows\scripts.
+Push-Location $PSScriptRoot
+
+try {
+    # Load app_config.json and resolve values for the selected tier -- before asking anything.
+    try {
+        $config = Get-Content -Path (Join-Path $PSScriptRoot "..\..\app_config.json") -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
+
+        # Tier is required (-Tier). No default, no fallback. Checked here so a missing value fails with a clear error
+        # instead of pausing for input as happens in ps1 if designated Mandatory.
+        if (@($config.tiers.order) -notcontains $Tier) {
+            throw "-Tier is required and must be one of: $(@($config.tiers.order) -join ', ') (got '$Tier')."
+        }
+
+        $APP_VERSION = [string](Get-TierValue $config.app.version "app.version" $Tier)
+    }
+    catch {
+        Write-Host "Error: $_"
+        exit 1
+    }
+
+    # Confirm the server is off
+    $answer = $ServerOff
+    while ($answer -ne 'Y' -and $answer -ne 'N') {
+        if ($null -ne $answer -and $answer -ne '') {
+            echo "`n"
+            echo """$answer"" is not a valid response. Please type y or 'Enter' to continue or 'n' to quit."
+        }
+        echo "`n"
+        $answer = Read-Host "     Is the server off? [Y/n]"
+        if ($answer -eq '') { $answer = 'Y' }
+    }
+
+    if ($answer -eq 'N') {
+        echo "`n"
+        echo "     Turn the server off by exiting the terminal window in which it is running, then re-run this script while the server is off."
+        echo "`n"
+        exit 1
+    }
+
     echo "`n"
     echo "Continuing..."
     echo "`n"
 
-  # Load app_config.json and resolve values for the selected tier
-  $cfg = Get-Content ..\..\app_config.json -Raw | ConvertFrom-Json
-
-  if (-not $Tier) { $Tier = $env:APP_TIER }
-  if (-not $Tier) { $Tier = $env:BRANCHES }
-  if (-not $Tier) { $Tier = $cfg.tiers.default }
-  $Tier = $Tier.ToLower()
-  if ($cfg.tiers.order -notcontains $Tier) {
-    throw "Unknown tier '$Tier'. Expected one of: $($cfg.tiers.order -join ', ')"
-  }
-
-  $m = @($cfg.app.version | Where-Object { $_.branches -contains $Tier })
-  if ($m.Count -ne 1) { throw "app.version must have exactly one entry for tier '$Tier', found $($m.Count)" }
-  $APP_VERSION = $m[0].value
-
-  # Make the tier visible to child scripts
-  $env:APP_TIER = $Tier
-
-  $TEMP_DIR = "..\temp"
+    $TEMP_DIR = "..\temp"
     if (Test-Path $TEMP_DIR) {
         Write-Host "Deleting previous build..."
         Write-Host "`n"
         Remove-Item -Path $TEMP_DIR -Recurse -Force
     }
 
-  if ($IsGHA -ne 'Y') {
-    # The bundle_zip script will ensure the latest is checked out, the clone is installed, and the app_setup script is run
+    if ($IsGHA -ne 'Y') {
+        # The bundle_zip script will ensure the latest is checked out, the clone is installed, and the app_setup script is run
+        echo "`n"
+        echo "Bundling Zip..."
+        echo "  - updates the build environment for the Electronite package build,"
+        echo "  - and creates a zip bundle that parallels the Electronite package."
+        & .\bundle_zip.ps1 -ServerOff "Y" -Tier $Tier
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Error: bundle_zip.ps1 failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+        }
+    }
+
     echo "`n"
-    echo "Bundling Zip..."
-    echo "  - updates the build environment for the Electronite package build,"
-    echo "  - and creates a zip bundle that parallels the Electronite package."
-    .\bundle_zip.ps1 -ServerOff "Y" -Tier $Tier
-  }
-
-  echo "`n"
-  echo "Tier is $Tier"
-  echo "Version is $APP_VERSION"
-  echo "`n"
-
-  Write-Host "`n"
-  Write-Host "`n"
-  Write-Host "*************************************************************************" -f cyan;
-  Write-Host "`"Getting Electron release`" downloads an approximately 120 MB file." -f cyan;
-  Write-Host "Please wait patiently for the highlighted download process to complete..." -f cyan;
-  Write-Host "*************************************************************************" -f cyan;
-  Write-Host "`n"
-
-  $installArgs = @{
-      IsGHA = $IsGHA
-  }
-
-  if ($p.IsPresent) {
-      $installArgs['p'] = $true
-  }
-
-  & ..\install\makeAllInstallsElectronite.ps1 @installArgs
-
-} elseif ($answer -eq 'N') {
+    echo "Tier is $Tier"
+    echo "Version is $APP_VERSION"
     echo "`n"
-    echo "     Turn the server off by exiting the terminal window in which it is running, then re-run this script while the server is off."
-    echo "`n"
-} else {
-    echo "`n"
-    echo """$answer"" is not a valid response. Please type y or 'Enter' to continue or 'n' to quit."
-    .\bundle_viewer.ps1 -IsGHA $IsGHA -Tier $Tier -p:$p
+
+    Write-Host "`n"
+    Write-Host "`n"
+    Write-Host "*************************************************************************" -f cyan;
+    Write-Host "`"Getting Electron release`" downloads an approximately 120 MB file." -f cyan;
+    Write-Host "Please wait patiently for the highlighted download process to complete..." -f cyan;
+    Write-Host "*************************************************************************" -f cyan;
+    Write-Host "`n"
+
+    $installArgs = @{
+        IsGHA = $IsGHA
+        Tier  = $Tier
+    }
+
+    if ($p.IsPresent) {
+        $installArgs['p'] = $true
+    }
+
+    & ..\install\makeAllInstallsElectronite.ps1 @installArgs
+
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Error: makeAllInstallsElectronite.ps1 failed with exit code $LASTEXITCODE"
+        exit $LASTEXITCODE
+    }
+
+    exit 0
+}
+finally {
+    Pop-Location
 }

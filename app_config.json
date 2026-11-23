@@ -29,6 +29,16 @@
       }
     ]
   },
+  "server": {
+    "crate": "pankosmia_web",
+    "crate_version": [
+      { "value": "0.21.2",  "branches": ["dev", "qa"] },
+      { "value": "0.18.10", "branches": ["main"] }
+    ],
+    "bin": [
+      { "value": "../../local_server/target/release/local_server", "branches": ["dev", "qa", "main"] }
+    ]
+  },
   "assets": [
     { "repo": "resource-core", "path": "/runtime_resources", "name": "app_resources", "branches": ["dev", "qa", "main"] },
     { "repo": "resource-core", "path": "/templates",         "name": "templates",     "branches": ["dev", "qa", "main"] },
@@ -57,6 +67,9 @@
   "app_icon": [
     { "value": "../../globalBuildResources/icon.ico", "branches": ["dev", "qa", "main"] }
   ],
+  "app_icon_macos": [
+    { "value": "../../globalBuildResources/icon.icns", "branches": ["dev", "qa", "main"] }
+  ],
   "theme": [
     { "value": "../../globalBuildResources/theme.json", "branches": ["dev", "qa", "main"] }
   ],
@@ -77,16 +90,24 @@
   ],
   "product": [
     { "value": "../../globalBuildResources/product.json", "branches": ["dev", "qa", "main"] }
+  ],
+    "electron_icon": [
+    { "value": "../../globalBuildResources/favicon*.png", "branches": ["dev", "qa", "main"] }
   ]
 },
-  "server": {
-    "crate": "pankosmia_web",
-    "crate_version": [
-      { "value": "0.21.2",  "branches": ["dev", "qa"] },
-      { "value": "0.18.10", "branches": ["main"] }
-    ],
-    "bin": [
-      { "value": "../../local_server/target/release/local_server", "branches": ["dev", "qa", "main"] }
+  "electronite": {
+    "url": [
+      {
+        "value": {
+          "win32-x64":    "https://github.com/unfoldingWord/electronite/releases/download/v37.1.0-graphite/electronite-v37.1.0-graphite-win32-x64.zip",
+          "win32-arm64":  "https://github.com/unfoldingWord/electronite/releases/download/v37.1.0-graphite/electronite-v37.1.0-graphite-win32-arm64.zip",
+          "darwin-x64":   "https://github.com/unfoldingWord/electronite/releases/download/v37.1.0-graphite/electronite-v37.1.0-graphite-darwin-x64.zip",
+          "darwin-arm64": "https://github.com/unfoldingWord/electronite/releases/download/v37.1.0-graphite/electronite-v37.1.0-graphite-darwin-arm64.zip",
+          "linux-x64":    "https://github.com/unfoldingWord/electronite/releases/download/v37.1.0-graphite/electronite-v37.1.0-graphite-linux-x64.zip",
+          "linux-arm64":  "https://github.com/unfoldingWord/electronite/releases/download/v37.1.0-graphite/electronite-v37.1.0-graphite-linux-arm64.zip"
+        },
+        "branches": ["dev", "qa", "main"]
+      }
     ]
   }
 }

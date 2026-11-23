@@ -3,6 +3,12 @@
 
 #define AppIcoName "icon.ico"
 
+#define AppIconSrc GetEnv("APP_ICON")
+#if AppIconSrc == ""
+  #error APP_ICON is not set. Run via makeInstallElectronite.ps1 (reads resources.app_icon from app_config.json).
+#endif
+#pragma message "APP_ICON resolved to: " + AppIconSrc
+
 [Setup]
 AppName={#GetEnv('APP_NAME')}
 AppVersion={#GetEnv('APP_VERSION')}
@@ -23,7 +29,7 @@ Type: files; Name: "{app}\appLauncherElectron.bat"
 
 [Files]
 Source: "..\temp\project\payload\app\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
-Source: "..\..\globalBuildResources\{#AppIcoName}"; DestDir: "{app}"
+Source: "{#AppIconSrc}"; DestDir: "{app}"; DestName: "{#AppIcoName}"
 
 [Icons]
 Name: "{group}\{#GetEnv('APP_NAME')}"; Filename: "{app}\electron\electron.exe"; Parameters: """{app}\electron"""; IconFilename: "{app}\{#AppIcoName}"; Tasks: desktopicon

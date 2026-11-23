@@ -6,12 +6,10 @@
     This PowerShell script prepares and builds a Windows installer for the application using Inno Setup.
     It creates the necessary directory structure, copies required files, and compiles the installer.
 
-.PARAMETER arch
-    The target architecture for the installer (e.g., x64, arm64, x86).
-
 .PREREQUISITES
     - Inno Setup 6 must be installed at "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-    - APP_VERSION environment variable must be set in app_config.env
+    - app_config.json at the repo root must define app.name, app.short_name, app.version,
+      and resources.rocket_config, resources.electron_icon, resources.app_icon for the selected tier.
 
 .OUTPUTS
     Creates an installer at releases\windows\<appname>-<version>-win-<arch>.exe
@@ -21,75 +19,129 @@
     - Creates directory structure in .\windows\$pkgDir\project\payload\<app-name>
     - Copies necessary files including Electron, README, bin, and lib directories
     - Compiles the installer using Inno Setup
+    - resources.* values in app_config.json are relative to /windows/<subdir> (e.g. /windows/scripts).
+      This script lives in /windows/install (same depth), so they are resolved against $PSScriptRoot,
+      never against the current directory (which changes during the script).
 
 .PARAMETER arch
-Target architecture for the installer (e.g., x64, arm64, x86)
+    Target architecture for the installer (e.g., x64, arm64, x86)
 
 .PARAMETER Dev
-Specify -Dev "Y" when generating a development viewer.
-- Default is "N"
+    Specify -DevEnvRun "Y" when generating a development environment viewer.
+    - Default is "N"
+    - Unrelated to the "dev" tier.
 
 .PARAMETER FullInstall
     Specify -FullInstall $true for installing Electronite too; -FullInstall $false for updating all but Electronite (e.g., a development environment viewer update)
     - Default is $true
 
-.PARAMETER -p
+.PARAMETER p
     Specify -p for Portable App
+
+.PARAMETER Tier
+    Required. Builds all of the given tier from app_config.json: dev, qa, or main.
+    - Must be listed in tiers.order.
 #>
 
 param(
-    [Parameter(Mandatory=$true)]
     [string]$arch,
-    [string]$Dev = "N",
+    [string]$DevEnvRun = "N",
     [bool]$FullInstall = $true,
     [switch]$p,
-    [switch]$pi
+    [string]$Tier
 )
 
 # Save the initial working directory
 $initialLocation = Get-Location
 
-$eMsg = "environment variable is not set in makeInstallElectronite.ps1."
+# Returns the value of the single entry whose branches include the tier.
+function Get-TierValue {
+    param($Entries, [string]$Key, [string]$TierName)
+    $match = @($Entries | Where-Object { $_.branches -contains $TierName })
+    if ($match.Count -ne 1) {
+        throw "$Key must have exactly one entry for tier '$TierName' in app_config.json (found $($match.Count))."
+    }
+    return $match[0].value
+}
+
+# Resource paths are relative to /windows/<subdir>; resolve against this script's dir (/windows/install).
+# Join-Path does not resolve the path, so wildcards (e.g. favicon*.png) are preserved.
+function Get-ResPath {
+    param([string]$Key)
+    $rel = Get-TierValue $config.resources.$Key "resources.$Key" $Tier
+    return Join-Path $PSScriptRoot $rel
+}
 
 try {
-    # Check if APP_VERSION environment variable is set
+    # Load app_config.json (repo root) -- path is relative to the script, not the current directory
+    try {
+        $configFile = Join-Path $PSScriptRoot "..\..\app_config.json"
+        $config = Get-Content -Path $configFile -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
+
+        # Tier is required (-Tier). No fallback. Checked here so a missing value fails with a clear error
+        # instead of pausing for input as happens in ps1 if designated Mandatory.
+        if (@($config.tiers.order) -notcontains $Tier) {
+            throw "-Tier is required and must be one of: $(@($config.tiers.order) -join ', ') (got '$Tier')."
+        }
+
+        # arch is required (-arch). No fallback. Checked here so a missing value fails with a clear error
+        # instead of pausing for input as happens in ps1 if designated Mandatory.
+        if (-not $arch) {
+            Write-Host "Error: arch is required: -arch:arm64 or -arch:x64"
+            exit 1
+        }
+
+        # App values for the tier, from app_config.json only. Set as process env vars
+        # (overwriting anything inherited) because makeInstallElectronite.iss reads
+        # APP_NAME, APP_VERSION, APP_SHORT_NAME, FILE_APP_NAME, ARCH, and APP_ICON via GetEnv().
+
+        $env:APP_NAME       = [string](Get-TierValue $config.app.name       "app.name"       $Tier)
+        $env:APP_SHORT_NAME = [string](Get-TierValue $config.app.short_name "app.short_name" $Tier)
+        $env:APP_VERSION    = [string](Get-TierValue $config.app.version    "app.version"    $Tier)
+
+        # Resources for the tier (absolute via $PSScriptRoot; safe across Set-Location)
+        $rocketConfig    = Get-ResPath "rocket_config"
+        $electronIconSrc = Get-ResPath "electron_icon"
+        $appIconSrc      = Get-ResPath "app_icon"
+        $env:APP_ICON    = $appIconSrc   # read by makeInstallElectronite.iss
+    }
+    catch {
+        Write-Host "Error reading app_config.json: $_"
+        exit 1
+    }
+
+    $eMsg = "is not set for tier '$Tier' in app_config.json."
+
     if (-not $env:APP_VERSION) {
-        Write-Host "Error: APP_VERSION $eMsg"
-        Write-Host "Set it in app_config.env"
+        Write-Host "Error: app.version $eMsg"
         exit 1
     }
-    
-    # Check if APP_NAME environment variable is set
+
     if (-not $env:APP_NAME) {
-        Write-Host "Error: APP_NAME $eMsg"
-        Write-Host "Set it in app_config.env"
+        Write-Host "Error: app.name $eMsg"
         exit 1
     }
 
-    # Check if FILE_APP_NAME environment variable is set
-    if (-not $env:FILE_APP_NAME) {
-        Write-Host "FILE_APP_NAME $eMsg. Generating..."
-        $fileAppName = $env:APP_NAME.ToLower().Replace(" ","-").Replace("'","")   # Use lower case app name in filename and replace spaces with dashes (-) and remove single apostrophes (')
-        $env:FILE_APP_NAME = $fileAppName
-        echo "FILE_APP_NAME=$env:FILE_APP_NAME"
-    }
+    # Always derived from app.name for the tier (read by makeInstallElectronite.iss via GetEnv).
+    # Lower case, spaces -> dashes.
+    $env:FILE_APP_NAME = $env:APP_NAME.ToLower().Replace(" ","-")
+    Write-Host "FILE_APP_NAME=$env:FILE_APP_NAME"
 
-    # Check if APP_SHORT_NAME environment variable is set
     if (-not $env:APP_SHORT_NAME) {
-        Write-Host "Error: APP_SHORT_NAME $eMsg"
-        Write-Host "Set it in app_config.env"
+        Write-Host "Error: app.short_name $eMsg"
         exit 1
     }
 
+    Write-Host "Tier is $Tier"
     Write-Host "Version is $env:APP_VERSION"
 
     # Needed for local bundles. Not required in GHA but does no harm.
-    if ($Dev -ne 'Y') {
+    if ($DevEnvRun -ne 'Y') {
         # Clean up any existing installers
         Remove-Item -Path "..\..\releases\windows\$($env:FILE_APP_NAME)-*-win-$arch.exe" -Force -ErrorAction SilentlyContinue
     }
 
-    # Change to build directory
+    # Change to build directory  (cwd: /windows/install -> /windows/build)
     Set-Location -Path "..\build" -ErrorAction Stop
 
     # Create folder structure for package
@@ -97,7 +149,7 @@ try {
       Write-Host "Building folder structure for package..."
     }
 
-    if ($Dev -eq 'Y') {
+    if ($DevEnvRun -eq 'Y') {
       $pkgDir = "viewer"
     } else {
         $pkgDir = "temp"
@@ -109,14 +161,13 @@ try {
     $projectPath = Join-Path (Get-Location).Path "..\$pkgDir\project" 
     $payloadPath = Join-Path $projectPath "payload\app"
 
-    if ($FullInstall -or $Dev -ne 'Y') {
+    if ($FullInstall -or $DevEnvRun -ne 'Y') {
         Remove-Item -Path $projectPath -Recurse -Force -ErrorAction SilentlyContinue
     }
 
     New-Item -ItemType Directory -Force -Path $payloadPath | Out-Null
 
-    # Copy Rocket.toml and devAppLauncherElectron.bat
-    $rocketConfig = "..\..\Rocket.toml"
+    # Copy Rocket.toml (resources.rocket_config) and devAppLauncherElectron.bat
     $startupSrc = "..\buildResources\devAppLauncherElectron.bat"
     $startupDest = "$payloadPath"
     if (Test-Path $startupSrc) {
@@ -165,9 +216,8 @@ try {
             exit 1
         }
 
-        # Copy main electron browser window icon
-        $electronIconSrc = Join-Path $PSScriptRoot "..\..\globalBuildResources\favicon*.png"
-        Write-Host "Copying favicon*.png to $electronDestPath ..."
+        # Copy main electron browser window icon (resources.electron_icon)
+        Write-Host "Copying $(Split-Path -Leaf $electronIconSrc) to $electronDestPath ..."
         Copy-Item $electronIconSrc -Destination $electronDestPath -Force
 
         # Copy required modules and dependencies
@@ -251,7 +301,7 @@ try {
         exit 1
     }
 
-    if ($Dev -ne 'Y') {
+    if ($DevEnvRun -ne 'Y') {
         # Copy README
         $readmeSrc = "..\build\README.txt"
         $readmeDest = "$payloadPath"
@@ -268,13 +318,6 @@ try {
             Copy-Item -Path ".\lib" -Destination $payloadPath -Recurse -Force
         }
 
-        # Portable app uses a virtual path for repo_dir
-        if ($p.IsPresent) {
-            $user_settings = Join-Path $payloadPath "lib\templates\user_settings.json"
-            $usText = [System.IO.File]::ReadAllText($user_settings).Replace('"repo_dir": "%%HOMEDIR%%/pankosmia_repos",', '"repo_dir": "..\pankosmia_repos",')
-            [System.IO.File]::WriteAllText($user_settings, $usText, [System.Text.UTF8Encoding]::new($false))
-        }
-
         # Create and copy scripts if needed
         $scriptsPath = "$projectPath\scripts"
         New-Item -ItemType Directory -Force -Path $scriptsPath | Out-Null
@@ -282,6 +325,7 @@ try {
         # Map internal arch token to output naming
         $env:ARCH = $arch
 
+        # cwd: /windows/build -> /windows
         Set-Location -Path ".."
         $outputPath = "..\releases\windows"
 
@@ -294,7 +338,7 @@ try {
 
             # These are the same sources used by install\makeInstallElectronite.iss.
             $payloadSource = ".\temp\project\payload\app"
-            $iconSource = "..\globalBuildResources\icon.ico"
+            $iconSource = $appIconSrc   # resources.app_icon
 
             # Stage the portable app under a top-level folder named after the app.
             # Use full path b/c working dir diff between PS and .NET/process, e.g. ReadAllText()
@@ -326,12 +370,23 @@ try {
                 -ErrorAction Stop
 
             # Equivalent to:
-            # Source: "..\..\globalBuildResources\icon.ico"; DestDir: "{app}"
+            # Source: "<resources.app_icon>"; DestDir: "{app}"
             Copy-Item `
                 -Path $iconSource `
                 -Destination (Join-Path $portableAppStage "icon.ico") `
                 -Force `
                 -ErrorAction Stop
+
+            # Portable app uses a virtual path for repo_dir.
+            # Staged copy only -- never $payloadPath, which Inno Setup packages into the EXE.
+            # $portableAppStage is full path b/c working dir diff between PS and .NET/process, e.g. ReadAllText()
+            $user_settings = Join-Path $portableAppStage "lib\templates\user_settings.json"
+            if (-not (Test-Path $user_settings)) {
+                Write-Error "Portable user_settings.json not found: $user_settings"
+                exit 1
+            }
+            $usText = [System.IO.File]::ReadAllText($user_settings).Replace('"repo_dir": "%%HOMEDIR%%/pankosmia_repos",', '"repo_dir": "..\pankosmia_repos",')
+            [System.IO.File]::WriteAllText($user_settings, $usText, [System.Text.UTF8Encoding]::new($false))
             
             # Copy configured helper files to the ZIP root.
             $helpersSource = ".\buildResourcesPortable"
@@ -466,9 +521,14 @@ try {
         Write-Host "Installation package created successfully"
         exit 0
     }
+
+    # Development environment viewer run (-DevEnvRun "Y") ends here. Exit explicitly so the
+    # caller's $LASTEXITCODE check doesn't see a stale value from an earlier command.
+    exit 0
 }
 
 finally {
     # Restore the original working directory
     Set-Location -Path $initialLocation
 }
+
