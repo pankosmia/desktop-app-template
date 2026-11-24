@@ -41,6 +41,7 @@
 .PARAMETER Tier
     Required. Builds all of the given tier from app_config.json: dev, qa, or main.
     - Must be listed in tiers.order.
+    - Default is tiers.default
 #>
 
 param(
@@ -50,6 +51,15 @@ param(
     [switch]$p,
     [string]$Tier
 )
+
+# Read app_config.json (repo root)
+$APP_CONFIG_FILE = Join-Path $PSScriptRoot "..\..\app_config.json"
+$APP_CONFIG = Get-Content -Path $APP_CONFIG_FILE -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
+
+# Default for Tier is <tiers.default>
+if (-not $PSBoundParameters.ContainsKey('Tier')) {
+    $Tier = $APP_CONFIG.tiers.default
+}
 
 # Save the initial working directory
 $initialLocation = Get-Location
@@ -73,11 +83,7 @@ function Get-ResPath {
 }
 
 try {
-    # Load app_config.json (repo root) -- path is relative to the script, not the current directory
     try {
-        $APP_CONFIG_FILE = Join-Path $PSScriptRoot "..\..\app_config.json"
-        $APP_CONFIG = Get-Content -Path $APP_CONFIG_FILE -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
-
         # Tier is required (-Tier). No fallback. Checked here so a missing value fails with a clear error
         # instead of pausing for input as happens in ps1 if designated Mandatory.
         if (@($APP_CONFIG.tiers.order) -notcontains $Tier) {
