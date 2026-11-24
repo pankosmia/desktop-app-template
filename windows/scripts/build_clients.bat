@@ -19,7 +19,7 @@ REM   .\build_clients.bat my-branch qa -d        # tries my-branch -> qa -> main
 REM   .\build_clients.bat -f -d dev              # fresh clones (skips pulling), delete logs, dev -> qa -> main
 
 set "SCRIPT_DIR=%~dp0"
-set "CONFIG=%SCRIPT_DIR%..\..\app_config.json"
+set "APP_CONFIG=%SCRIPT_DIR%..\..\app_config.json"
 set "deleteLogs="
 set "BRANCH="
 set "FALLBACK_TIER="
@@ -60,8 +60,8 @@ goto :loop
 
 :continue
 
-if not exist "%CONFIG%" (
-  echo app_config.json not found at "%CONFIG%"
+if not exist "%APP_CONFIG%" (
+  echo app_config.json not found at "%APP_CONFIG%"
   exit /b 1
 )
 where jq >nul 2>&1
@@ -71,14 +71,14 @@ if errorlevel 1 (
 )
 
 REM Default tier from app_config.json
-for /f "usebackq delims=" %%T in (`jq -r ".tiers.default" "%CONFIG%"`) do set "DEFAULT_TIER=%%T"
+for /f "usebackq delims=" %%T in (`jq -r ".tiers.default" "%APP_CONFIG%"`) do set "DEFAULT_TIER=%%T"
 
 REM Assign default values
 if not defined BRANCH set "BRANCH=%DEFAULT_TIER%"
 
 REM If no tier specified, use the branch if it is a tier name, otherwise the default tier
 if not defined FALLBACK_TIER (
-  jq -e --arg t "%BRANCH%" ".tiers.order | index($t)" "%CONFIG%" >nul 2>&1
+  jq -e --arg t "%BRANCH%" ".tiers.order | index($t)" "%APP_CONFIG%" >nul 2>&1
   if errorlevel 1 (
     set "FALLBACK_TIER=%DEFAULT_TIER%"
   ) else (
@@ -87,7 +87,7 @@ if not defined FALLBACK_TIER (
 )
 
 REM Validate the tier
-jq -e --arg t "%FALLBACK_TIER%" ".tiers.order | index($t)" "%CONFIG%" >nul 2>&1
+jq -e --arg t "%FALLBACK_TIER%" ".tiers.order | index($t)" "%APP_CONFIG%" >nul 2>&1
 if errorlevel 1 (
   echo Unknown tier "%FALLBACK_TIER%". Use dev, qa, or main.
   exit /b 1
@@ -113,7 +113,7 @@ setlocal ENABLEDELAYEDEXPANSION
 
 REM Fallback chain: the tier and every tier after it in tiers.order (e.g. dev -> dev qa main)
 set "CHAIN="
-for /f "usebackq delims=" %%B in (`jq -r --arg t "%FALLBACK_TIER%" ".tiers.order as $o | $o[($o | index($t)):][]" "%CONFIG%"`) do set "CHAIN=!CHAIN! %%B"
+for /f "usebackq delims=" %%B in (`jq -r --arg t "%FALLBACK_TIER%" ".tiers.order as $o | $o[($o | index($t)):][]" "%APP_CONFIG%"`) do set "CHAIN=!CHAIN! %%B"
 
 REM ---- logging + failure tracking ----
 for /f %%I in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmmss"') do set "TS=%%I"
@@ -147,8 +147,8 @@ call :log
 REM Work from the parent of this repo, where assets and clients are cloned
 cd /d "%SCRIPT_DIR%..\..\.."
 
-for /f "usebackq delims=" %%R in (`jq -r --arg t "%FALLBACK_TIER%" ".assets[] | select(.branches | index($t)) | .repo" "%CONFIG%"`) do call :do_asset %%R
-for /f "usebackq delims=" %%R in (`jq -r --arg t "%FALLBACK_TIER%" ".clients[] | select(.branches | index($t)) | .repo" "%CONFIG%"`) do call :do_client %%R
+for /f "usebackq delims=" %%R in (`jq -r --arg t "%FALLBACK_TIER%" ".assets[] | select(.branches | index($t)) | .repo" "%APP_CONFIG%"`) do call :do_asset %%R
+for /f "usebackq delims=" %%R in (`jq -r --arg t "%FALLBACK_TIER%" ".clients[] | select(.branches | index($t)) | .repo" "%APP_CONFIG%"`) do call :do_client %%R
 
 cd /d "%SCRIPT_DIR%"
 

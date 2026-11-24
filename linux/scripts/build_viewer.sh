@@ -20,7 +20,7 @@ if [ "$fullInstall" != true ]; then
     if [ -f "$ELECTRON_VER" ]; then
         content="$(tr -d '\r\n' < "$ELECTRON_VER")"
         if [ "$content" = "$EXPECTED" ]; then
-            echo "The installed viewer Electronite version is $content, which is correct."
+            echo "The installed viewer Electronite version is $content, which is correct. Use -f to force a full re-install."
             echo "No download is needed. Everything else will be updated."
             fullInstall=false
         else

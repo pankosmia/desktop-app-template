@@ -3,7 +3,7 @@
 # Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\bundle_zip.ps1 -Tier dev|qa|main
 # with the optional arguments of: `.\bundle_zip.ps1 -Tier <tier> -ServerOff "Y"` or: `.\bundle_zip.ps1 -Tier <tier> -ServerOff "y"`
 # and: `.\bundle_zip.ps1 -Tier <tier> -IsGHA "Y"` or: `.\bundle_zip.ps1 -Tier <tier> -IsGHA "y"`
-#   Tier is required and has no default to avoid mistaken bundles.
+#   Tier is required, defaults to tiers.default
 
 # This script is also used with gh action runner with the -ServerOff switch set to yes and -IsGHA set to yes. Both `pnpm install` and 'node build.js` have already run in earlier steps in windows-build-steps.yml
 
@@ -14,25 +14,32 @@ param(
     [string]$Tier
 )
 
+# Read app_config.json (repo root)
+$APP_CONFIG_FILE = Join-Path $PSScriptRoot "..\..\app_config.json"
+$APP_CONFIG = Get-Content -Path $APP_CONFIG_FILE -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
+
+# Default for Tier is <tiers.default>
+if (-not $PSBoundParameters.ContainsKey('Tier')) {
+    $Tier = $APP_CONFIG.tiers.default
+}
+
 function Resolve-Tiered($entries, $label) {
   $m = @($entries | Where-Object { $_.branches -contains $Tier })
   if ($m.Count -ne 1) { throw "$label must have exactly one entry for tier '$Tier', found $($m.Count)" }
   $m[0].value
 }
 
-# Load app_config.json and resolve tier values -- before asking anything.
+# Resolve tier values -- before asking anything.
 # Errors print as a single line (no stack trace) and exit 1.
 try {
-  $config = Get-Content -Path (Join-Path $PSScriptRoot "..\..\app_config.json") -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
-
   # Tier is required (-Tier). No default, no fallback. Checked here so a missing value fails with a clear error
   # instead of pausing for input as happens in ps1 if designated Mandatory.
-  if (@($config.tiers.order) -notcontains $Tier) {
-    throw "-Tier is required and must be one of: $(@($config.tiers.order) -join ', ') (got '$Tier')."
+  if (@($APP_CONFIG.tiers.order) -notcontains $Tier) {
+    throw "-Tier is required and must be one of: $(@($APP_CONFIG.tiers.order) -join ', ') (got '$Tier')."
   }
 
-  $APP_NAME    = [string](Resolve-Tiered $config.app.name 'app.name')
-  $APP_VERSION = [string](Resolve-Tiered $config.app.version 'app.version')
+  $APP_NAME    = [string](Resolve-Tiered $APP_CONFIG.app.name 'app.name')
+  $APP_VERSION = [string](Resolve-Tiered $APP_CONFIG.app.version 'app.version')
 }
 catch {
   Write-Host "Error: $_"

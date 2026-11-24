@@ -68,20 +68,20 @@ function Get-TierValue {
 # Join-Path does not resolve the path, so wildcards (e.g. favicon*.png) are preserved.
 function Get-ResPath {
     param([string]$Key)
-    $rel = Get-TierValue $config.resources.$Key "resources.$Key" $Tier
+    $rel = Get-TierValue $APP_CONFIG.resources.$Key "resources.$Key" $Tier
     return Join-Path $PSScriptRoot $rel
 }
 
 try {
     # Load app_config.json (repo root) -- path is relative to the script, not the current directory
     try {
-        $configFile = Join-Path $PSScriptRoot "..\..\app_config.json"
-        $config = Get-Content -Path $configFile -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
+        $APP_CONFIG_FILE = Join-Path $PSScriptRoot "..\..\app_config.json"
+        $APP_CONFIG = Get-Content -Path $APP_CONFIG_FILE -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
 
         # Tier is required (-Tier). No fallback. Checked here so a missing value fails with a clear error
         # instead of pausing for input as happens in ps1 if designated Mandatory.
-        if (@($config.tiers.order) -notcontains $Tier) {
-            throw "-Tier is required and must be one of: $(@($config.tiers.order) -join ', ') (got '$Tier')."
+        if (@($APP_CONFIG.tiers.order) -notcontains $Tier) {
+            throw "-Tier is required and must be one of: $(@($APP_CONFIG.tiers.order) -join ', ') (got '$Tier')."
         }
 
         # arch is required (-arch). No fallback. Checked here so a missing value fails with a clear error
@@ -95,9 +95,9 @@ try {
         # (overwriting anything inherited) because makeInstallElectronite.iss reads
         # APP_NAME, APP_VERSION, APP_SHORT_NAME, FILE_APP_NAME, ARCH, and APP_ICON via GetEnv().
 
-        $env:APP_NAME       = [string](Get-TierValue $config.app.name       "app.name"       $Tier)
-        $env:APP_SHORT_NAME = [string](Get-TierValue $config.app.short_name "app.short_name" $Tier)
-        $env:APP_VERSION    = [string](Get-TierValue $config.app.version    "app.version"    $Tier)
+        $env:APP_NAME       = [string](Get-TierValue $APP_CONFIG.app.name       "app.name"       $Tier)
+        $env:APP_SHORT_NAME = [string](Get-TierValue $APP_CONFIG.app.short_name "app.short_name" $Tier)
+        $env:APP_VERSION    = [string](Get-TierValue $APP_CONFIG.app.version    "app.version"    $Tier)
 
         # Resources for the tier (absolute via $PSScriptRoot; safe across Set-Location)
         $rocketConfig    = Get-ResPath "rocket_config"

@@ -27,7 +27,7 @@
 .PARAMETER IsGHA
     Specify -IsGHA "N" when run locally to avoid a failed attempt to list github actions environment variables.
     IsGHA "N" also means that .exe will be built
-    - Default is "Y" (Careful as default is Y on `bundle_viewer.ps1`.)
+    - Default is "Y" (Careful as default is Y on `bundle_app.ps1`.)
 
 .PARAMETER FullInstall
     Specify -FullInstall $true for installing Electronite too; -FullInstall $false for updating all but Electronite (e.g., a development environment viewer update)
@@ -56,17 +56,17 @@ function Get-TierValue {
 
 # Read app_config.json (repo root) -- path relative to this script (/windows/install)
 try {
-    $configFile = Join-Path $PSScriptRoot "..\..\app_config.json"
-    $config = Get-Content -Path $configFile -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
+    $APP_CONFIG_FILE = Join-Path $PSScriptRoot "..\..\app_config.json"
+    $APP_CONFIG = Get-Content -Path $APP_CONFIG_FILE -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
 
     # Tier is required (-Tier). No fallback. Checked here so a missing value fails with a clear error
     # instead of pausing for input as happens in ps1 if designated Mandatory.
-    if (@($config.tiers.order) -notcontains $Tier) {
-        throw "-Tier is required and must be one of: $(@($config.tiers.order) -join ', ') (got '$Tier')."
+    if (@($APP_CONFIG.tiers.order) -notcontains $Tier) {
+        throw "-Tier is required and must be one of: $(@($APP_CONFIG.tiers.order) -join ', ') (got '$Tier')."
     }
 
     # Electronite download URLs, keyed "<platform>-<arch>"
-    $electronUrls = Get-TierValue $config.electronite.url "electronite.url" $Tier
+    $electronUrls = Get-TierValue $APP_CONFIG.electronite.url "electronite.url" $Tier
 }
 catch {
     Write-Host "Error reading app_config.json: $_"

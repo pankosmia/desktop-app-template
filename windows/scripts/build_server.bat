@@ -13,7 +13,7 @@ REM   {"tier":"<tier>","crate":"<crate>","crate_version":"<version built>"}
 
 setlocal
 
-set "configFile=%~dp0..\..\app_config.json"
+set "APP_CONFIG=%~dp0..\..\app_config.json"
 set "localServerDir=%~dp0..\..\local_server"
 set "cargoFile=%localServerDir%\Cargo.toml"
 set "cargoLock=%localServerDir%\Cargo.lock"
@@ -33,10 +33,10 @@ if errorlevel 1 (
 
 REM Read tiers.order from app_config.json (space-separated list)
 set "tiers="
-for /f "usebackq delims=" %%T in (`jq -r ".tiers.order[]" "%configFile%"`) do call set "tiers=%%tiers%% %%T"
+for /f "usebackq delims=" %%T in (`jq -r ".tiers.order[]" "%APP_CONFIG%"`) do call set "tiers=%%tiers%% %%T"
 if not defined tiers (
   echo.
-  echo      Could not read tiers.order from %configFile%
+  echo      Could not read tiers.order from %APP_CONFIG%
   echo.
   exit /b 1
 )
@@ -78,7 +78,7 @@ goto :loop
 :continue
 
 REM Default tier is <tiers.default>; must still be in tiers.order
-for /f "usebackq delims=" %%T in (`jq -r ".tiers.default" "%configFile%"`) do set "DEFAULT_TIER=%%T"
+for /f "usebackq delims=" %%T in (`jq -r ".tiers.default" "%APP_CONFIG%"`) do set "DEFAULT_TIER=%%T"
 if not defined tier set "tier=%DEFAULT_TIER%"
 set "isTier="
 for %%T in (%tiers%) do if /I "%tier%"=="%%T" set "isTier=%%T"
@@ -91,7 +91,7 @@ if not defined isTier (
 
 REM Server settings from app_config.json
 set "crate="
-for /f "usebackq delims=" %%V in (`jq -r ".server.crate // empty" "%configFile%"`) do set "crate=%%V"
+for /f "usebackq delims=" %%V in (`jq -r ".server.crate // empty" "%APP_CONFIG%"`) do set "crate=%%V"
 if not defined crate (
   echo.
   echo      server.crate is not set in app_config.json.
@@ -216,7 +216,7 @@ REM :tierValue <jq path to tier array> <output var>
 REM Sets <output var> to the value of the single entry whose branches include %tier%.
 :tierValue
 set "%~2="
-for /f "usebackq delims=" %%V in (`jq -r --arg t "%tier%" "[%~1[] | select(.branches | index($t))] | if length == 1 then .[0].value else empty end" "%configFile%"`) do set "%~2=%%V"
+for /f "usebackq delims=" %%V in (`jq -r --arg t "%tier%" "[%~1[] | select(.branches | index($t))] | if length == 1 then .[0].value else empty end" "%APP_CONFIG%"`) do set "%~2=%%V"
 if not defined %~2 (
   echo.
   echo      %~1 must have exactly one entry for tier "%tier%" in app_config.json.

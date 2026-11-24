@@ -1,13 +1,22 @@
 # Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\build_viewer.ps1
 # Or force a full install with: .\build_viewer.ps1 -f
 # Or build a different tier with: .\build_viewer.ps1 -Tier qa   (or main)
-#   -Tier defaults to dev (most common for local viewer builds); must be listed in tiers.order in app_config.json.
-#   Builds the local development environment viewer (-DevEnvRun "Y"); the -Tier default is a separate choice.
+#   -Tier defaults to tiers.default (most common for local viewer builds); must be listed in tiers.order in app_config.json.
+#   Builds the local development environment viewer (-DevEnvRun "Y")
 
 param(
-    [string]$Tier = "dev",
+    [string]$Tier,
     [switch]$f
 )
+
+# Read app_config.json (repo root)
+$APP_CONFIG_FILE = Join-Path $PSScriptRoot "..\..\app_config.json"
+$APP_CONFIG = Get-Content -Path $APP_CONFIG_FILE -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
+
+# Default for Tier is <tiers.default>
+if (-not $PSBoundParameters.ContainsKey('Tier')) {
+    $Tier = $APP_CONFIG.tiers.default
+}
 
 # Returns the value of the single entry whose branches include the tier.
 function Get-TierValue {
@@ -23,20 +32,16 @@ function Get-TierValue {
 Push-Location $PSScriptRoot
 
 try {
-    # Read app_config.json (repo root)
     try {
-        $configFile = Join-Path $PSScriptRoot "..\..\app_config.json"
-        $config = Get-Content -Path $configFile -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
-
         # Tier is required (-Tier). No fallback. Checked here so a missing value fails with a clear error
         # instead of pausing for input as happens in ps1 if designated Mandatory.
-        if (@($config.tiers.order) -notcontains $Tier) {
-            throw "-Tier is required and must be one of: $(@($config.tiers.order) -join ', ') (got '$Tier')."
+        if (@($APP_CONFIG.tiers.order) -notcontains $Tier) {
+            throw "-Tier is required and must be one of: $(@($APP_CONFIG.tiers.order) -join ', ') (got '$Tier')."
         }
 
         # Expected Electronite version, derived from electronite.url for this machine's arch
         $CPU_ARCH = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) { "arm64" } else { "x64" }
-        $electronUrls = Get-TierValue $config.electronite.url "electronite.url" $Tier
+        $electronUrls = Get-TierValue $APP_CONFIG.electronite.url "electronite.url" $Tier
         $electronUrl = $electronUrls."win32-$CPU_ARCH"
         if (-not $electronUrl) {
             throw "electronite.url has no 'win32-$CPU_ARCH' entry for tier '$Tier'."

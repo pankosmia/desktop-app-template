@@ -30,9 +30,9 @@ shift
 goto :args
 :args_done
 
-set "CONFIG=%~dp0..\..\app_config.json"
-if not exist "%CONFIG%" (
-  echo app_config.json not found at "%CONFIG%"
+set "APP_CONFIG=%~dp0..\..\app_config.json"
+if not exist "%APP_CONFIG%" (
+  echo app_config.json not found at "%APP_CONFIG%"
   exit /b 1
 )
 where jq >nul 2>&1
@@ -42,7 +42,7 @@ if errorlevel 1 (
 )
 
 REM Default tier is <tiers.default>; must still be in tiers.order
-for /f "usebackq delims=" %%T in (`jq -r ".tiers.default" "%CONFIG%"`) do set "DEFAULT_TIER=%%T"
+for /f "usebackq delims=" %%T in (`jq -r ".tiers.default" "%APP_CONFIG%"`) do set "DEFAULT_TIER=%%T"
 if not defined tier set "tier=%DEFAULT_TIER%"
 
 echo Cloning repos used by the %TIER% tier.
@@ -52,8 +52,8 @@ echo.
 REM Clone into the parent of this repo
 pushd "%~dp0..\..\.."
 
-for /f "usebackq delims=" %%R in (`jq -r --arg t "%TIER%" ".assets[] | select(($t | length) == 0 or (.branches | index($t))) | .repo" "%CONFIG%"`) do call :clone Asset %%R
-for /f "usebackq delims=" %%R in (`jq -r --arg t "%TIER%" ".clients[] | select(($t | length) == 0 or (.branches | index($t))) | .repo" "%CONFIG%"`) do call :clone Client %%R
+for /f "usebackq delims=" %%R in (`jq -r --arg t "%TIER%" ".assets[] | select(($t | length) == 0 or (.branches | index($t))) | .repo" "%APP_CONFIG%"`) do call :clone Asset %%R
+for /f "usebackq delims=" %%R in (`jq -r --arg t "%TIER%" ".clients[] | select(($t | length) == 0 or (.branches | index($t))) | .repo" "%APP_CONFIG%"`) do call :clone Client %%R
 
 popd
 

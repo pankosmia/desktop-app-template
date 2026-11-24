@@ -7,7 +7,7 @@ const copyDir = require('copy-dir');
 // Source paths that may vary by product or tier live in app_config.json.
 // What remains here is repo/clone layout and build-tree destinations.
 
-const CONFIG_PATH = path.resolve('../../app_config.json');
+const APP_CONFIG = path.resolve('../../app_config.json');
 const SIBLING_REPOS_DIR = path.resolve('../../../');  // where asset and client repos are cloned
 
 const RESERVED_APP_KEYS = ['datetime'];
@@ -89,7 +89,7 @@ let cachedConfig = null;
 function loadResolvedConfig() {
   if (cachedConfig) return cachedConfig;
 
-  const raw = fs.readJsonSync(CONFIG_PATH);
+  const raw = fs.readJsonSync(APP_CONFIG);
   const tier = selectTier(raw);
   const order = raw.tiers.order;
 

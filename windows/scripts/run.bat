@@ -3,13 +3,13 @@ REM Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershel
 REM Optional arguments:
 REM   -s (or -S)       Pre-confirm the server is off, so as to not be asked.
 REM   <tier>           One of tiers.order in app_config.json (e.g. dev, qa, main). Only one may be given.
-REM                    Default is dev. Passed to `node build.js`.
+REM                    Default is <tiers.default>. Passed to `node build.js`.
 REM   All other arguments are forwarded to server.exe.
 REM Requires: jq
 
 setlocal
 
-set "configFile=%~dp0..\..\app_config.json"
+set "APP_CONFIG=%~dp0..\..\app_config.json"
 set "serverArgs="
 set "askIfOff="
 set "tier="
@@ -24,10 +24,10 @@ if errorlevel 1 (
 
 REM Read tiers.order from app_config.json (space-separated list)
 set "tiers="
-for /f "usebackq delims=" %%T in (`jq -r ".tiers.order[]" "%configFile%"`) do call set "tiers=%%tiers%% %%T"
+for /f "usebackq delims=" %%T in (`jq -r ".tiers.order[]" "%APP_CONFIG%"`) do call set "tiers=%%tiers%% %%T"
 if not defined tiers (
   echo.
-  echo      Could not read tiers.order from %configFile%
+  echo      Could not read tiers.order from %APP_CONFIG%
   echo.
   exit /b 1
 )
@@ -62,8 +62,8 @@ goto :loop
 
 :continue
 
-REM Default tier is dev (most common for local runs); must still be in tiers.order
-if not defined tier set "tier=dev"
+REM Default tier is tiers.default; must still be in tiers.order
+if not defined tier for /f "usebackq delims=" %%T in (`jq -r ".tiers.default" "%APP_CONFIG%"`) do set "tier=%%T"
 set "isTier="
 for %%T in (%tiers%) do if /I "%tier%"=="%%T" set "isTier=%%T"
 if not defined isTier (

@@ -103,9 +103,9 @@ jobs:
       - name: Extract APP_VERSION from app_config.json
         id: get_app_version
         run: |
-          $cfg  = Get-Content .\app_config.json -Raw | ConvertFrom-Json
+          $APP_CONFIG  = Get-Content .\app_config.json -Raw | ConvertFrom-Json
           $tier = $env:BRANCHES
-          $m = @($cfg.app.version | Where-Object { $_.branches -contains $tier })
+          $m = @($APP_CONFIG.app.version | Where-Object { $_.branches -contains $tier })
           if ($m.Count -ne 1) { throw "app.version must have exactly one entry for tier '$tier', found $($m.Count)" }
           $version = $m[0].value
           echo "APP_TIER=$tier"       | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -117,15 +117,15 @@ jobs:
       - name: Extract APP_NAME from app_config.json
         id: get_app_name
         run: |
-          $cfg  = Get-Content .\app_config.json -Raw | ConvertFrom-Json
+          $APP_CONFIG  = Get-Content .\app_config.json -Raw | ConvertFrom-Json
           $tier = $env:BRANCHES
           function Resolve-Tiered($entries, $label) {
             $m = @($entries | Where-Object { $_.branches -contains $tier })
             if ($m.Count -ne 1) { throw "$label must have exactly one entry for tier '$tier', found $($m.Count)" }
             $m[0].value
           }
-          $appName      = Resolve-Tiered $cfg.app.name 'app.name'
-          $appShortName = Resolve-Tiered $cfg.app.short_name 'app.short_name'
+          $appName      = Resolve-Tiered $APP_CONFIG.app.name 'app.name'
+          $appShortName = Resolve-Tiered $APP_CONFIG.app.short_name 'app.short_name'
           $fileAppName  = $appName.ToLower().Replace(" ", "-")
           echo "APP_NAME=$appName"           | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "FILE_APP_NAME=$fileAppName"  | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -220,9 +220,9 @@ jobs:
           retention-days: 90
 
       # Portable App - Bundle viewer without asking if the server is off and indicate GHA -p
-      - name: Run bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p
+      - name: Run bundle_app.ps1 -ServerOff "Y" -IsGHA "Y" -p
         working-directory: .\windows\scripts
-        run: .\bundle_viewer.ps1 -ServerOff "Y" -IsGHA "Y" -p
+        run: .\bundle_app.ps1 -ServerOff "Y" -IsGHA "Y" -p
 
       # Get names for portable artifact
       - name: Get name for portable app artifact
