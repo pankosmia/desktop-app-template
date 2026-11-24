@@ -9,7 +9,7 @@ IF "%~1"=="" goto :eof
 setlocal
 set "suffix=%~1"
 set "APP_CONFIG=..\..\app_config.json"
-set "configTmp=..\..\app_config.json.tmp"
+set "APP_CONFIG_TMP=..\..\app_config.json.tmp"
 
 set "tier=%~2"
 if not defined tier for /f "usebackq delims=" %%T in (`jq -r ".tiers.default" "%APP_CONFIG%"`) do set "tier=%%T"
@@ -23,11 +23,11 @@ if errorlevel 1 (
   exit /b 1
 )
 
-jq --arg t "%tier%" --arg s "%suffix%" "(.app.version[] | select(.branches | index($t)) | .value) |= . + \"-\" + $s" "%APP_CONFIG%" > "%configTmp%"
+jq --arg t "%tier%" --arg s "%suffix%" "(.app.version[] | select(.branches | index($t)) | .value) |= . + \"-\" + $s" "%APP_CONFIG%" > "%APP_CONFIG_TMP%"
 if errorlevel 1 (
-  del "%configTmp%" 2>nul
+  del "%APP_CONFIG_TMP%" 2>nul
   echo   Failed to update app_config.json
   exit /b 1
 )
-move /y "%configTmp%" "%APP_CONFIG%" >nul
+move /y "%APP_CONFIG_TMP%" "%APP_CONFIG%" >nul
 endlocal
