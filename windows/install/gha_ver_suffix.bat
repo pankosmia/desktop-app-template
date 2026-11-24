@@ -2,7 +2,7 @@
 REM This file is used by GHA to send a version suffix argument.
 REM The suffix is appended to app.version in app_config.json for the selected tier.
 REM Usage: gha_ver_suffix.bat <suffix> [tier]
-REM   Tier: 2nd argument, else APP_TIER, else BRANCHES, else tiers.default.
+REM   Tier: 2nd argument, else tiers.default.
 
 IF "%~1"=="" goto :eof
 
@@ -12,8 +12,6 @@ set "APP_CONFIG=..\..\app_config.json"
 set "configTmp=..\..\app_config.json.tmp"
 
 set "tier=%~2"
-if not defined tier set "tier=%APP_TIER%"
-if not defined tier set "tier=%BRANCHES%"
 if not defined tier for /f "usebackq delims=" %%T in (`jq -r ".tiers.default" "%APP_CONFIG%"`) do set "tier=%%T"
 
 echo.
