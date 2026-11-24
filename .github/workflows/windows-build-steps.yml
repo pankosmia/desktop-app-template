@@ -168,7 +168,7 @@ jobs:
       # Bundle zip without asking if the server is off and indicate GHA
       - name: Run bundle_zip.ps1 -ServerOff "Y" -IsGHA "Y"
         working-directory: .\windows\scripts
-        run: .\bundle_zip.ps1 -ServerOff "Y" -IsGHA "Y"
+        run: .\bundle_zip.ps1 -ServerOff "Y" -IsGHA "Y" -Tier "$env:BRANCHES"
 
       # Get names for zip artifact
       - name: Get names for zip artifact
