@@ -5,7 +5,7 @@
 # Usage:
 #   ./build_clients.zsh [branch] [fallback_tier] [-d] [-f]
 #     The -d argument means to delete past logs without asking
-#     The -f argument means only fresh clones are being built, so pulling is skipped.
+#     The -f argument means all clones are fresh, so pulling is skipped.
 #     The first non-flag argument is the branch name (default: tiers.default in app_config.json, i.e. dev)
 #     The second non-flag argument is the tier from tiers.order -- e.g., dev, qa, or main
 #       (default: the branch itself if it is a tier name, otherwise tiers.default)

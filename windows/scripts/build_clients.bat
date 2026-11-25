@@ -4,7 +4,7 @@ REM Run from pankosmia\[this-repo's-name]\windows\scripts directory in PowerShel
 REM Usage:
 REM   .\build_clients.bat [branch] [fallback_tier] [-d] [-f]
 REM     The -d argument means to delete past logs without asking
-REM     The -f argument means only fresh clones are being built, so pulling is skipped.
+REM     The -f argument means all clones are fresh, so pulling is skipped.
 REM     The first non-flag argument is the branch name (default: tiers.default in app_config.json, i.e. dev)
 REM     The second non-flag argument is the tier from tiers.order -- e.g., dev, qa, or main
 REM       (default: the branch itself if it is a tier name, otherwise tiers.default)
