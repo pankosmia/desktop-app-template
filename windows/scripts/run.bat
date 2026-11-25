@@ -89,6 +89,7 @@ if not exist ..\..\local_server\target\release\local_server.exe (
 
 echo.
 echo Tier is %tier%
+echo serverArgs: %serverArgs%
 
 :choice
 IF "%askIfOff%"=="-s" goto :server_off
