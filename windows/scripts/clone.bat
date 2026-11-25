@@ -57,7 +57,7 @@ if not defined isTier (
 )
 if defined tier (
   echo.
-  echo      Only one tier may be given ^(got "%tier%" and "%isTier%"^). Use one of:%tiers% (optionally with a Repos suffix)
+  echo      Only one tier may be given ^(got "%tier%" and "%isTier%"^). Use one of:%tiers% ^(optionally with a Repos suffix^)
   echo.
   exit /b 1
 )
