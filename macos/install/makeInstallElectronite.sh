@@ -4,7 +4,7 @@
 #
 # Synopsis:
 #   Creates a macOS installation package (.pkg) for the application
-#   based on provided architecture (arm64 or x64) and APP_VERSION.
+#   based on provided architecture (arm64 or x64) and tier.
 #
 # Description:
 #   This script automates the process of building a macOS installer package by:
@@ -15,7 +15,9 @@
 #   5. Building the final installer package
 #
 # Requirements:
-#   - APP_VERSION environment variable must be set (e.g., export APP_VERSION="0.2.7")
+#   - app_config.json at the repo root (app.*, resources.rocket_config,
+#     resources.electron_icon, resources.app_icon_macos for the selected tier)
+#   - jq
 #   - Architecture parameter must be provided when running the script (arm64 or x64)
 #   - XCode command line tools must be installed
 #   - brew package manager with shc installed (`brew install shc`)
@@ -23,7 +25,8 @@
 # Parameters:
 #   $1 : Architecture type (Required)
 #        Accepted values: arm64, x64
-#   $2 : -d indicates a development run (for building viewer only)
+#   $2 : -d indicates a development environment run (for building viewer only; unrelated to the dev tier)
+#   -t <tier> REQUIRED. Builds all of the given tier from app_config.json: dev, qa, or main. Default is <tiers.default>.
 #   -f indicates full install including Electronite copy/download setup
 #   -p indicates Portable App zip build
 #
@@ -34,44 +37,74 @@
 # Output:
 #   Creates installer package at: ../releases/macos/<app-name>_installer_<arch>_<version>.pkg
 
-EMSG="environment variable is not set in makeInstallElectronite.sh."
-
-# Check if APP_NAME environment variable is set
-if [ -z "$APP_NAME" ]; then
-    echo "Error: APP_NAME $EMSG"
-    exit 1
-fi
-
-# Check if APP_VERSION environment variable is set
-if [ -z "$APP_VERSION" ]; then
-    echo "Error: APP_VERSION $EMSG"
-    exit 1
-fi
-
-# Check if APP_SHORT_NAME environment variable is set
-if [ -z "$APP_SHORT_NAME" ]; then
-    echo "Error: APP_SHORT_NAME $EMSG"
-    exit 1
-fi
-
-# Check if FILE_APP_NAME environment variable is set
-if [ -z "$FILE_APP_NAME" ]; then
-    echo "Error: FILE_APP_NAME $EMSG"
-    exit 1
-fi
+# This script's dir (/macos/install). Resolve before any cd.
+# resources.* values in app_config.json are relative to /<os>/scripts (same depth).
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd) || exit 1
+APP_CONFIG="$SCRIPT_DIR/../../app_config.json"
 
 # get arguments
 arch="$1"
-devRun="${2:-no}" # This is a development viewer run if $1 is -d
+devRun="${2:-no}" # This is a development environment viewer run if $2 is -d
 fullInstall=false
 portable=false
+tier=""
 
-for arg in "$@"; do
-    case "$arg" in
+while [ $# -gt 0 ]; do
+    case "$1" in
         -f) fullInstall=true ;;
         -p) portable=true ;;
+        -t) tier="$2"
+            shift
+            ;;
     esac
+    shift
 done
+
+if ! command -v jq >/dev/null 2>&1; then
+    echo "Error: jq is required to read app_config.json"
+    exit 1
+fi
+
+if [ -z "$tier" ]; then
+    tier=$(jq -r '.tiers.default' "$APP_CONFIG")
+fi
+
+# Tier is required. Default is <tiers.default>.
+if ! jq -e --arg t "$tier" '.tiers.order | index($t)' "$APP_CONFIG" >/dev/null; then
+    echo "Error: tier \"$tier\" is not listed in tiers.order in app_config.json"
+    exit 1
+fi
+
+# Prints the value of the single entry (in array $1) whose branches include the tier.
+tier_value() {
+    jq -er --arg t "$tier" --arg k "$1" \
+        "[$1[] | select(.branches | index(\$t))] | if length == 1 then .[0].value else error(\$k + \" must have exactly one entry for tier \" + \$t) end" \
+        "$APP_CONFIG"
+}
+
+# Prints resources.$1 resolved against this script's dir. Not resolved further, so wildcards are preserved.
+res_path() {
+    resValue=$(tier_value ".resources.$1") || return 1
+    printf '%s\n' "$SCRIPT_DIR/$resValue"
+}
+
+APP_NAME=$(tier_value '.app.name') || { echo "Error: app.name not set for tier \"$tier\""; exit 1; }
+APP_VERSION=$(tier_value '.app.version') || { echo "Error: app.version not set for tier \"$tier\""; exit 1; }
+APP_SHORT_NAME=$(tier_value '.app.short_name') || { echo "Error: app.short_name not set for tier \"$tier\""; exit 1; }
+
+# Use lower case app name in filename, and replace spaces with a dash (-)
+FILE_APP_NAME=$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]')
+FILE_APP_NAME=${FILE_APP_NAME// /-}
+
+ROCKET_CONFIG=$(res_path rocket_config) || { echo "Error: resources.rocket_config not set for tier \"$tier\""; exit 1; }
+ELECTRON_ICON=$(res_path electron_icon) || { echo "Error: resources.electron_icon not set for tier \"$tier\""; exit 1; }
+APP_ICON_MACOS=$(res_path app_icon_macos) || { echo "Error: resources.app_icon_macos not set for tier \"$tier\""; exit 1; }
+
+echo "TIER=$tier"
+echo "APP_NAME=$APP_NAME"
+echo "APP_VERSION=$APP_VERSION"
+echo "APP_SHORT_NAME=$APP_SHORT_NAME"
+echo "FILE_APP_NAME=$FILE_APP_NAME"
 
 PKG_BASE_NAME="${FILE_APP_NAME}-${APP_VERSION}-macos-${arch}"
 PKG_NAME="${PKG_BASE_NAME}.pkg"
@@ -83,6 +116,7 @@ if [ "$devRun" != "-d" ]; then
   rm -f "../../releases/macos/${PKG_ZIP_NAME}"
 fi
 
+# cwd: /macos/install -> /macos/build
 cd ../build || exit 1
 
 ########################################
@@ -106,8 +140,8 @@ fi
 
 mkdir -p "${APP_BASE_DIR}/Contents/MacOS"
 
-# Rocket config
-cp "../../Rocket.toml" "${APP_BASE_DIR}/Rocket.toml"
+# Rocket config (resources.rocket_config)
+cp "$ROCKET_CONFIG" "${APP_BASE_DIR}/Rocket.toml"
 
 # alternative production launcher for developer use
 STDIO_LAUNCHER="${APP_BASE_DIR}/devAppLauncherElectron.sh"
@@ -135,8 +169,9 @@ if [ ! -d "$ELECTRON_DEST" ]; then
     exit 1
 fi
 
-cp "../../globalBuildResources/favicon"*.png "$ELECTRON_DEST"
-echo "Copied favicon files"
+# Electron icon (resources.electron_icon) -- dir quoted, filename unquoted so wildcards expand
+cp "$(dirname "$ELECTRON_ICON")"/$(basename "$ELECTRON_ICON") "$ELECTRON_DEST"
+echo "Copied $(basename "$ELECTRON_ICON") files"
 
 # Copy required node_modules and dependencies -- all OSes
 ALL_OS_MODULES="
@@ -201,7 +236,8 @@ echo "Done Updating Electron Info.plist file"
 
 if [ "$devRun" != "-d" ]; then
   mkdir -p "${APP_BASE_DIR}/Contents/Resources"
-  cp "../../globalBuildResources/icon.icns" "${APP_BASE_DIR}/Contents/Resources/icon.icns"
+  # App icon (resources.app_icon_macos) -- installed name stays icon.icns
+  cp "$APP_ICON_MACOS" "${APP_BASE_DIR}/Contents/Resources/icon.icns"
 
   # copy Info.plist
   cp "../buildResources/Info.plist" "${APP_BASE_DIR}/Contents/"
@@ -266,7 +302,7 @@ if [ "$devRun" != "-d" ]; then
     IDENTIFIER="pankosmia.${FILE_APP_NAME}"
   fi
 
-  # build pkg
+  # build pkg  (cwd: /macos/build -> /macos)
   cd ..
   pkgbuild \
     --root "./$pkgDir/project/payload" \

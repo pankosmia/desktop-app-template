@@ -1,28 +1,68 @@
 #!/usr/bin/env zsh
 
 # Run from pankosmia/[this-repo's-name]/macos/scripts directory by:  ./run.zsh
-# with the optional argument of: `./run.zsh -s` to pre-specify that the server is off.
+# Optional arguments:
+#   -s (or -S)       Pre-confirm the server is off, so as to not be asked.
+#   <tier>           One of tiers.order in app_config.json (e.g. dev, qa, main). Only one may be given.
+#                    Default is <tiers.default>. Passed to `node build.js`.
+#   All other arguments are forwarded to server.exe.
+# Requires: jq
 
 set -e
 set -u
 
+if ! command -v jq >/dev/null 2>&1; then
+  echo
+  echo "     jq is required to read app_config.json."
+  echo
+  exit 1
+fi
+
 echo
 
-# Do not ask if the server is off if -s is provided.
+# app_config.json at repo root
+APP_CONFIG="../../app_config.json"
+default_tier=$(jq -r '.tiers.default' "$APP_CONFIG")
+tier_list=$(jq -r '.tiers.order | join(" ")' "$APP_CONFIG")
+
+# Do not ask if the server is off if -s or -S is provided.
 # Forward all other arguments to server.bin.
+askIfOff=""
+tier=""
 serverArgs=()
+
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
     -[sS])
-      askIfOff="-s" # -s means "no"
+      askIfOff="-s" # -s = "no"
       ;;
     *)
-      serverArgs+=("$1")
+      if jq -e --arg t "$1" '.tiers.order | index($t) != null' "$APP_CONFIG" >/dev/null; then
+        if [[ -n "$tier" ]]; then
+          echo "" >&2
+          echo "     Only one tier may be specified (got '$tier' and '$1'). One of: $tier_list" >&2
+          echo "" >&2
+          exit 1
+        fi
+        tier="$1"
+      else
+        serverArgs+=("$1")
+      fi
       ;;
   esac
   shift
 done
+
+# Default tier is tiers.default; must still be in tiers.order
+tier=${tier:-$default_tier}
+
+if ! jq -e --arg t "$tier" '.tiers.order | index($t) != null' "$APP_CONFIG" >/dev/null; then
+  echo "" >&2
+  echo "     Tier \"$tier\" is not listed in tiers.order. One of: $tier_list" >&2
+  echo "" >&2
+  exit 1
+fi
 
 # Assign default value if -s is not present
 if [ -z ${askIfOff+x} ]; then # askIfOff is unset
@@ -37,6 +77,9 @@ if [ ! -f ../../local_server/target/release/local_server ]; then
   echo
   exit
 fi
+
+echo "tier=$tier"
+echo "serverArgs: ${serverArgs[*]}"
 
 # Do not ask if the server is off if the -s argument is provided
 if ! [[ $askIfOff =~ ^(-s) ]]; then
@@ -74,8 +117,13 @@ if [ -d ../build ]; then
 fi
 
 if [ ! -d ../build ]; then
-  echo "Assembling build environment..."
-  node ./build.js
+  echo "Assembling build environment for tier $tier..."
+  if ! node ./build.js "$tier"; then
+    echo "" >&2
+    echo "     node build.js failed for tier \"$tier\"." >&2
+    echo "" >&2
+    exit 1
+  fi
 fi
 
 cd ../build

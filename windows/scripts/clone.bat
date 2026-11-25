@@ -90,7 +90,6 @@ for /f "usebackq delims=" %%R in (`jq -r --arg t "%tier%" ".clients[] | select(.
 popd
 
 echo Done. Repos are on their default branches for the %tier% tier.
-echo Repos are on their default branches.
 echo To check out a tier's branches, run: .\build_clients.bat ^<tier^>
 
 endlocal

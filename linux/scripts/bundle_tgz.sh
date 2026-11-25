@@ -2,25 +2,68 @@
 
 # bundle_tgz.bsh is a symlink to bundle_tgz.sh
 
-# This script uses the APP_VERSION environment variable as defined in app_config.env
+# This script uses APP_VERSION as defined in app_config.json
 
-# run from pankosmia\[this-repo's-name]/linux/scripts directory by: ./bundle_tgz.sh
+# Run from the pankosmia/[this-repo's-name]/linux/scripts directory:
+#   ./bundle_tgz.sh [tier] [-s|-S] [-g|-G]
+#
+# Arguments (all optional):
+#   tier    One of the values in tiers.order. Defaults to tiers.default.
+#   -s/-S   Skip the prompt when the server is off.
+#   -g/-G   Run in GitHub Actions mode.
+# Forward all other arguments to server.bin.
 
 set -e
 set -u
 
-echo;
+if ! command -v jq >/dev/null 2>&1; then
+  echo
+  echo "     jq is required to read app_config.json."
+  echo
+  exit 1
+fi
 
-# Do not ask if the server is off if the -s positional argument is provided in either #1 or #2
-# Github Actions specified if the -g positional argument is provided in either #1 or #2
+echo
+
+# app_config.json at repo root
+APP_CONFIG="../../app_config.json"
+default_tier=$(jq -r '.tiers.default' "$APP_CONFIG")
+tier_list=$(jq -r '.tiers.order | join(" ")' "$APP_CONFIG")
+
+tier=""
+
 while [[ "$#" -gt 0 ]]
   do case $1 in
-      -s) askIfOff="$1"  # -s = "no"
+    -[sS]) askIfOff="$1"  # -s = "no"
+    ;;
+    -[gG]) isGHA="$1" # -g = "yes"
+    ;;
+    *)
+      if jq -e --arg t "$1" '.tiers.order | index($t) != null' "$APP_CONFIG" >/dev/null; then
+        if [[ -n "$tier" ]]; then
+          echo "" >&2
+          echo "     Only one tier may be specified (got '$tier' and '$1'). One of: $tier_list" >&2
+          echo "" >&2
+          exit 1
+        fi
+        tier="$1"
+      else
+        serverArgs+=("$1")
+      fi
       ;;
-      -g) isGHA="$1" # -g = "yes"
   esac
   shift
 done
+
+# Default tier is tiers.default; must still be in tiers.order
+tier=${tier:-$default_tier}
+
+if ! jq -e --arg t "$tier" '.tiers.order | index($t) != null' "$APP_CONFIG" >/dev/null; then
+  echo "" >&2
+  echo "     Tier \"$tier\" is not listed in tiers.order. One of: $tier_list" >&2
+  echo "" >&2
+  exit 1
+fi
 
 # Assign default value if -s is not present
 if [ -z ${askIfOff+x} ]; then # askIfOff is unset"
@@ -70,8 +113,18 @@ if ! [[ $isGHA =~ ^(-g) ]]; then
   cd linux/scripts
 fi
 
-source ../../app_config.env
+# Prints the value of the single entry (in array $1) whose branches include the tier.
+tier_value() {
+    jq -er --arg t "$tier" --arg k "$1" \
+        "[$1[] | select(.branches | index(\$t))] | if length == 1 then .[0].value else error(\$k + \" must have exactly one entry for tier \" + \$t) end" \
+        "$APP_CONFIG"
+}
+
+APP_NAME=$(tier_value '.app.name') || { echo "Error: app.name not set for tier \"$tier\""; exit 1; }
+APP_VERSION=$(tier_value '.app.version') || { echo "Error: app.version not set for tier \"$tier\""; exit 1; }
+
 echo
+echo "Tier is $tier"
 echo "Version is $APP_VERSION"
 echo
 
@@ -80,8 +133,13 @@ if ! [[ $isGHA =~ ^(-g) ]]; then
     echo "Removing last build environment"
     rm -rf ../build
   fi
-  echo "Assembling build environment"
-  node build.js
+  echo "Assembling build environment for tier $tier..."
+    if ! node ./build.js "$tier"; then
+    echo "" >&2
+    echo "     node build.js failed for tier \"$tier\"." >&2
+    echo "" >&2
+    exit 1
+  fi
 fi
 
 # Detect current CPU architecture

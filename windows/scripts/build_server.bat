@@ -19,6 +19,7 @@ set "cargoFile=%localServerDir%\Cargo.toml"
 set "cargoLock=%localServerDir%\Cargo.lock"
 set "cargoBackup=%cargoFile%.bak"
 set "lockBackup=%cargoLock%.bak"
+set "cargoLockAbsent=%cargoLock%.absent"
 set "askIfOff="
 set "force="
 set "tier="
@@ -114,6 +115,7 @@ if exist "%cargoBackup%" (
   call :restoreCargo
 )
 if exist "%lockBackup%" call :restoreCargo
+if exist "%cargoLockAbsent%" call :restoreCargo
 
 set "buildVersion=%crateVersion%"
 
@@ -161,7 +163,7 @@ goto :assemble
 REM Remove the stamp first so a failed build never leaves a stamp describing it
 if exist "%stampFile%" del "%stampFile%"
 
-if /I not "%tier%"=="main" call :rewriteCargo
+call :rewriteCargo
 
 REM Build the rust server of the specified build type
 echo "Building local Release server at /local_server/target/release ..."
@@ -228,7 +230,11 @@ exit /b 0
 REM :rewriteCargo -- back up Cargo.toml and Cargo.lock, then pin %crate% to %crateVersion%
 :rewriteCargo
 copy /y "%cargoFile%" "%cargoBackup%" >nul
-if exist "%cargoLock%" copy /y "%cargoLock%" "%lockBackup%" >nul
+if exist "%cargoLock%" (
+  copy /y "%cargoLock%" "%lockBackup%" >nul
+) else (
+  type nul > "%cargoLockAbsent%"
+)
 setlocal enabledelayedexpansion
 set "cargoTmp=%cargoFile%.tmp"
 (for /f "usebackq tokens=*" %%a in ("%cargoBackup%") do (
@@ -247,5 +253,11 @@ exit /b 0
 REM :restoreCargo -- restore Cargo.toml and Cargo.lock from backups if present
 :restoreCargo
 if exist "%cargoBackup%" move /y "%cargoBackup%" "%cargoFile%" >nul
-if exist "%lockBackup%" move /y "%lockBackup%" "%cargoLock%" >nul
+if exist "%lockBackup%" (
+  move /y "%lockBackup%" "%cargoLock%" >nul
+) else if exist "%cargoLockAbsent%" (
+  del /q "%cargoLock%" 2>nul
+)
+if exist "%cargoLockAbsent%" del /q "%cargoLockAbsent%"
 exit /b 0
+

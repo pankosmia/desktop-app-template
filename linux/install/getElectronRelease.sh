@@ -36,9 +36,9 @@ else
     pkgDir=temp
 fi
 
-testDir="../$pkgDir/electron.$arch/Electron.app"
+testDir="../$pkgDir/electron.$arch/electron"
 if [ -d "$testDir" ]; then
-  echo "Electron.app already exists for $arch"
+  echo "electron already exists for $arch"
   exit 0
 fi
 
@@ -55,16 +55,17 @@ mkdir -p "$destFolder"
 # Download zip file
 tempName="$destFolder/temp.zip"
 echo "Downloading $arch package to $tempName"
-curl -L "$downloadUrl" -o "$tempName"
+curl -fL "$downloadUrl" -o "$tempName"
+curlStatus=$?
 
-if [ $? -ne 0 ]; then
-    echo "Error: Failed to download $downloadUrl package to $tempName - $?"
+if [ $curlStatus -ne 0 ]; then
+    echo "Error: Failed to download $downloadUrl package to $tempName - curl exit code $curlStatus"
     exit 1
 fi
 
 # create destination directory
 unzipDest="../$pkgDir/electron.$arch"
-rm -rf "$dest"
+rm -rf "$unzipDest"
 
 # Unzip the file
 if ! unzip -qq "$tempName" -d "$unzipDest"; then

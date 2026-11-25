@@ -1,26 +1,117 @@
 #!/usr/bin/env bash
 
-# bundle_viewer.bsh is a symlink to bundle_viewer.sh
-
-#   -p indicates a portable app build (produces a .tgz)
+# This script uses APP_VERSION as defined in app_config.json
+#
+# Run from pankosmia/[this-repo's-name]/macos/scripts directory:
+#  ./bundle_app.sh  [tier] [-s|-S] [-p|-P]
+#
+# Arguments (all optional):
+#   tier    One of the values in tiers.order. Defaults to tiers.default.
+#   -s/-S   Skip the prompt when the server is off.
+#   -p/-P indicates Portable App zip build (produces a .tgz)
+#
+# bundle_app.sh is a symlink to bundle_app.sh
 
 set -e
 set -u
 
-# get arguments
-portable=false
+if ! command -v jq >/dev/null 2>&1; then
+  echo
+  echo "     jq is required to read app_config.json."
+  echo
+  exit 1
+fi
 
-for arg in "$@"; do
-    case "$arg" in
-        -p) portable=true ;;
+echo
+
+# app_config.json at repo root
+APP_CONFIG="../../app_config.json"
+default_tier=$(jq -r '.tiers.default' "$APP_CONFIG")
+tier_list=$(jq -r '.tiers.order | join(" ")' "$APP_CONFIG")
+
+# get arguments
+askIfOff=yes
+portable=false
+tier=""
+
+while [[ "$#" -gt 0 ]]
+  do case $1 in
+    -[sS]) askIfOff=no
+    ;;
+    -[pP]) portable=true
+    ;;
+    *)
+      if jq -e --arg t "$1" '.tiers.order | index($t) != null' "$APP_CONFIG" >/dev/null; then
+        if [[ -n "$tier" ]]; then
+          echo "" >&2
+          echo "     Only one tier may be specified (got '$tier' and '$1'). One of: $tier_list" >&2
+          echo "" >&2
+          exit 1
+        fi
+        tier="$1"
+      else
+        serverArgs+=("$1")
+      fi
+      ;;
     esac
+    shift
 done
 
-source ../../app_config.env
-echo "Building Debian package for $APP_NAME $APP_VERSION"
+# Default tier is tiers.default; must still be in tiers.order
+tier=${tier:-$default_tier}
+
+if ! jq -e --arg t "$tier" '.tiers.order | index($t) != null' "$APP_CONFIG" >/dev/null; then
+  echo "" >&2
+  echo "     Tier \"$tier\" is not listed in tiers.order. One of: $tier_list" >&2
+  echo "" >&2
+  exit 1
+fi
+
+# Do not ask if the server is off if the -s argument is provided
+if ! [[ $askIfOff =~ ^(-s) ]]; then
+  while true; do
+    read -p "Is the server off? [Y/n]: " yn
+    case $yn in 
+      "y" | "Y" | "" ) echo
+        echo "Continuing...";
+        break
+        ;;
+      [nN] ) echo
+        echo "     Exiting...";
+        echo;
+        echo "     If the server is on, turn it off with Ctrl-C in the terminal window in which it is running, then re-run this script.";
+        echo;
+        exit
+        ;;
+      * ) echo
+        echo "     \"$yn\" is not a valid response. Please type y or 'Enter' to continue or 'n' to quit.";
+        echo
+        ;;
+    esac
+  done
+fi
+
+# Prints the value of the single entry (in array $1) whose branches include the tier.
+tier_value() {
+    jq -er --arg t "$tier" --arg k "$1" \
+        "[$1[] | select(.branches | index(\$t))] | if length == 1 then .[0].value else error(\$k + \" must have exactly one entry for tier \" + \$t) end" \
+        "$APP_CONFIG"
+}
+
+APP_NAME=$(tier_value '.app.name') || { echo "Error: app.name not set for tier \"$tier\""; exit 1; }
+APP_VERSION=$(tier_value '.app.version') || { echo "Error: app.version not set for tier \"$tier\""; exit 1; }
+APP_SHORT_NAME=$(tier_value '.app.short_name') || { echo "Error: app.short_name not set for tier \"$tier\""; exit 1; }
+
+echo
+echo "Tier is $tier"
+echo "Version is $APP_VERSION"
+echo "App name is $APP_NAME"
+echo "App short name is $APP_SHORT_NAME"
+echo "Building Debian package for tier $tier..."
+echo
 
 # Full viewer install, ensuring no stale files are included.
-./build_viewer.sh -f
+./build_viewer.sh -f $tier
 
 # Set variables
 cd ../../
@@ -59,10 +150,6 @@ if ! [ -d $TO_DIR ]; then
     mkdir -p $TO_DIR/DEBIAN
     chmod -R 755 $TO_DIR
 fi
-
-# Config file
-cp $FROM_DIR/app_config.env $INSTALL_DIR
-chmod 644 $INSTALL_DIR/app_config.env
 
 # Lib
 cp -r $FROM_DIR/linux/build/lib $INSTALL_DIR
@@ -134,7 +221,6 @@ if [ "$portable" = true ]; then
     LIB_SOURCE="$FROM_DIR/linux/build/lib"
     BIN_SOURCE="$FROM_DIR/linux/build/bin"
     ICON_SOURCE="$FROM_DIR/globalBuildResources/linux_icon.png"
-    CONFIG_SOURCE="$FROM_DIR/app_config.env"
 
     # Portable-specific helper files.
     HELPERS_SOURCE="$FROM_DIR/linux/buildResourcesPortable"
@@ -167,9 +253,6 @@ if [ "$portable" = true ]; then
 
     # Assemble the staged app folder to mirror the .deb's $INSTALL_DIR layout.
 
-    # Config file
-    cp "$CONFIG_SOURCE" "$PORTABLE_APP_STAGE/"
-    chmod 644 "$PORTABLE_APP_STAGE/app_config.env"
 
     # Lib (staged copy -- gets the repo_dir edit below)
     cp -r "$LIB_SOURCE" "$PORTABLE_APP_STAGE/"

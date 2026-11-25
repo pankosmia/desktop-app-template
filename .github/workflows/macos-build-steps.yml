@@ -137,11 +137,11 @@ jobs:
           # cache: pnpm
 
       # Add suffix to version
-      - name: Run gha_ver_suffix.zsh
+      - name: Run gha_ver_suffix.sh
         working-directory: ./macos/install
         run: |
-          chmod +x ./gha_ver_suffix.zsh
-          ./gha_ver_suffix.zsh "${{ inputs.artifact_suffix != '' && format('{0}-{1}', inputs.artifact_suffix, inputs.timestamp) || inputs.timestamp }}"
+          chmod +x ./gha_ver_suffix.sh
+          ./gha_ver_suffix.sh "${{ inputs.artifact_suffix != '' && format('{0}-{1}', inputs.artifact_suffix, inputs.timestamp) || inputs.timestamp }}"
 
       # Install the repository
       - name: Install this repo
@@ -224,7 +224,7 @@ jobs:
       # build electronite installs (-f = full install; -p = include portable)
       - name: Run makeAllInstallsElectronite.sh
         working-directory: ./macos/install
-        run: ./makeAllInstallsElectronite.sh -f -p
+        run: ./makeAllInstallsElectronite.sh -f -p -t "$BRANCHES"
 
       - name: Get Electronite Installer names
         id: get-electronite-names

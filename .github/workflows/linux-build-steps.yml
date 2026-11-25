@@ -108,7 +108,7 @@ jobs:
           chmod +x ./linux/scripts/build_clients.sh
           chmod +x ./linux/scripts/build_server.sh
           chmod +x ./linux/scripts/bundle_tgz.sh
-          chmod +x ./linux/scripts/bundle_viewer.sh
+          chmod +x ./linux/scripts/bundle_app.sh
 
       - name: Run clone.sh
         working-directory: ./linux/scripts
@@ -134,7 +134,7 @@ jobs:
 
       - name: Create .deb installer and Portable TGZ (includes Electronite viewer build)
         working-directory: ./linux/scripts
-        run: ./bundle_viewer.sh -p
+        run: ./bundle_app.sh -p
 
       - name: Get tgz for cli name
         id: get-tgz-name
