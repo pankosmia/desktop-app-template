@@ -1,6 +1,6 @@
 # This script uses app.version from app_config.json for the selected tier.
 
-# Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\bundle_app.ps1 -Tier dev|qa|main
+# Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  `.\bundle_app.ps1 -Tier <one of tiers.order - e.g., dev|qa|main>`
 # with the optional argument of: .\bundle_app.ps1 -Tier <tier> -ServerOff "y"
 
 <#
@@ -30,7 +30,7 @@
     - Default is "N"  (Careful as default is Y on `makeAllInstallsEletronite.ps1`.)
 
 .PARAMETER Tier
-    Required. Builds all of the given tier from app_config.json: dev, qa, or main.
+    Required. Builds all of the given tier from app_config.json. Tier must be in tiers.order -- e.g., dev, qa, or main.
     - Must be listed in tiers.order. No default, no fallback.
 
 .PARAMETER -p

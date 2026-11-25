@@ -48,7 +48,7 @@ for %%T in (%tiers%) do if /I "%~1"=="%%T" set "isTier=%%T"
 if defined isTier (
   if defined tier (
     echo.
-    echo      Only one tier may be given ^(got "%tier%" and "%isTier%"^). One of:%tiers%
+    echo      Only one tier may be given ^(got "%tier%" and "%isTier%"^). Use one of:%tiers%
     echo.
     exit /b 1
   )
@@ -68,7 +68,7 @@ set "isTier="
 for %%T in (%tiers%) do if /I "%tier%"=="%%T" set "isTier=%%T"
 if not defined isTier (
   echo.
-  echo      Tier "%tier%" is not listed in tiers.order. One of:%tiers%
+  echo      Tier "%tier%" is not listed in tiers.order. Use one of:%tiers%
   echo.
   exit /b 1
 )

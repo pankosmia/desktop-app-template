@@ -1,6 +1,6 @@
 # This script uses app.name and app.version from app_config.json for the selected tier.
 
-# Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\bundle_zip.ps1 -Tier dev|qa|main
+# Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  `.\bundle_zip.ps1 -Tier <one of tier.order - e.g., dev|qa|main>`
 # with the optional arguments of: `.\bundle_zip.ps1 -Tier <tier> -ServerOff "Y"` or: `.\bundle_zip.ps1 -Tier <tier> -ServerOff "y"`
 # and: `.\bundle_zip.ps1 -Tier <tier> -IsGHA "Y"` or: `.\bundle_zip.ps1 -Tier <tier> -IsGHA "y"`
 #   Tier is required, defaults to tiers.default

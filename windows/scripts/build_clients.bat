@@ -6,7 +6,7 @@ REM   .\build_clients.bat [branch] [fallback_tier] [-d] [-f]
 REM     The -d argument means to delete past logs without asking
 REM     The -f argument means only fresh clones are being built, so pulling is skipped.
 REM     The first non-flag argument is the branch name (default: tiers.default in app_config.json, i.e. dev)
-REM     The second non-flag argument is the tier: dev, qa, or main
+REM     The second non-flag argument is the tier from tiers.order -- e.g., dev, qa, or main
 REM       (default: the branch itself if it is a tier name, otherwise tiers.default)
 REM     The tier selects which assets/clients are built, and the checkout fallback chain.
 
@@ -87,9 +87,10 @@ if not defined FALLBACK_TIER (
 )
 
 REM Validate the tier
+for /f "usebackq delims=" %%T in (`jq -r ".tiers.order[]" "%APP_CONFIG%"`) do call set "tiers=%%tiers%% %%T"
 jq -e --arg t "%FALLBACK_TIER%" ".tiers.order | index($t)" "%APP_CONFIG%" >nul 2>&1
 if errorlevel 1 (
-  echo Unknown tier "%FALLBACK_TIER%". Use dev, qa, or main.
+  echo Unknown tier "%FALLBACK_TIER%". <tiers.default> must be one of:%tiers%.
   exit /b 1
 )
 
