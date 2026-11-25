@@ -68,7 +68,7 @@ if ! jq -e --arg t "$tier" '.tiers.order | index($t) != null' "$APP_CONFIG" >/de
 fi
 
 # Do not ask if the server is off if the -s argument is provided
-if ! [[ $askIfOff =~ ^(-s) ]]; then
+if [ "$askIfOff" != "no" ]; then
   while true; do
     read -p "Is the server off? [Y/n]: " yn
     case $yn in 
