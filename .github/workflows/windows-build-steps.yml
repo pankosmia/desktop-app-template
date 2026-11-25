@@ -141,7 +141,7 @@ jobs:
       # Clone resources and clients
       - name: Run clone.bat
         working-directory: .\windows\scripts
-        run: .\clone.bat
+        run: .\clone.bat "$env:BRANCHES"
 
       # Confirm Node architecture
       - name: Check Node arch
@@ -198,7 +198,7 @@ jobs:
       # Build electronite
       - name: Run makeAllInstallsElectronite.ps1
         working-directory: .\windows\install
-        run: .\makeAllInstallsElectronite.ps1
+        run: .\makeAllInstallsElectronite.ps1 -Tier "$env:BRANCHES"
 
       # Get names for electronite exe artifacts
       - name: Get names for electronite exe artifact
@@ -222,7 +222,7 @@ jobs:
       # Portable App - Bundle viewer without asking if the server is off and indicate GHA -p
       - name: Run bundle_app.ps1 -ServerOff "Y" -IsGHA "Y" -p
         working-directory: .\windows\scripts
-        run: .\bundle_app.ps1 -ServerOff "Y" -IsGHA "Y" -p
+        run: .\bundle_app.ps1 -ServerOff "Y" -IsGHA "Y" -p -Tier "$env:BRANCHES"
 
       # Get names for portable artifact
       - name: Get name for portable app artifact

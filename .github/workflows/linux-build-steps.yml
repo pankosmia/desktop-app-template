@@ -95,7 +95,7 @@ jobs:
         working-directory: ./linux/install
         run: |
           chmod +x ./gha_ver_suffix.sh
-          ./gha_ver_suffix.sh "${{ inputs.artifact_suffix != '' && format('{0}-{1}', inputs.artifact_suffix, inputs.timestamp) || inputs.timestamp }}"
+          ./gha_ver_suffix.sh "${{ inputs.artifact_suffix != '' && format('{0}-{1}', inputs.artifact_suffix, inputs.timestamp) || inputs.timestamp }}" "${{ inputs.branches }}"
 
       # Install the repository
       - name: Install this repo
@@ -112,7 +112,7 @@ jobs:
 
       - name: Run clone.sh
         working-directory: ./linux/scripts
-        run: ./clone.sh
+        run: ./clone.sh "$BRANCHES"
 
       - name: Build ${{ inputs.branches }} clients except where ${{ inputs.branch_name_exception }} exists
         if: ${{ inputs.branch_name_exception != '' }}
@@ -130,11 +130,11 @@ jobs:
 
       - name: Bundle tgz without asking if the server is off and indicate GHA
         working-directory: ./linux/scripts
-        run: ./bundle_tgz.sh -s -g
+        run: ./bundle_tgz.sh -s -g "$BRANCHES"
 
       - name: Create .deb installer and Portable TGZ (includes Electronite viewer build)
         working-directory: ./linux/scripts
-        run: ./bundle_app.sh -p
+        run: ./bundle_app.sh -s -p "$BRANCHES"
 
       - name: Get tgz for cli name
         id: get-tgz-name
