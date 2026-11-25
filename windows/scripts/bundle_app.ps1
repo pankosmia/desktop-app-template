@@ -34,7 +34,7 @@
     - Must be listed in tiers.order. No default, no fallback.
 
 .PARAMETER -p
-    Specify -p for Portable App
+    Specify -p or -P for Portable App
 #>
 
 param(

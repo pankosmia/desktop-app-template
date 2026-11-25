@@ -35,7 +35,7 @@
     - Default is $true
 
 .PARAMETER -p
-    Specify -p for Portable App
+    Specify -p or -P for Portable App
 #>
 param(
     [string]$Tier,
