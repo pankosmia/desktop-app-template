@@ -165,10 +165,16 @@ jobs:
         working-directory: .\windows\scripts
         run: .\build_server.bat -s "$env:BRANCHES"
 
-      # Bundle zip without asking if the server is off and indicate GHA
-      - name: Run bundle_zip.ps1 -ServerOff "Y" -IsGHA "Y"
+      # Get workspace location and repo name
+      - name: Show workspace and repo name
+        run: |
+          echo "github.event.repository.name: ${{ github.event.repository.name }}"
+          echo "github.workspace: ${{ github.workspace }}"
+
+      # Build CLI zip, Portable App, and EXE installer
+      - name: Run bundle_app.ps1 -ServerOff "Y" -IsGHA "Y" -p
         working-directory: .\windows\scripts
-        run: .\bundle_zip.ps1 -ServerOff "Y" -IsGHA "Y" -Tier "$env:BRANCHES"
+        run: .\bundle_app.ps1 -ServerOff "Y" -IsGHA "Y" -p -Tier "$env:BRANCHES"
 
       # Get names for zip artifact
       - name: Get names for zip artifact
@@ -189,17 +195,6 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      # Get workspace location and repo name
-      - name: Show workspace and repo name
-        run: |
-          echo "github.event.repository.name: ${{ github.event.repository.name }}"
-          echo "github.workspace: ${{ github.workspace }}"
-
-      # Build electronite
-      - name: Run makeAllInstallsElectronite.ps1
-        working-directory: .\windows\install
-        run: .\makeAllInstallsElectronite.ps1 -Tier "$env:BRANCHES"
-
       # Get names for electronite exe artifacts
       - name: Get names for electronite exe artifact
         id: get-electronite-exe-name
@@ -218,11 +213,6 @@ jobs:
           archive: false
           if-no-files-found: error
           retention-days: 90
-
-      # Portable App - Bundle viewer without asking if the server is off and indicate GHA -p
-      - name: Run bundle_app.ps1 -ServerOff "Y" -IsGHA "Y" -p
-        working-directory: .\windows\scripts
-        run: .\bundle_app.ps1 -ServerOff "Y" -IsGHA "Y" -p -Tier "$env:BRANCHES"
 
       # Get names for portable artifact
       - name: Get name for portable app artifact
