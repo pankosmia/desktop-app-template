@@ -20,9 +20,15 @@
 #>
 
 param(
-    [Parameter(Mandatory=$true)]
     [string]$filename
 )
+
+# filename is required (-filename). Checked here so a missing value fails with a clear error
+# instead of pausing for input as happens in ps1 if designated Mandatory.
+if (-not $filename) {
+    Write-Host "Error: filename is required: -filename=<filename>"
+    exit 1
+}
 
 # Extract version number using regex
 $version = if ($filename -match 'v(\d+\.\d+\.\d+)') {

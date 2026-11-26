@@ -1,91 +1,133 @@
-# This script uses the APP_VERSION environment variable as defined in app_config.env
+# This script uses app.name and app.version from app_config.json for the selected tier.
 
-# Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  .\bundle_zip.ps1
-# with the optional arguments of: `.\bundle_zip.ps1 -ServerOff "Y"` or: `.\bundle_zip.ps1 -ServerOff "y"`
-# and: `.\bundle_zip.ps1 -IsGHA "Y"` or: `.\bundle_zip.ps1 -IsGHA "y"`
+# Run from pankosmia\[this-repo's-name]\windows\scripts directory in powershell by:  `.\bundle_zip.ps1 -Tier <one of tier.order - e.g., dev|qa|main>`
+# with the optional arguments of: `.\bundle_zip.ps1 -Tier <tier> -ServerOff "Y"` or: `.\bundle_zip.ps1 -Tier <tier> -ServerOff "y"`
+# and: `.\bundle_zip.ps1 -Tier <tier> -IsGHA "Y"` or: `.\bundle_zip.ps1 -Tier <tier> -IsGHA "y"`
+#   Tier is required, defaults to tiers.default
 
-# This script is also used with gh action runner with the -ServerOff switch set to yes and -IsGHA set to yes. All three of `app_setup.bat` and `pnpm install` and 'node build.js` have already run in earlier steps in windows-build-steps.yml
+# This script is also used with gh action runner with the -ServerOff switch set to yes and -IsGHA set to yes. Both `pnpm install` and 'node build.js` have already run in earlier steps in windows-build-steps.yml
 
+[CmdletBinding()]
 param(
     [string]$ServerOff,
-    [string]$IsGHA
+    [string]$IsGHA,
+    [string]$Tier
 )
 
-if ($ServerOff -eq 'Y') {
-  $answer = $ServerOff
-} else {
-  echo "`n"
-  $answer = Read-Host "     Is the server off? [Y/n]: "
+# Read app_config.json (repo root)
+$APP_CONFIG_FILE = Join-Path $PSScriptRoot "..\..\app_config.json"
+$APP_CONFIG = Get-Content -Path $APP_CONFIG_FILE -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
+
+# Default for Tier is <tiers.default>
+if (-not $PSBoundParameters.ContainsKey('Tier')) {
+    $Tier = $APP_CONFIG.tiers.default
 }
 
-if ($answer -eq 'Y' -Or $answer -eq '') {
+function Resolve-Tiered($entries, $label) {
+  $m = @($entries | Where-Object { $_.branches -contains $Tier })
+  if ($m.Count -ne 1) { throw "$label must have exactly one entry for tier '$Tier', found $($m.Count)" }
+  $m[0].value
+}
+
+# Resolve tier values -- before asking anything.
+# Errors print as a single line (no stack trace) and exit 1.
+try {
+  # Tier is required (-Tier). No default, no fallback. Checked here so a missing value fails with a clear error
+  # instead of pausing for input as happens in ps1 if designated Mandatory.
+  if (@($APP_CONFIG.tiers.order) -notcontains $Tier) {
+    throw "-Tier is required and must be one of: $(@($APP_CONFIG.tiers.order) -join ', ') (got '$Tier')."
+  }
+
+  $APP_NAME    = [string](Resolve-Tiered $APP_CONFIG.app.name 'app.name')
+  $APP_VERSION = [string](Resolve-Tiered $APP_CONFIG.app.version 'app.version')
+}
+catch {
+  Write-Host "Error: $_"
+  exit 1
+}
+
+# Confirm the server is off
+$answer = $ServerOff
+while ($answer -ne 'Y' -and $answer -ne 'N') {
+  if ($null -ne $answer -and $answer -ne '') {
     echo "`n"
-    echo "Continuing..."
-    echo "`n"
-
-  get-content ..\..\app_config.env | foreach {
-    $name, $value = $_.split('=')
-    if ([string]::IsNullOrWhiteSpace($name) -or $name.Contains('#')) {
-      # skip empty or comment line in ENV file
-      return
-    }
-    Set-Variable -Name $name -Value $value
+    echo """$answer"" is not a valid response. Please type y or 'Enter' to continue or 'n' to quit."
   }
+  echo "`n"
+  $answer = Read-Host "     Is the server off? [Y/n]"
+  if ($answer -eq '') { $answer = 'Y' }
+}
 
-  if ($IsGHA -ne 'Y') {
-    cd ..\..\
-    # echo "checkout main"
-    # git checkout main | Out-Null
-    # echo "pull"
-    # git pull
-    # echo "pnpm install"
-    # pnpm install
-    echo "`n"
-    echo "Running app_setup to ensure version number consistency between buildSpec.json and this build bundle:"
-    cd windows\scripts
-    .\app_setup.bat
+if ($answer -eq 'N') {
+  echo "`n"
+  echo "     Exiting..."
+  echo "`n"
+  echo "     If the server is on, turn it off by exiting the terminal window in which it is running, then re-run this script.";
+  echo "`n"
+  exit 1
+}
+
+echo "`n"
+echo "Continuing..."
+echo "`n"
+
+if ($IsGHA -ne 'Y') {
+  cd ..\..\
+  # echo "checkout main"
+  # git checkout main | Out-Null
+  # echo "pull"
+  # git pull
+  # echo "pnpm install"
+  # pnpm install
+  echo "`n"
+  cd windows\scripts
+}
+
+echo "`n"
+echo "Tier is $Tier"
+echo "Version is $APP_VERSION"
+echo "`n"
+
+if ($IsGHA -ne 'Y') {
+  cd ..\..\
+  If (Test-Path releases\windows\*.zip) {
+    echo "A previous windows .zip release exists. Removing..."
+    Remove-Item releases\windows\*.zip
   }
-
-  echo "`n"
-  echo "Version is $APP_VERSION"
-  echo "`n"
-
-  if ($IsGHA -ne 'Y') {
-    cd ..\..\
-    If (Test-Path releases\windows\*.zip) {
-      echo "A previous windows .zip release exists. Removing..."
-      Remove-Item releases\windows\*.zip
-    }
-    cd windows\scripts
-    if (Test-Path ..\build) {
-      echo "Removing last build environment"
-      rm ..\build -r -force
-    }
-    echo "Assembling build environment"
-    node build.js
+  cd windows\scripts
+  if (Test-Path ..\build) {
+    echo "Removing last build environment"
+    rm ..\build -r -force
   }
-
-  cd ..\build
-  echo "`n"
-  echo "   *****************************************************************************************"
-  echo "   *                                                                                       *"
-  echo "   *                                          =====                                        *"
-  echo "   * Bundling. Wait for the powershell prompt AFTER the compression progress bar finishes. *"
-  echo "   *                                          =====                                        *"
-  echo "   *                                                                                       *"
-  echo "   *****************************************************************************************"
-  echo "`n"
-
-  # Use lower case app name in filename and replace spaces with dashes (-) and remove single apostrophes (')
-  $APP_NAME = $APP_NAME.ToLower().Replace(" ","-").Replace("'","")
-
-  $CPU_ARCH = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) {
-    "arm64"
-  } else {
-      "x64"
+  echo "Assembling build environment"
+  node build.js $Tier
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host "Error: node build.js failed for tier '$Tier' (exit code $LASTEXITCODE)"
+    exit 1
   }
+}
 
-  Compress-Archive * ..\..\releases\windows\$APP_NAME-$APP_VERSION-win-$CPU_ARCH-cli.zip
+cd ..\build
+echo "`n"
+echo "   *****************************************************************************************"
+echo "   *                                                                                       *"
+echo "   *                                          =====                                        *"
+echo "   * Bundling. Wait for the powershell prompt AFTER the compression progress bar finishes. *"
+echo "   *                                          =====                                        *"
+echo "   *                                                                                       *"
+echo "   *****************************************************************************************"
+echo "`n"
+
+# Use lower case app name in filename and replace spaces with dashes (-), matching buildCommon.js
+$FILE_APP_NAME = $APP_NAME.ToLower().Replace(" ","-")
+
+$CPU_ARCH = if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [System.Runtime.InteropServices.Architecture]::Arm64) {
+  "arm64"
+} else {
+  "x64"
+}
+
+Compress-Archive * ..\..\releases\windows\$FILE_APP_NAME-$APP_VERSION-win-$CPU_ARCH-cli.zip
 
 if ($IsGHA -ne 'Y') {
   cd ..\scripts
@@ -93,14 +135,4 @@ if ($IsGHA -ne 'Y') {
   cd ..\install
 }
 
-} elseif ($answer -eq 'N') {
-    echo "`n"
-    echo "     Exiting..."
-    echo "`n"
-    echo "     If the server is on, turn it off by exiting the terminal window in which it is running, then re-run this script.";
-    echo "`n"
-} else {
-    echo "`n"
-    echo """$answer"" is not a valid response. Please type y or 'Enter' to continue or 'n' to quit."
-    .\bundle_zip.ps1
-}
+exit 0

@@ -15,23 +15,39 @@ The URL to download the Electron release package from.
 The target architecture (e.g., x64, arm64) for the Electron package.
 
 .PARAMETER Dev
-Specify -Dev "Y" when generating a development viewer.
+Specify -DevEnvRun "Y" when generating a development viewer.
 - Default is "N"
 #>
 
 # Check if filename and destination are provided as arguments
 param(
-    [Parameter(Mandatory=$true)]
     [string]$downloadUrl,
-
-    [Parameter(Mandatory=$true)]
     [string]$arch,
-
-    [Parameter(Mandatory=$false)]
-    [string]$Dev
+    [string]$DevEnvRun
 )
 
-if ($Dev -eq 'Y') {
+# downloadUrl is required (-downloadUrl). Checked here so a missing value fails with a clear error
+# instead of pausing for input as happens in ps1 if designated Mandatory.
+if (-not $downloadUrl) {
+    Write-Host "Error: downloadUrl is required: -downloadUrl:<url>"
+    exit 1
+}
+
+# arch is required (-arch). Checked here so a missing value fails with a clear error
+# instead of pausing for input as happens in ps1 if designated Mandatory.
+if (-not $arch) {
+    Write-Host "Error: arch is required: -arch:arm64 or -arch:x64"
+    exit 1
+}
+
+# DevEnvRun is required (-devEnvRun). Checked here so a missing value fails with a clear error
+# instead of pausing for input as happens in ps1 if designated Mandatory.
+if (-not $DevEnvRun) {
+    Write-Host "Error: DevEnv is required: -DevEnvRun:Y or -DevEnvRun:N"
+    exit 1
+}
+
+if ($DevEnvRun -eq 'Y') {
   $pkgDir = "viewer"
 } else {
     $pkgDir = "temp"

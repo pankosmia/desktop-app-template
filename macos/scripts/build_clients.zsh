@@ -1,27 +1,44 @@
 #!/usr/bin/env zsh
 
-# Run from: pankosmia/<repo-name>/linux/scripts
+# Run from: pankosmia/<repo-name>/macos/scripts
 
 # Usage:
 #   ./build_clients.zsh [branch] [fallback_tier] [-d] [-f]
 #     The -d argument means to delete past logs without asking
-#     The -f argument means only fresh clones are being built, so pulling is skipped.
-#     The first non-flag argument is the branch name (default: main)
-#     The second non-flag argument is the fallback tier: dev, qa, or main (default: same as branch)
-
-# Examples:
-#   ./build_clients.zsh                        # defaults to "main"
-#   ./build_clients.zsh dev                    # tries dev → qa → main
-#   ./build_clients.zsh my-branch dev         # tries my-branch → dev → qa → main
-#   ./build_clients.zsh my-branch qa -d       # tries my-branch → qa → main, deletes past logs
-#   ./build_clients.zsh -f -d dev              # fresh clone (skips pulling), delete logs, branch=dev → qa → main
+#     The -f argument means all clones are fresh, so pulling is skipped.
+#     The first non-flag argument is the branch name (default: tiers.default in app_config.json, i.e. dev)
+#     The second non-flag argument is the tier from tiers.order -- e.g., dev, qa, or main
+#       (default: the branch itself if it is a tier name, otherwise tiers.default)
+#     The tier selects which assets/clients are built, and the checkout fallback chain.
+#
+# Examples where tiers.order is ["dev", "qa", "main"] and tiers.default is dev
+#   ./build_clients.zsh                        # dev  -> tries dev -> qa -> main
+#   ./build_clients.zsh main                   # tries main
+#   ./build_clients.zsh my-branch              # tries my-branch → dev → qa → main
+#   ./build_clients.zsh my-branch qa -d        # tries my-branch → qa → main, deletes past logs
+#   ./build_clients.zsh -f -d dev              # fresh clone (skips pulling), delete logs, dev → qa → main
 
 # Temporary until migration from npm to pnpm is complete on main
 export CI=true
 export npm_config_dangerouslyAllowAllBuilds=true
 export npm_config_dangerously_allow_all_builds=true
 
-source ../../app_config.env
+if ! command -v jq >/dev/null 2>&1; then
+  echo
+  echo "     jq is required to read app_config.json."
+  echo
+  exit 1
+fi
+
+# app_config.json at repo root
+APP_CONFIG="../../app_config.json"
+default_tier=$(jq -r '.tiers.default' "$APP_CONFIG")
+tier_list=$(jq -r '.tiers.order | join(" ")' "$APP_CONFIG")
+TIERS=("${(@s: :)tier_list}")
+
+is_tier() {
+  jq -e --arg t "$1" '.tiers.order | index($t) != null' "$APP_CONFIG" >/dev/null
+}
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -43,26 +60,44 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-# Default branch to main if not provided
+# Default branch is tiers.default if not provided
 if [ -z "$BRANCH" ]; then
-  BRANCH="main"
+  BRANCH="$default_tier"
 fi
 
-# If no fallback tier specified, derive from the branch itself
+# If no fallback tier specified, use the branch if it is a tier, otherwise tiers.default
 if [ -z "$FALLBACK_TIER" ]; then
-  case "${BRANCH:l}" in
-    dev) FALLBACK_TIER="dev" ;;
-    qa)  FALLBACK_TIER="qa" ;;
-    *)   FALLBACK_TIER="main" ;;
-  esac
+  if is_tier "$BRANCH"; then
+    FALLBACK_TIER="$BRANCH"
+  else
+    FALLBACK_TIER="$default_tier"
+  fi
 fi
 
-# Normalize fallback tier: anything other than dev or qa becomes main
-case "${FALLBACK_TIER:l}" in
-  dev) FALLBACK_TIER="dev" ;;
-  qa)  FALLBACK_TIER="qa" ;;
-  *)   FALLBACK_TIER="main" ;;
-esac
+# Fallback tier must be listed in tiers.order
+if ! is_tier "$FALLBACK_TIER"; then
+  echo "" >&2
+  echo "     Tier \"$FALLBACK_TIER\" is not listed in tiers.order. One of: $tier_list" >&2
+  echo "" >&2
+  exit 1
+fi
+
+# Checkout chain: the branch, then the fallback tier and every tier after it in tiers.order
+CHAIN=("$BRANCH")
+inChain=0
+for t in "${TIERS[@]}"; do
+  if [ "$t" = "$FALLBACK_TIER" ]; then
+    inChain=1
+  fi
+  if [ "$inChain" -eq 1 ] && [ "$t" != "$BRANCH" ]; then
+    CHAIN+=("$t")
+  fi
+done
+
+# Read the repos used by the fallback tier before changing directory,
+# since APP_CONFIG is relative to the scripts directory
+assets=("${(@f)$(jq -r --arg t "$FALLBACK_TIER" '.assets[] | select(.branches | index($t)) | .repo' "$APP_CONFIG")}")
+clients=("${(@f)$(jq -r --arg t "$FALLBACK_TIER" '.clients[] | select(.branches | index($t)) | .repo' "$APP_CONFIG")}")
 
 # --- delete past logs (prompt unless -d) ---
 if ls "${SCRIPT_DIR}"/build_clients_*.log >/dev/null 2>&1; then
@@ -100,7 +135,7 @@ log() {
 
 run() {
   "$@" 2>&1 | tee -a "$LOG"
-  return "${pipestatus[1]:-$?}"   # zsh: exit status of first command in pipeline
+  return "${pipestatus[1]}"   # zsh: exit status of the first command in the pipeline
 }
 
 markfail() {
@@ -117,7 +152,6 @@ markskip() {
 checkout_branch() {
   local cb_type="$1"
   local cb_repo="$2"
-  local branch_lower="${BRANCH:l}"
 
   # Fetch remote refs so all remote branches are known
   log "> git fetch origin..."
@@ -125,60 +159,22 @@ checkout_branch() {
     log "> WARNING: git fetch failed; proceeding with possibly stale remote refs"
   fi
 
-  log "> git checkout $BRANCH..."
-  if run git checkout "$BRANCH"; then
-    CHECKED_OUT_BRANCH="$BRANCH"
-    return
-  fi
-
-  # Branch didn't exist -- apply fallback based on FALLBACK_TIER
-  if [ "$FALLBACK_TIER" = "dev" ]; then
-    if [ "$branch_lower" != "dev" ]; then
-      log "> Branch \"$BRANCH\" not found, trying \"dev\"..."
-      if run git checkout dev; then
-        CHECKED_OUT_BRANCH="dev"
-        return
-      fi
+  local prev=""
+  local candidate
+  for candidate in "${CHAIN[@]}"; do
+    if [ -n "$prev" ]; then
+      log "> Branch \"$prev\" not found, trying \"$candidate\"..."
     fi
-
-    log "> Branch \"dev\" not found, trying \"qa\"..."
-    if run git checkout qa; then
-      CHECKED_OUT_BRANCH="qa"
+    log "> git checkout $candidate..."
+    if run git checkout "$candidate"; then
+      CHECKED_OUT_BRANCH="$candidate"
       return
     fi
+    prev="$candidate"
+  done
 
-    log "> Branch \"qa\" not found, falling back to \"main\"..."
-    if ! run git checkout main; then
-      markfail "$cb_type" "$cb_repo" "git checkout main (fallback from $BRANCH)"
-    fi
-    CHECKED_OUT_BRANCH="main"
-    return
-  fi
-
-  if [ "$FALLBACK_TIER" = "qa" ]; then
-    if [ "$branch_lower" != "qa" ]; then
-      log "> Branch \"$BRANCH\" not found, trying \"qa\"..."
-      if run git checkout qa; then
-        CHECKED_OUT_BRANCH="qa"
-        return
-      fi
-    fi
-
-    log "> Branch \"qa\" not found, falling back to \"main\"..."
-    if ! run git checkout main; then
-      markfail "$cb_type" "$cb_repo" "git checkout main (fallback from $BRANCH)"
-    fi
-    CHECKED_OUT_BRANCH="main"
-    return
-  fi
-
-  
-  # FALLBACK_TIER is main -- fall back directly to main
-  log "> Branch \"$BRANCH\" not found, falling back to \"main\"..."
-  if ! run git checkout main; then
-    markfail "$cb_type" "$cb_repo" "git checkout main (fallback from $BRANCH)"
-  fi
-  CHECKED_OUT_BRANCH="main"
+  CHECKED_OUT_BRANCH="${CHAIN[-1]}"
+  markfail "$cb_type" "$cb_repo" "git checkout ${CHAIN[*]}"
 }
 
 # --- pull logic ---
@@ -216,112 +212,101 @@ safe_pull() {
   if ! run git pull origin "$CHECKED_OUT_BRANCH"; then markfail "$sp_type" "$sp_repo" "git pull origin $CHECKED_OUT_BRANCH"; fi
 }
 
-# --- original counting approach ---
-count=$(wc -l < "../../app_config.env")
-
 cd ../../
 RepoDirName=$(basename "$(pwd)")
 cd ../
 
-for ((i=1;i<=count;i++)); do
-  eval asset='$'ASSET$i
-  if [ ! -z "$asset" ]; then
-    asset=$(sed 's/ //g' <<< "$asset")
-    log "############################### BEGIN Asset $i: $asset ###############################"
-    if [ ! -d "$asset" ]; then
-      log
-      log "****************************************************"
-      log "$asset does not exist; Run ./clone.zsh"
-      log "****************************************************"
-      log
-      markfail "ASSET" "$asset" "directory not found; Run ./clone.zsh"
-    else
-      cd "$asset"
-      checkout_branch "ASSET" "$asset"
-      safe_pull "ASSET" "$asset"
+for asset in "${assets[@]}"; do
+  [[ -z "$asset" ]] && continue
+  log "############################### BEGIN Asset: $asset ###############################"
+  if [ ! -d "$asset" ]; then
+    log
+    log "****************************************************"
+    log "$asset does not exist; Run ./clone.zsh"
+    log "****************************************************"
+    log
+    markfail "ASSET" "$asset" "directory not found; Run ./clone.zsh"
+  else
+    cd "$asset"
+    checkout_branch "ASSET" "$asset"
+    safe_pull "ASSET" "$asset"
 
-      log "################################ END Asset $i: $asset ################################"
-      log
-      cd ..
-    fi
+    log "################################ END Asset: $asset ################################"
+    log
+    cd ..
   fi
 done
 
-for ((i=1;i<=count;i++)); do
-  eval client='$'CLIENT$i
-  if [ ! -z "$client" ]; then
-    client=$(sed 's/ //g' <<< "$client")
-    log "############################### BEGIN Client $i: $client ###############################"
-    if [ ! -d "$client" ]; then
-      log
-      log "***************************************************************************************"
-      log "$client does not exist; Run ./clone.zsh then rerun this script"
-      log "***************************************************************************************"
-      log
-      markfail "CLIENT" "$client" "directory not found; Run ./clone.zsh"
+for client in "${clients[@]}"; do
+  [[ -z "$client" ]] && continue
+  log "############################### BEGIN Client: $client ###############################"
+  if [ ! -d "$client" ]; then
+    log
+    log "***************************************************************************************"
+    log "$client does not exist; Run ./clone.zsh then rerun this script"
+    log "***************************************************************************************"
+    log
+    markfail "CLIENT" "$client" "directory not found; Run ./clone.zsh"
+  else
+    cd "$client"
+    checkout_branch "CLIENT" "$client"
+    safe_pull "CLIENT" "$client"
+
+    if [ "${CHECKED_OUT_BRANCH:l}" = "main" ]; then
+      # Temporary until migration from npm to pnpm is complete on main
+      log "> pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile ..."
+      if ! run pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile; then markfail "CLIENT" "$client" "run pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile"; fi
+
+      case "$client" in
+        core-client-dashboard)
+          log "-- temporarily adding @mui/icons-material..."
+          if ! run pnpm add @mui/icons-material@6.5.0; then markfail "CLIENT" "$client" "pnpm add @mui/icons-material@6.5.0"; fi
+          ;;
+        core-client-i18n-editor|core-client-settings)
+          log "-- temporarily adding notistack..."
+          if ! run pnpm add notistack; then markfail "CLIENT" "$client" "pnpm add notistack"; fi
+          ;;
+        core-contenthandler_t_core)
+          log "-- temporarily adding notistack and prop-types..."
+          if ! run pnpm add notistack; then markfail "CLIENT" "$client" "pnpm add notistack"; fi
+          if ! run pnpm add prop-types; then markfail "CLIENT" "$client" "pnpm add prop-types"; fi
+          ;;
+        core-client_pdf_publisher)
+          log "-- temporarily adding @mui/icons-material, notistack and proskomma-json-tools..."
+          if ! run pnpm add @mui/icons-material@6.1.5; then markfail "CLIENT" "$client" "pnpm add @mui/icons-material@6.1.5"; fi
+          if ! run pnpm add notistack; then markfail "CLIENT" "$client" "pnpm add notistack"; fi
+          if ! run pnpm add proskomma-json-tools; then markfail "CLIENT" "$client" "pnpm add proskomma-json-tools"; fi
+          ;;
+        core-contenthandler-print_specs)
+          log "-- temporarily adding notistack..."
+          if ! run pnpm add notistack; then markfail "CLIENT" "$client" "pnpm add notistack"; fi
+          ;;
+        core-contenthandler_translation_plan)
+          log "-- temporarily adding @mui/icons-material and prop-types..."
+          if ! run pnpm add @mui/icons-material@6.1.5; then markfail "CLIENT" "$client" "pnpm add @mui/icons-material@6.1.5"; fi
+          if ! run pnpm add prop-types; then markfail "CLIENT" "$client" "pnpm add prop-types"; fi
+          ;;
+      esac
     else
-      cd "$client"
-      checkout_branch "CLIENT" "$client"
-      safe_pull "CLIENT" "$client"
-
-      if [ "${CHECKED_OUT_BRANCH:l}" = "main" ]; then
-        # Temporary until migration from npm to pnpm is complete on main
-        log "> pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile ..."
-        if ! run pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile; then markfail "CLIENT" "$client" "run pnpm --config.dangerouslyAllowAllBuilds=true install --no-frozen-lockfile"; fi
-
-        case "$client" in
-          core-client-dashboard)
-            log "-- temporarily adding @mui/icons-material..."
-            if ! run pnpm add @mui/icons-material@6.5.0; then markfail "CLIENT" "$client" "pnpm add @mui/icons-material@6.5.0"; fi
-            ;;
-          core-client-i18n-editor|core-client-settings)
-            log "-- temporarily adding notistack..."
-            if ! run pnpm add notistack; then markfail "CLIENT" "$client" "pnpm add notistack"; fi
-            ;;
-          core-contenthandler_t_core)
-            log "-- temporarily adding notistack and prop-types..."
-            if ! run pnpm add notistack; then markfail "CLIENT" "$client" "pnpm add notistack"; fi
-            if ! run pnpm add prop-types; then markfail "CLIENT" "$client" "pnpm add prop-types"; fi
-            ;;
-          core-client_pdf_publisher)
-            log "-- temporarily adding @mui/icons-material, notistack and proskomma-json-tools..."
-            if ! run pnpm add @mui/icons-material@6.1.5; then markfail "CLIENT" "$client" "pnpm add @mui/icons-material@6.1.5"; fi
-            if ! run pnpm add notistack; then markfail "CLIENT" "$client" "pnpm add notistack"; fi
-            if ! run pnpm add proskomma-json-tools; then markfail "CLIENT" "$client" "pnpm add proskomma-json-tools"; fi
-            ;;
-          core-contenthandler-print_specs)
-            log "-- temporarily adding notistack..."
-            if ! run pnpm add notistack; then markfail "CLIENT" "$client" "pnpm add notistack"; fi
-            ;;
-          core-contenthandler_translation_plan)
-            log "-- temporarily adding @mui/icons-material and prop-types..."
-            if ! run pnpm add @mui/icons-material@6.1.5; then markfail "CLIENT" "$client" "pnpm add @mui/icons-material@6.1.5"; fi
-            if ! run pnpm add prop-types; then markfail "CLIENT" "$client" "pnpm add prop-types"; fi
-            ;;
-        esac
-      else
-        log "> pnpm install..."
-        if ! run pnpm install; then markfail "CLIENT" "$client" "run pnpm install"; fi
-      fi
-
-      
-
-      if [ "${CHECKED_OUT_BRANCH:l}" = "main" ]; then
-        log "run pnpm --config.dangerouslyAllowAllBuilds=true run build ..."
-        if ! run pnpm --config.dangerouslyAllowAllBuilds=true run build; then markfail "CLIENT" "$client" "run pnpm --config.dangerouslyAllowAllBuilds=true run build"; fi
-      else
-        log "run pnpm run build ..."
-        if ! run pnpm run build; then markfail "CLIENT" "$client" "run pnpm run build"; fi
-      fi
-
-      log "################################ END Client $i: $client ################################"
-      log
-      cd ..
+      log "> pnpm install..."
+      if ! run pnpm install; then markfail "CLIENT" "$client" "run pnpm install"; fi
     fi
+
+    if [ "${CHECKED_OUT_BRANCH:l}" = "main" ]; then
+      log "run pnpm --config.dangerouslyAllowAllBuilds=true run build ..."
+      if ! run pnpm --config.dangerouslyAllowAllBuilds=true run build; then markfail "CLIENT" "$client" "run pnpm --config.dangerouslyAllowAllBuilds=true run build"; fi
+    else
+      log "run pnpm run build ..."
+      if ! run pnpm run build; then markfail "CLIENT" "$client" "run pnpm run build"; fi
+    fi
+
+    log "################################ END Client: $client ################################"
+    log
+    cd ..
   fi
 done
 
-cd "$RepoDirName/linux/scripts"
+cd "$RepoDirName/macos/scripts"
 
 # --- concise summary ---
 echo

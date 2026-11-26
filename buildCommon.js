@@ -1,7 +1,188 @@
 const path = require('path');
 const fs = require('fs-extra');
 const copyDir = require('copy-dir');
-require('@dotenvx/dotenvx').config({ path: ['../../app_config.env'], quiet: true });
+
+// --- constants ----------------------------------------------------------
+// All relative paths resolve from <os>/scripts, where build.js is run.
+// Source paths that may vary by product or tier live in app_config.json.
+// What remains here is repo/clone layout and build-tree destinations.
+
+const APP_CONFIG = path.resolve('../../app_config.json');
+const SIBLING_REPOS_DIR = path.resolve('../../../');  // where asset and client repos are cloned
+
+const RESERVED_APP_KEYS = ['datetime'];
+const REQUIRED_APP_KEYS = ['name', 'version', 'homepage'];
+const REQUIRED_RESOURCE_KEYS = ['setup_lib', 'product', 'i18n_patch', 'i18n_overrides', 'product_resources', 'rocket_config'];
+// Asset names the build and the runtime app depend on.
+const REQUIRED_ASSET_NAMES = ['app_resources', 'templates'];
+
+// --- app_config.json loading and tier resolution ------------------------
+
+// Pick the tier: CLI arg > APP_TIER env var > tiers.default.
+function selectTier(config) {
+  const order = config.tiers && config.tiers.order;
+  if (!Array.isArray(order) || order.length === 0) {
+    throw new Error(`app_config.json: tiers.order must be a non-empty array`);
+  }
+  const requested = (process.argv[2] || process.env.APP_TIER || config.tiers.default || '').toLowerCase();
+  if (!order.includes(requested)) {
+    throw new Error(`Unknown tier '${requested}'. Expected one of: ${order.join(', ')}`);
+  }
+  return requested;
+}
+
+// Every branches array must be non-empty and use only known tiers.
+function checkBranches(branches, label, order) {
+  if (!Array.isArray(branches) || branches.length === 0) {
+    throw new Error(`app_config.json: ${label} has missing or empty "branches"`);
+  }
+  for (const b of branches) {
+    if (!order.includes(b)) {
+      throw new Error(`app_config.json: ${label} has unknown branch '${b}'`);
+    }
+  }
+}
+
+// Resolve a [{ value, branches }] list to the single value for this tier.
+// Returns undefined if no entry applies; throws if more than one does.
+function resolveTiered(entries, tier, label, order) {
+  if (!Array.isArray(entries)) {
+    throw new Error(`app_config.json: ${label} must be an array of { value, branches } entries`);
+  }
+  entries.forEach((e, i) => checkBranches(e.branches, `${label}[${i}]`, order));
+  const matches = entries.filter(e => e.branches.includes(tier));
+  if (matches.length > 1) {
+    throw new Error(`app_config.json: ${label} has ${matches.length} entries for tier '${tier}'`);
+  }
+  return matches.length ? matches[0].value : undefined;
+}
+
+// Resolve every key of an object of tiered lists, omitting keys with no value for this tier.
+function resolveTieredObject(obj, tier, label, order) {
+  const out = {};
+  for (const [key, entries] of Object.entries(obj || {})) {
+    const value = resolveTiered(entries, tier, `${label}.${key}`, order);
+    if (value !== undefined) out[key] = value;
+  }
+  return out;
+}
+
+// Filter repo entries (assets/clients) to those included in this tier.
+function filterByTier(list, tier, label, order) {
+  return (list || []).filter((item, i) => {
+    checkBranches(item.branches, `${label}[${i}] (${item.repo})`, order);
+    return item.branches.includes(tier);
+  });
+}
+
+function requireKeys(obj, keys, label, tier) {
+  for (const key of keys) {
+    if (obj[key] === undefined) {
+      throw new Error(`app_config.json: ${label}.${key} has no value for tier '${tier}'`);
+    }
+  }
+}
+
+let cachedConfig = null;
+
+// Load app_config.json and resolve everything for the selected tier.
+function loadResolvedConfig() {
+  if (cachedConfig) return cachedConfig;
+
+  const raw = fs.readJsonSync(APP_CONFIG);
+  const tier = selectTier(raw);
+  const order = raw.tiers.order;
+
+  for (const key of RESERVED_APP_KEYS) {
+    if (key in (raw.app || {})) {
+      throw new Error(`app_config.json: app.${key} is reserved and generated at build time`);
+    }
+  }
+  const app = resolveTieredObject(raw.app, tier, 'app', order);
+  requireKeys(app, REQUIRED_APP_KEYS, 'app', tier);
+
+  const resources = resolveTieredObject(raw.resources, tier, 'resources', order);
+  requireKeys(resources, REQUIRED_RESOURCE_KEYS, 'resources', tier);
+
+  const assets = filterByTier(raw.assets, tier, 'assets', order);
+  for (const name of REQUIRED_ASSET_NAMES) {
+    if (!assets.some(a => a.name === name)) {
+      throw new Error(`app_config.json: tier '${tier}' must include an asset named '${name}'`);
+    }
+  }
+
+  const rawServer = raw.server || {};
+  const server = {
+    crate: rawServer.crate,
+    crate_version: resolveTiered(rawServer.crate_version || [], tier, 'server.crate_version', order),
+    bin: resolveTiered(rawServer.bin || [], tier, 'server.bin', order),
+  };
+  requireKeys(server, ['bin'], 'server', tier);
+
+  cachedConfig = {
+    tier,
+    app,
+    assets,
+    clients: filterByTier(raw.clients, tier, 'clients', order).map(c => c.repo),
+    resources,
+    server,
+  };
+  return cachedConfig;
+}
+
+// --- path helpers -------------------------------------------------------
+
+// Absolute source dir of an asset entry: <siblings>/<repo><path>
+function assetEntrySrc(asset) {
+  return path.resolve(SIBLING_REPOS_DIR, `./${asset.repo}${asset.path}`);
+}
+
+// Absolute source dir of the asset with the given name, for this tier.
+function makeAssetSrc(config) {
+  return (name) => {
+    const asset = config.assets.find(a => a.name === name);
+    if (!asset) {
+      throw new Error(`No asset named '${name}' is included in tier '${config.tier}'`);
+    }
+    return assetEntrySrc(asset);
+  };
+}
+
+// Absolute source dir of a client repo.
+function clientSrc(repo) {
+  return path.join(SIBLING_REPOS_DIR, repo);
+}
+
+// --- generated artifacts ------------------------------------------------
+
+// Generate app_setup.json from the tier's client list, written to the setup lib dir
+// so it is copied to lib/setup with the other lib directories.
+function writeAppSetupJson(config = loadResolvedConfig()) {
+  const setupDir = path.resolve(config.resources.setup_lib);
+  fs.mkdirpSync(setupDir);
+  const appSetup = {
+    clients: config.clients.map(c => ({ path: `%%PANKOSMIADIR%%/${c}` })),
+  };
+  const appSetupPath = path.join(setupDir, 'app_setup.json');
+  fs.writeFileSync(appSetupPath, JSON.stringify(appSetup, null, 2) + '\n', 'utf8');
+  return appSetupPath;
+}
+
+// Ensure the i18n patch file exists with branding/software/name/en = app.name.
+// If it does not exist, create the minimal file. If it does exist, only set
+// branding.software.name.en, preserving any other keys already present.
+function ensureI18nPatch(config = loadResolvedConfig()) {
+  const i18nPatchPath = path.resolve(config.resources.i18n_patch);
+  let patch = fs.existsSync(i18nPatchPath) ? fs.readJsonSync(i18nPatchPath) : {};
+  if (!patch.branding || typeof patch.branding !== 'object') patch.branding = {};
+  if (!patch.branding.software || typeof patch.branding.software !== 'object') patch.branding.software = {};
+  if (!patch.branding.software.name || typeof patch.branding.software.name !== 'object') patch.branding.software.name = {};
+  patch.branding.software.name.en = config.app.name;
+
+  fs.mkdirpSync(path.dirname(i18nPatchPath));
+  fs.writeFileSync(i18nPatchPath, JSON.stringify(patch, null, 2) + '\n', 'utf8');
+  return i18nPatchPath;
+}
 
 function formatProductDatetime() {
   const now = new Date();
@@ -19,24 +200,43 @@ function formatProductDatetime() {
   const offsetMins = pad(Math.abs(offsetMinutes) % 60);
   return `${day} ${month} ${year} ${hours}:${minutes}:${seconds} UTC${sign}${offsetHours}:${offsetMins}`;
 }
-function writeProductJson() {
-  const productPath = path.resolve('../../globalBuildResources/product.json');
-  const product = {
-    name: (process.env.APP_NAME || '').replace(/^'|'$/g, ''),
-    short_name: process.env.APP_SHORT_NAME || '',
-    version: process.env.APP_VERSION || '',
-    datetime: formatProductDatetime(),
-    homepage: process.env.HOMEPAGE || '',
-    start_offline: process.env.START_OFFLINE === 'true' ? true : false,
-  };
+
+// Every resolved app key is written verbatim, in app_config.json order,
+// with the generated datetime inserted right after version.
+function writeProductJson(config = loadResolvedConfig()) {
+  const productPath = path.resolve(config.resources.product);
+  const product = {};
+  for (const [key, value] of Object.entries(config.app)) {
+    product[key] = value;
+    if (key === 'version') product.datetime = formatProductDatetime();
+  }
+  fs.mkdirpSync(path.dirname(productPath));
   fs.writeFileSync(productPath, JSON.stringify(product, null, 2) + '\n', 'utf8');
   return productPath;
 }
 
-// Per-OS configuration (cfg) from thin scripts, where "ctx" is a context object and "=> void" returns nothing:
-//   All properties are required, with null as an option where potentially not applicable.
+// Apply the i18n patch file (3 levels deep) onto the built i18n.json template.
+function patchI18n(builtI18nPath, i18nPatchPath) {
+  const i18nJson = fs.readJsonSync(builtI18nPath);
+  const patchJson = fs.readJsonSync(i18nPatchPath);
+  for (const [level1, level1Values] of Object.entries(patchJson)) {
+    for (const [level2, level2Values] of Object.entries(level1Values)) {
+      for (const [level3, payload] of Object.entries(level2Values)) {
+        if (!i18nJson[level1] || !i18nJson[level1][level2] || !i18nJson[level1][level2][level3]) {
+          throw new Error(`Trying to patch i18n for '${level1}/${level2}/${level3}' which does not exist in i18n template`);
+        }
+        i18nJson[level1][level2][level3] = payload;
+      }
+    }
+  }
+  fs.writeJsonSync(builtI18nPath, i18nJson);
+}
+
+// --- build --------------------------------------------------------------
+
+// Per-OS configuration (cfg) from thin build.js scripts, where "ctx" is a context object
+// and "=> void" returns nothing. All properties are required, with null where not applicable.
 // cfg = {
-//   separator,              // "/"|"\\"
 //   cliExt,                 // "zsh"|"bat"|"sh"|null
 //   findFreePort,           // "find_free_port.sh"|"find_free_port.bat"
 //   binSrcSuffix,           // ""|".exe"
@@ -46,120 +246,114 @@ function writeProductJson() {
 //   copyIcon,               // (ctx) => void | null
 //   postProcess,            // (ctx) => void | null
 // }
+// copyIcon ctx    = { BUILD_DIR, config }
+// postProcess ctx = { BUILD_DIR, config, assetSrc }
+//   config   -- app_config.json resolved for the selected tier
+//   assetSrc -- (name) => absolute source dir of the asset with that name
 function build(cfg) {
   // Locations
   const BUILD_DIR = path.resolve('../build');
-  if (BUILD_DIR.split(cfg.separator).length < 5) {
+  if (BUILD_DIR.split(path.sep).length < 5) {
     throw new Error(`Deleting build dir, but the path '${BUILD_DIR}' seems dangerously short. Aborting!`);
   }
-  const SPEC_PATH = path.resolve('../../buildSpec.json');
   const OS_BUILD_RESOURCES = path.resolve('../buildResources');
-  const REPO_ROOT = path.resolve("../../");
+  const LIB_DIR = path.join(BUILD_DIR, 'lib');
+  const CLIENTS_DIR = path.join(LIB_DIR, 'clients');
+  const PRODUCT_DIR = path.join(LIB_DIR, 'app_resources', 'product');
 
-  // Delete build dir if it exists
-  if (fs.existsSync(BUILD_DIR)) { fs.rmSync(BUILD_DIR, {recursive: true, force: true}); }
-  // Make build directory
+  // Resolve app_config.json for the selected tier.
+  const config = loadResolvedConfig();
+  const { app, assets, clients, resources, server } = config;
+  console.log(`Building tier '${config.tier}' (app version ${app.version}, ${clients.length} clients, ${assets.length} assets)`);
+
+  // Generate artifacts derived from app_config.json BEFORE the build copies anything.
+  writeAppSetupJson(config);
+  const i18nPatchPath = ensureI18nPatch(config);
+
+  // Delete build dir if it exists, then recreate it
+  if (fs.existsSync(BUILD_DIR)) { fs.rmSync(BUILD_DIR, { recursive: true, force: true }); }
   fs.mkdirSync(BUILD_DIR);
 
-  // Load spec
-  const spec = fs.readJsonSync(path.resolve(SPEC_PATH));
-  const APP_NAME = spec['app']['name'];
-  const FILE_APP_NAME = spec['app']['name'].toLowerCase().replace(/ /g, "-");
-  const APP_VERSION = process.env.APP_VERSION;
+  const APP_NAME = app.name;
+  const FILE_APP_NAME = app.name.toLowerCase().replace(/ /g, '-');
+  const APP_VERSION = app.version;
   const CLI_EXT = cfg.cliExt;
 
   // Copy rocket config
-  fs.copySync(path.join(REPO_ROOT, "Rocket.toml"), path.join(BUILD_DIR, "Rocket.toml"));
+  fs.copySync(path.resolve(resources.rocket_config), path.join(BUILD_DIR, 'Rocket.toml'));
 
-  // Write Scripts -- CLI launchers, and a MacOS post install script. 
+  // Write Scripts -- CLI launchers, and a MacOS post install script.
   cfg.writeScripts({ OS_BUILD_RESOURCES, BUILD_DIR, FILE_APP_NAME, CLI_EXT, APP_NAME });
 
   // Copy port checker for CLI
-  const FIND_FREE_PORT = cfg.findFreePort;
-  fs.copySync(path.join(OS_BUILD_RESOURCES, FIND_FREE_PORT), path.join(BUILD_DIR, FIND_FREE_PORT));
+  fs.copySync(path.join(OS_BUILD_RESOURCES, cfg.findFreePort), path.join(BUILD_DIR, cfg.findFreePort));
 
   // Copy and customize README
   const readMe = cfg.readmeReplace(
-    fs.readFileSync(path.join(OS_BUILD_RESOURCES, "README.txt")).toString(),
+    fs.readFileSync(path.join(OS_BUILD_RESOURCES, 'README.txt')).toString(),
     { APP_NAME, APP_VERSION, FILE_APP_NAME, CLI_EXT }
   );
-  fs.writeFileSync(path.join(BUILD_DIR, "README.txt"), readMe);
+  fs.writeFileSync(path.join(BUILD_DIR, 'README.txt'), readMe);
 
   // Copy icon
-  if (cfg.copyIcon) { cfg.copyIcon({ BUILD_DIR }); }
+  if (cfg.copyIcon) { cfg.copyIcon({ BUILD_DIR, config }); }
 
-  // Make bin directory
-  fs.mkdirSync(path.join(BUILD_DIR, "bin"));
-  // Copy bin
-  const BIN_SRC = path.resolve(spec['bin']['src'] + cfg.binSrcSuffix);   // [BIN_SRC_SUFFIX]
-  fs.copySync(BIN_SRC, path.join(BUILD_DIR, "bin", cfg.binDest));        // [BIN_DEST]
+  // Copy server binary
+  fs.mkdirSync(path.join(BUILD_DIR, 'bin'));
+  fs.copySync(path.resolve(server.bin + cfg.binSrcSuffix), path.join(BUILD_DIR, 'bin', cfg.binDest));
 
-  // Make lib directory
-  const libDirPath = path.join(BUILD_DIR, "lib");
-  fs.mkdirSync(libDirPath);
-  // Copy lib directories
-  for (const libSpec of spec['lib'].map(s => ({ src: path.resolve(s.src), dest: path.join(libDirPath, s.targetName) }))) {
-    copyDir.sync(libSpec.src, path.join(libSpec.dest), {});
+  // Copy asset directories, then the setup directory, into lib/
+  fs.mkdirSync(LIB_DIR);
+  for (const asset of assets) {
+    copyDir.sync(assetEntrySrc(asset), path.join(LIB_DIR, asset.name), {});
   }
+  copyDir.sync(path.resolve(resources.setup_lib), path.join(LIB_DIR, 'setup'), {});
 
   // Patch i18n
-  const builtI18nPath = path.join(BUILD_DIR, "lib", "templates", "i18n.json");
-  const i18nJson = fs.readJsonSync(builtI18nPath);
-  const i18nPatchPath = path.resolve("../../globalBuildResources/i18nPatch.json");
-  const patchJson = fs.readJsonSync(i18nPatchPath);
-  for ([level1, level1Values] of Object.entries(patchJson)) {
-    for ([level2, level2Values] of Object.entries(level1Values)) {
-      for ([level3, payload] of Object.entries(level2Values)) {
-        if (!i18nJson[level1] || !i18nJson[level1][level2] || !i18nJson[level1][level2][level3]) {
-          throw new Error(`Trying to patch i18n for '${level1}/${level2}/${level3}' which does not exist in i18n template`);
-        }
-        i18nJson[level1][level2][level3] = payload;
-      }
-    }
-  }
-  fs.writeJsonSync(builtI18nPath, i18nJson);
+  patchI18n(path.join(LIB_DIR, 'templates', 'i18n.json'), i18nPatchPath);
 
-  // Make lib/clients
-  fs.mkdirSync(path.join(BUILD_DIR, "lib", "clients"));
-  // Copy clients
-  for (const libClientSrc of spec['libClients'].map(s => path.resolve(s))) {
-    const clientSrcLeaf = libClientSrc.split(cfg.separator).reverse()[0];
-    const clientDestParent = path.join(BUILD_DIR, "lib", "clients", clientSrcLeaf);
-    fs.mkdirSync(clientDestParent);
-    const uuidSrc = path.join(libClientSrc, "storage_id.json");
-    const uuidDest = path.join(clientDestParent, "storage_id.json");
-    if (fs.existsSync(uuidSrc)) { fs.copySync(uuidSrc, uuidDest); }
-    fs.copySync(path.join(libClientSrc, "package.json"), path.join(clientDestParent, "package.json"));
-    fs.copySync(path.join(libClientSrc, "pankosmia_metadata.json"), path.join(clientDestParent, "pankosmia_metadata.json"));
-    copyDir.sync(path.join(libClientSrc, "build"), path.join(clientDestParent, "build"), {});
-    if (spec.favIcon) {
-      fs.copySync(path.resolve(spec.favIcon), path.join(clientDestParent, "build", "favicon.ico"));
+  // Copy clients into lib/clients/<repo>
+  fs.mkdirSync(CLIENTS_DIR);
+  for (const repo of clients) {
+    const src = clientSrc(repo);
+    const dest = path.join(CLIENTS_DIR, repo);
+    fs.mkdirSync(dest);
+    const storageId = path.join(src, 'storage_id.json');
+    if (fs.existsSync(storageId)) { fs.copySync(storageId, path.join(dest, 'storage_id.json')); }
+    fs.copySync(path.join(src, 'package.json'), path.join(dest, 'package.json'));
+    fs.copySync(path.join(src, 'pankosmia_metadata.json'), path.join(dest, 'pankosmia_metadata.json'));
+    copyDir.sync(path.join(src, 'build'), path.join(dest, 'build'), {});
+    if (resources.fav_icon) {
+      fs.copySync(path.resolve(resources.fav_icon), path.join(dest, 'build', 'favicon.ico'));
     }
   }
 
   // Theme
-  if (spec.theme) {
-    fs.copySync(path.resolve(spec.theme), path.join(BUILD_DIR, "lib", "app_resources", "themes", "default.json"));
+  if (resources.theme) {
+    fs.copySync(path.resolve(resources.theme), path.join(LIB_DIR, 'app_resources', 'themes', 'default.json'));
   }
   // Product
-  const generatedProductPath = writeProductJson();
-  if (spec.product) {
-    fs.copySync(generatedProductPath, path.join(BUILD_DIR, "lib", "app_resources", "product", "product.json"));
-  }
+  fs.copySync(writeProductJson(config), path.join(PRODUCT_DIR, 'product.json'));
   // i18n overrides
-  const I18N_OVERRIDES = "../../globalBuildResources/i18n-overrides.json";
-  if (I18N_OVERRIDES) {
-    fs.copySync(path.resolve(I18N_OVERRIDES), path.join(BUILD_DIR, "lib", "app_resources", "product", "i18n-overrides.json"));
-  }
+  fs.copySync(path.resolve(resources.i18n_overrides), path.join(PRODUCT_DIR, 'i18n-overrides.json'));
   // Client config
-  if (spec.client_config) {
-    fs.copySync(path.resolve(spec.client_config), path.join(BUILD_DIR, "lib", "app_resources", "product", "client_config.json"));
+  if (resources.client_config) {
+    fs.copySync(path.resolve(resources.client_config), path.join(PRODUCT_DIR, 'client_config.json'));
   }
   // Product resources
-  fs.copySync(path.resolve("../../globalBuildResources/product_resources"), path.join(BUILD_DIR, "lib", "app_resources", "product", "product_resources"), { recursive: true });
+  fs.copySync(path.resolve(resources.product_resources), path.join(PRODUCT_DIR, 'product_resources'), { recursive: true });
 
   // Post process
-  if (cfg.postProcess) { cfg.postProcess({ BUILD_DIR, spec }); }
+  if (cfg.postProcess) {
+    cfg.postProcess({ BUILD_DIR, config, assetSrc: makeAssetSrc(config) });
+  }
 }
 
-module.exports = { build, writeProductJson, formatProductDatetime };
+module.exports = {
+  build,
+  loadResolvedConfig,
+  writeAppSetupJson,
+  ensureI18nPatch,
+  writeProductJson,
+  formatProductDatetime,
+};

@@ -1,18 +1,1 @@
-#!/usr/bin/env bash
-
-# Run from pankosmia/[this-repo's-name]/windows/scripts directory in a terminal with:  ./viewer.bsh
-# ./build_viewer.bsh must be run once before ./viewer.bsh will work
-
-# Currently turning off sandbox to avoid a permissions issue with Ubuntu 24.04
-# One day we should do this, if necessary, within our code, just for the one viewer
-
-export ROCKET_PORT=${1:-19119}
-
-echo "Starting the Electronite viewer."
-echo "Accessing the backend server at port ${ROCKET_PORT}."
-
-# Using development environment server.
-export START_SERVER="false"
-
-# Starting electronite viewer, accessing the development build environment
-../viewer/project/payload/app/electron/electron --no-sandbox ../viewer/project/payload/app/electron
+viewer.sh

@@ -137,40 +137,51 @@ jobs:
           # cache: pnpm
 
       # Add suffix to version
-      - name: Run gha_ver_suffix.zsh
+      - name: Run gha_ver_suffix.sh
         working-directory: ./macos/install
         run: |
-          chmod +x ./gha_ver_suffix.zsh
-          ./gha_ver_suffix.zsh "${{ inputs.artifact_suffix != '' && format('{0}-{1}', inputs.artifact_suffix, inputs.timestamp) || inputs.timestamp }}"
+          chmod +x ./gha_ver_suffix.sh
+          ./gha_ver_suffix.sh "${{ inputs.artifact_suffix != '' && format('{0}-{1}', inputs.artifact_suffix, inputs.timestamp) || inputs.timestamp }}" "${{ inputs.branches }}"
 
       # Install the repository
       - name: Install this repo
         run: pnpm install
 
-      # Set APP_NAME from app_config.env, and use it to define FILE_APP_NAME
-      - name: Extract APP_NAME from app_config.env
+      # Resolve tier from BRANCHES, then APP_NAME for that tier from app_config.json, and use it to define FILE_APP_NAME
+      - name: Extract APP_NAME from app_config.json
         id: get_app_name
         run: |
-          source ./app_config.env
-          fileAppName=${APP_NAME// /-} # Replace spaces with a dash (-) in filename
-          echo "FILE_APP_NAME=$(echo $fileAppName | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV # Use bash 3.2.57 method to get lower case app name
+          # BRANCHES = "[branch] [fallback_tier]" -- tier is the 2nd word if given, else the 1st
+          set -- $BRANCHES
+          candidate="${2:-$1}"
+          case "$candidate" in
+            dev|qa|main) tier="$candidate" ;;
+            *)           tier="$(jq -r '.tiers.default' app_config.json)" ;;
+          esac
+
+          appName=$(jq -er --arg t "$tier" '
+            [.app.name[] | select(.branches | index($t))]
+            | if length == 1 then .[0].value
+              else error("app.name must have exactly one entry for tier \($t), found \(length)")
+              end
+          ' app_config.json)
+          fileAppName=$(printf '%s' "$appName" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+
+          echo "APP_TIER=$tier" >> "$GITHUB_ENV"
+          echo "FILE_APP_NAME=$fileAppName" >> "$GITHUB_ENV"
+          echo "BRANCHES: '${BRANCHES}' -> tier: $tier, FILE_APP_NAME: $fileAppName"
 
       # Grant execute permissions for the shell and bash scripts
       - name: Make scripts executable
         run: |
-          chmod +x ./macos/scripts/app_setup.zsh
           chmod +x ./macos/scripts/clone.zsh
           chmod +x ./macos/scripts/build_clients.zsh
           chmod +x ./macos/scripts/build_server.zsh
           chmod +x ./macos/scripts/bundle_zip.zsh
 
-      - name: Run app_setup.zsh
-        working-directory: ./macos/scripts
-        run: ./app_setup.zsh
-
       - name: Run clone.zsh
         working-directory: ./macos/scripts
-        run: ./clone.zsh
+        run: ./clone.zsh "$BRANCHES"
 
       - name: Build ${{ inputs.branches }} clients except where ${{ inputs.branch_name_exception }} exists
         if: ${{ inputs.branch_name_exception != '' }}
@@ -188,7 +199,7 @@ jobs:
 
       - name: Bundle zip without asking if the server is off and indicate GHA
         working-directory: ./macos/scripts
-        run: ./bundle_zip.zsh -s -g
+        run: ./bundle_zip.zsh -s -g "$BRANCHES"
 
       - name: Get zip cli names
         id: get-zip-name
@@ -213,7 +224,7 @@ jobs:
       # build electronite installs (-f = full install; -p = include portable)
       - name: Run makeAllInstallsElectronite.sh
         working-directory: ./macos/install
-        run: ./makeAllInstallsElectronite.sh -f -p
+        run: ./makeAllInstallsElectronite.sh -f -p -t "$BRANCHES"
 
       - name: Get Electronite Installer names
         id: get-electronite-names

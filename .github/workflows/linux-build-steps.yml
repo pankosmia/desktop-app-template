@@ -91,11 +91,11 @@ jobs:
           # cache: pnpm
 
       # Add suffix to version
-      - name: Run gha_ver_suffix.bsh
+      - name: Run gha_ver_suffix.sh
         working-directory: ./linux/install
         run: |
-          chmod +x ./gha_ver_suffix.bsh
-          ./gha_ver_suffix.bsh "${{ inputs.artifact_suffix != '' && format('{0}-{1}', inputs.artifact_suffix, inputs.timestamp) || inputs.timestamp }}"
+          chmod +x ./gha_ver_suffix.sh
+          ./gha_ver_suffix.sh "${{ inputs.artifact_suffix != '' && format('{0}-{1}', inputs.artifact_suffix, inputs.timestamp) || inputs.timestamp }}" "${{ inputs.branches }}"
 
       # Install the repository
       - name: Install this repo
@@ -104,42 +104,37 @@ jobs:
       # Grant execute permissions for the shell and bash scripts
       - name: Make scripts executable
         run: |
-          chmod +x ./linux/scripts/app_setup.bsh
-          chmod +x ./linux/scripts/clone.bsh
-          chmod +x ./linux/scripts/build_clients.bsh
-          chmod +x ./linux/scripts/build_server.bsh
-          chmod +x ./linux/scripts/bundle_tgz.bsh
-          chmod +x ./linux/scripts/bundle_viewer.bsh
+          chmod +x ./linux/scripts/clone.sh
+          chmod +x ./linux/scripts/build_clients.sh
+          chmod +x ./linux/scripts/build_server.sh
+          chmod +x ./linux/scripts/bundle_tgz.sh
+          chmod +x ./linux/scripts/bundle_app.sh
 
-      - name: Run app_setup.bsh
+      - name: Run clone.sh
         working-directory: ./linux/scripts
-        run: ./app_setup.bsh
-
-      - name: Run clone.bsh
-        working-directory: ./linux/scripts
-        run: ./clone.bsh
+        run: ./clone.sh "$BRANCHES"
 
       - name: Build ${{ inputs.branches }} clients except where ${{ inputs.branch_name_exception }} exists
         if: ${{ inputs.branch_name_exception != '' }}
         working-directory: ./linux/scripts
-        run: ./build_clients.bsh -f "$BRANCH_NAME_EXCEPTION" "$BRANCHES"
+        run: ./build_clients.sh -f "$BRANCH_NAME_EXCEPTION" "$BRANCHES"
 
       - name: Build ${{ inputs.branches }} clients
         if: ${{ inputs.branch_name_exception == '' }}
         working-directory: ./linux/scripts
-        run: ./build_clients.bsh -f "$BRANCHES"
+        run: ./build_clients.sh -f "$BRANCHES"
 
       - name: Build ${{ inputs.branches }} RELEASE server and assemble build environment without asking if the server is off
         working-directory: ./linux/scripts
-        run: ./build_server.bsh -s "$BRANCHES"
+        run: ./build_server.sh -s "$BRANCHES"
 
       - name: Bundle tgz without asking if the server is off and indicate GHA
         working-directory: ./linux/scripts
-        run: ./bundle_tgz.bsh -s -g
+        run: ./bundle_tgz.sh -s -g "$BRANCHES"
 
       - name: Create .deb installer and Portable TGZ (includes Electronite viewer build)
         working-directory: ./linux/scripts
-        run: ./bundle_viewer.bsh -p
+        run: ./bundle_app.sh -s -p "$BRANCHES"
 
       - name: Get tgz for cli name
         id: get-tgz-name
