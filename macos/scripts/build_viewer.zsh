@@ -79,6 +79,8 @@ if [ -z "$EXPECTED" ]; then
   exit 1
 fi
 
+APP_NAME=$(tier_value '.app.name') || { echo "Error: app.name not set for tier \"$tier\""; exit 1; }
+
 ELECTRON_VER="../viewer/project/payload/${APP_NAME}.app/Contents/electron/version"
 
 # A full install will also install, or re-install, Electronite.
