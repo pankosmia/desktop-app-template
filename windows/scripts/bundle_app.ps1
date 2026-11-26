@@ -112,17 +112,14 @@ try {
         Remove-Item -Path $TEMP_DIR -Recurse -Force
     }
 
-    if ($IsGHA -ne 'Y') {
-        # The bundle_zip script will ensure the latest is checked out, the clone is installed, and the app_setup script is run
-        echo "`n"
-        echo "Bundling Zip..."
-        echo "  - updates the build environment for the Electronite package build,"
-        echo "  - and creates a zip bundle that parallels the Electronite package."
-        & .\bundle_zip.ps1 -ServerOff "Y" -Tier $Tier
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "Error: bundle_zip.ps1 failed with exit code $LASTEXITCODE"
-            exit $LASTEXITCODE
-        }
+    echo "`n"
+    echo "Bundling Zip..."
+    echo "  - updates the build environment for the Electronite package build,"
+    echo "  - and creates a zip bundle that parallels the Electronite package."
+    & .\bundle_zip.ps1 -ServerOff "Y" -Tier $Tier
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Error: bundle_zip.ps1 failed with exit code $LASTEXITCODE"
+        exit $LASTEXITCODE
     }
 
     echo "`n"
